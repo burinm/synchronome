@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
+#include <math.h>
 
 typedef struct _service {
     //Static service info
@@ -135,6 +136,7 @@ int main(int argc, char* argv) {
     int cpu_usage[NUM_SERVICES] = { [0 ... (NUM_SERVICES-1)] = 0};
     int cpu_slack = 0;
 
+    //Count up cpu statistics
     for (int t=0; t < TICKS; t++) {
         assert(events[t] < NUM_SERVICES); //Sanity check state machine
 
@@ -145,12 +147,18 @@ int main(int argc, char* argv) {
         }
     }
 
+    //Print service cpu usage and total
     float total_cpu = 0;
     for (int s=0; s < NUM_SERVICES; s++) {
         float percent = ((float)cpu_usage[s] / (float)TICKS) * 100;
         printf("S%d    %3d/%3d   %3f\n", SERVICE_NUM(s), cpu_usage[s], TICKS, percent);
         total_cpu += percent;
     }
+
+    printf("                           (%3f) - total service\n", total_cpu);
+    float least_upper_bound = NUM_SERVICES * ( pow(2, (float)1 / NUM_SERVICES) - 1) * 100;
+    printf("                           (%3f) - Least Upper Bound\n", least_upper_bound);
+    printf("                           Schedule is %s\n", total_cpu > least_upper_bound ? "unsafe!" : "safe");
 
     float percent = ((float)cpu_slack / (float)TICKS) * 100;
     printf("slack %3d/%3d   %3f\n", cpu_slack, TICKS, percent); 
