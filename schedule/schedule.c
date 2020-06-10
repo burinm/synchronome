@@ -24,6 +24,13 @@ int main(int argc, char* argv) {
     Service S3 = { 15, 2, 0 };
 */
 
+/* example from exercise 1 for testing
+    //Already in rate monotonic order
+    Service S1 = { 2, 1 , 0 };
+    Service S2 = { 5, 2 , 0 };
+    Service S3 = { 10, 1, 0 };
+*/
+
 /*
 */
     //Already in rate monotonic order
@@ -41,10 +48,10 @@ int main(int argc, char* argv) {
     }
 
     //TODO - Lowest Common Multiple calculator
-    #define LCM 30
+    #define LCM 15
 
     //Record events for easier printout, -1 == nothing happened
-    #define TICKS LCM
+    #define TICKS (LCM * 2) // Run two total periods
     int events[TICKS] = { [0 ... (TICKS-1)] = -1 };
 
     //Statistics
@@ -84,7 +91,7 @@ int main(int argc, char* argv) {
     }
 
 
-    printf("Key: [time slice] (Sn - service run) **slack** <- deadline -Dn>\n\n");
+    printf("Key:\n\t[t]\ttime slice\n\t(Sn)\tservice run\n\t****\tCPU slack\n\t<-Dn>\tDeadline\n\n");
     //Print out schedule
     printf("Schedule:\n");
 
