@@ -22,6 +22,8 @@ int main(int argc, char* argv) {
     Service S1 = { 2, 1 , 0 };
     Service S2 = { 10, 1 , 0 };
     Service S3 = { 15, 2, 0 };
+    #define NUM_SERVICES 3
+    Service *Services[NUM_SERVICES] = { &S1, &S2, &S3 };
 */
 
 /* example from exercise 1 for testing
@@ -29,17 +31,26 @@ int main(int argc, char* argv) {
     Service S1 = { 2, 1 , 0 };
     Service S2 = { 5, 2 , 0 };
     Service S3 = { 10, 1, 0 };
+    #define NUM_SERVICES 3
+    Service *Services[NUM_SERVICES] = { &S1, &S2, &S3 };
 */
 
-/*
+/* Exercise 1, homework
 */
     //Already in rate monotonic order
     Service S1 = { 3, 1 , 0 };
     Service S2 = { 5, 2 , 0 };
     Service S3 = { 15, 3, 0 };
-
     #define NUM_SERVICES 3
-    Service *Services[NUM_SERVICES] = { &S1, &S2, &S3 }; 
+    Service *Services[NUM_SERVICES] = { &S1, &S2, &S3 };
+
+/* Exercise 1, part 4 test
+    //Already in rate monotonic order
+    Service S1 = { 2, 1 , 0 };
+    Service S2 = { 5, 2 , 0 };
+    #define NUM_SERVICES 2
+    Service *Services[NUM_SERVICES] = { &S1, &S2 };
+*/
 
     //Initialize all service's deadlines
     for (int s=0; s < NUM_SERVICES; s++) {
