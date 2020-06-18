@@ -83,6 +83,14 @@ s_test_case test_cases[NUM_TEST_CASES] = {
 (uint32_t []){1, 2, 4, 6}
 },
 
+{
+// sched-example-10-above-LUB-disharmonic.xlsx
+// U=98.57
+4,
+(uint32_t []){2, 5, 7, 14},
+(uint32_t []){1, 1, 1, 2}
+},
+
 };
 
 void print_test_case(int num_services, s_test_case *test_case, int test_num) {

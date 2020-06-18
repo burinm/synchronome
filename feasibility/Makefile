@@ -37,7 +37,7 @@ cheddar_generate_test:  cheddar_generate_test.o tests.o
 
 cheddar: cheddar_generate_test
 #https://stackoverflow.com/questions/47358120/how-to-pass-for-loop-variable-to-shell-function-in-makefile
-	for i in `seq 0 9` ; do \
+	for i in `seq 0 10` ; do \
         for j in RM EDF LLF ; do \
                 echo $$i $$j; \
                 ./cheddar_generate_test $$j $$i > test_$${i}_$${j}.xml; \
