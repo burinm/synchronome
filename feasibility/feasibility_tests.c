@@ -45,7 +45,7 @@ int main(void)
         printf("INFEASIBLE\n");
 
     printf("Ex-1 U=%4.2f (C1=1, C2=1, C3=2; T1=2, T2=5, T3=7; T=D): ",
-           ((1.0/2.0) + (1.0/5.0) + (1.0/7.0)));
+           ((1.0/2.0) + (1.0/5.0) + (2.0/7.0)));
     numServices = sizeof(ex1_period)/sizeof(U32_T);
     if(completion_time_feasibility(numServices, ex1_period, ex1_wcet, ex1_period) == TRUE)
         printf("FEASIBLE\n");
@@ -89,7 +89,7 @@ int main(void)
         printf("INFEASIBLE\n");
 
     printf("Ex-1 U=%4.2f (C1=1, C2=1, C3=2; T1=2, T2=5, T3=7; T=D): ",
-           ((1.0/2.0) + (1.0/5.0) + (1.0/7.0)));
+           ((1.0/2.0) + (1.0/5.0) + (2.0/7.0)));
     numServices = sizeof(ex1_period)/sizeof(U32_T);
     if(scheduling_point_feasibility(numServices, ex1_period, ex1_wcet, ex1_period) == TRUE)
         printf("FEASIBLE\n");
@@ -174,21 +174,25 @@ int completion_time_feasibility(U32_T numServices, U32_T period[], U32_T wcet[],
 int scheduling_point_feasibility(U32_T numServices, U32_T period[],
                                 U32_T wcet[], U32_T deadline[])
 {
-   int rc = TRUE, i, j, k, l, status, temp;
+   int rc = TRUE, S2, S, i, num_periods, status, temp;
 
-   for (i=0; i < numServices; i++) // iterate from highest to lowest priority
+   for (S2=0; S2 < numServices; S2++) // iterate from highest to lowest priority
    {
       status=0;
 
-      for (k=0; k<=i; k++)
+      for (S=0; S<=S2; S++) // S = service whose periods must be analyzed
       {
-          for (l=1; l <= (floor((double)period[i]/(double)period[k])); l++)
+          // num_periods to ananlyze for S
+          int floor_T2_T1 = floor((double)period[S2]/(double)period[S]);
+          for (num_periods=1; num_periods <= floor_T2_T1; num_periods++)
           {
                temp=0;
 
-               for (j=0; j<=i; j++) temp += wcet[j] * ceil((double)l*(double)period[k]/(double)period[j]);
+               int ceiling_T1_Tn = ceil((double)num_periods*(double)period[S]/(double)period[i]);
+               // i = service between S1..Sn
+               for (i=0; i<=S2; i++) temp += wcet[i] * ceiling_T1_Tn;
 
-               if (temp <= (l*period[k]))
+               if (temp <= (num_periods*period[S]))
                {
                    status=1;
                    break;

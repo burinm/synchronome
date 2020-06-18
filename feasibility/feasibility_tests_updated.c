@@ -6,6 +6,7 @@
 #define FALSE 0
 #define uint32_t unsigned int
 
+
 typedef struct _test {
     int      num_services;
     uint32_t *periods;
@@ -51,8 +52,9 @@ s_test_case test_cases[5] = {
 };
 
 
+void print_test_case(int num_services, s_test_case *test_case, int test_num);
 int completion_time_feasibility(uint32_t numServices, uint32_t period[], uint32_t wcet[]);
-int scheduling_point_feasibility(uint32_t numServices, uint32_t period[], uint32_t wcet[], uint32_t deadline[]);
+int scheduling_point_feasibility(uint32_t numServices, uint32_t period[], uint32_t wcet[]);
 
 
 int main(void)
@@ -67,30 +69,12 @@ int main(void)
         //TODO - force test case writer to make periods[], wcet[] same size
         int num_services = test_cases[test_case].num_services;
 
-        float utility = 0;
-        for (int service=0; service < num_services; service++) {
-            utility += (float)test_cases[test_case].wcets[service] / (float)test_cases[test_case].periods[service];
-        }
-        printf("Ex-%0d U=%4.2f (", test_case, utility); 
-    
-
-        for (int service=1; service <= num_services; service++) {
-            printf("C%0d=%d", service, test_cases[test_case].wcets[service]);
-            printf("%s",  (service == num_services -1) ? "; " : ", ");
-        }
-
-        for (int service=1; service <= num_services; service++) {
-            printf("T%0d=%d", service, test_cases[test_case].periods[service]);
-            printf("%s",  (service == num_services -1) ? "; " : ", ");
-        }
+        print_test_case(num_services, &test_cases[test_case], test_case);
             
-       printf("T=D): ");
-
         if(completion_time_feasibility(num_services, test_cases[test_case].periods, test_cases[test_case].wcets) == TRUE)
             printf("FEASIBLE\n");
         else
             printf("INFEASIBLE\n");
-       
     }
 
 #if 0
@@ -133,8 +117,25 @@ int main(void)
         printf("FEASIBLE\n");
     else
         printf("INFEASIBLE\n");
+#endif
 
+    printf("\n\n");
+    printf("******** Scheduling Point Feasibility Example\n");
 
+    for (int test_case=0; test_case < sizeof(test_cases)/sizeof(s_test_case); test_case++) {
+
+        //TODO - force test case writer to make periods[], wcet[] same size
+        int num_services = test_cases[test_case].num_services;
+
+        print_test_case(num_services, &test_cases[test_case], test_case);
+            
+        if(scheduling_point_feasibility(num_services, test_cases[test_case].periods, test_cases[test_case].wcets) == TRUE)
+            printf("FEASIBLE\n");
+        else
+            printf("INFEASIBLE\n");
+    }
+
+#if 0
     printf("\n\n");
     printf("******** Scheduling Point Feasibility Example\n");
 
@@ -233,7 +234,7 @@ int completion_time_feasibility(uint32_t numServices, uint32_t period[], uint32_
 
 
 int scheduling_point_feasibility(uint32_t numServices, uint32_t period[],
-                                uint32_t wcet[], uint32_t deadline[])
+                                uint32_t wcet[])
 {
    int rc = TRUE, S2, S, i, num_periods, status, temp;
 
@@ -264,4 +265,25 @@ int scheduling_point_feasibility(uint32_t numServices, uint32_t period[],
       if (!status) rc=FALSE;
    }
    return rc;
+}
+
+void print_test_case(int num_services, s_test_case *test_case, int test_num) {
+
+        float utility = 0;
+        for (int service=0; service < num_services; service++) {
+            utility += (float)test_case->wcets[service] / (float)test_case->periods[service];
+        }
+
+        printf("Ex-%0d U=%4.2f (", test_num, utility); 
+        for (int service=0; service < num_services; service++) {
+            printf("C%0d=%d", service + 1, test_case->wcets[service]);
+            printf("%s",  (service == num_services -1) ? "; " : ", ");
+        }
+
+        for (int service=0; service < num_services; service++) {
+            printf("T%0d=%d", service + 1 , test_case->periods[service]);
+            printf("%s",  (service == num_services -1) ? "; " : ", ");
+        }
+
+       printf("T=D): ");
 }
