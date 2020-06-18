@@ -7,9 +7,8 @@
 #define TRUE 1
 #define FALSE 0
 
-extern s_test_case test_cases[10];
+extern s_test_case test_cases[NUM_TEST_CASES];
 
-void print_test_case(int num_services, s_test_case *test_case, int test_num);
 int completion_time_feasibility(uint32_t numServices, uint32_t period[], uint32_t wcet[]);
 int scheduling_point_feasibility(uint32_t numServices, uint32_t period[], uint32_t wcet[]);
 
@@ -138,25 +137,4 @@ int scheduling_point_feasibility(uint32_t numServices, uint32_t period[],
       if (!status) rc=FALSE;
    }
    return rc;
-}
-
-void print_test_case(int num_services, s_test_case *test_case, int test_num) {
-
-        float utility = 0;
-        for (int service=0; service < num_services; service++) {
-            utility += (float)test_case->wcets[service] / (float)test_case->periods[service];
-        }
-
-        printf("Ex-%0d U=%4.2f (", test_num, utility); 
-        for (int service=0; service < num_services; service++) {
-            printf("C%0d=%d", service + 1, test_case->wcets[service]);
-            printf("%s",  (service == num_services -1) ? "; " : ", ");
-        }
-
-        for (int service=0; service < num_services; service++) {
-            printf("T%0d=%d", service + 1 , test_case->periods[service]);
-            printf("%s",  (service == num_services -1) ? "; " : ", ");
-        }
-
-       printf("T=D): ");
 }
