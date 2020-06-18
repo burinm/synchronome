@@ -164,7 +164,11 @@ int scheduling_point_feasibility(uint32_t numServices, uint32_t period[],
 
                int ceiling_T1_Tn = ceil((double)num_periods*(double)period[S]/(double)period[i]);
                // i = service between S1..Sn
-               for (i=0; i<=S2; i++) temp += wcet[i] * ceiling_T1_Tn;
+               for (i=0; i<=S2; i++)
+               {
+                   int ceiling_T1_Tn = ceil((double)num_periods*(double)period[S]/(double)period[i]);
+                   temp += wcet[i] * ceiling_T1_Tn;
+               }
 
                if (temp <= (num_periods*period[S]))
                {
