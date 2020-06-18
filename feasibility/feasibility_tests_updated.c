@@ -59,7 +59,6 @@ int scheduling_point_feasibility(uint32_t numServices, uint32_t period[], uint32
 
 int main(void)
 {
-    //int i;
     uint32_t numServices;
 
     printf("******** Completion Test Feasibility Example\n");
@@ -77,47 +76,6 @@ int main(void)
             printf("INFEASIBLE\n");
     }
 
-#if 0
-    printf("Ex-0 U=%4.2f (C1=1, C2=1, C3=2; T1=2, T2=10, T3=15; T=D): ",
-           ((1.0/2.0) + (1.0/10.0) + (2.0/15.0)));
-    numServices = sizeof(ex0_period)/sizeof(uint32_t);
-    if(completion_time_feasibility(numServices, ex0_period, ex0_wcet, ex0_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
-
-    printf("Ex-1 U=%4.2f (C1=1, C2=1, C3=2; T1=2, T2=5, T3=7; T=D): ",
-           ((1.0/2.0) + (1.0/5.0) + (1.0/7.0)));
-    numServices = sizeof(ex1_period)/sizeof(uint32_t);
-    if(completion_time_feasibility(numServices, ex1_period, ex1_wcet, ex1_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
-
-    printf("Ex-2 U=%4.2f (C1=1, C2=1, C3=1, C4=2; T1=2, T2=5, T3=7, T4=13; T=D): ",
-           ((1.0/2.0) + (1.0/5.0) + (1.0/7.0) + (2.0/13.0)));
-    numServices = sizeof(ex2_period)/sizeof(uint32_t);
-    if(completion_time_feasibility(numServices, ex2_period, ex2_wcet, ex2_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
-
-    printf("Ex-3 U=%4.2f (C1=1, C2=2, C3=3; T1=3, T2=5, T3=15; T=D): ",
-           ((1.0/3.0) + (2.0/5.0) + (3.0/15.0)));
-    numServices = sizeof(ex3_period)/sizeof(uint32_t);
-    if(completion_time_feasibility(numServices, ex3_period, ex3_wcet, ex3_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
-
-    printf("Ex-4 U=%4.2f (C1=1, C2=1, C3=4; T1=2, T2=4, T3=16; T=D): ",
-           ((1.0/2.0) + (1.0/4.0) + (4.0/16.0)));
-    numServices = sizeof(ex4_period)/sizeof(uint32_t);
-    if(completion_time_feasibility(numServices, ex4_period, ex4_wcet, ex4_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
-#endif
 
     printf("\n\n");
     printf("******** Scheduling Point Feasibility Example\n");
@@ -134,52 +92,6 @@ int main(void)
         else
             printf("INFEASIBLE\n");
     }
-
-#if 0
-    printf("\n\n");
-    printf("******** Scheduling Point Feasibility Example\n");
-
-    printf("Ex-0 U=%4.2f (C1=1, C2=1, C3=2; T1=2, T2=10, T3=15; T=D): ",
-           ((1.0/2.0) + (1.0/10.0) + (2.0/15.0)));
-    numServices = sizeof(ex0_period)/sizeof(uint32_t);
-    if(scheduling_point_feasibility(numServices, ex0_period, ex0_wcet, ex0_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
-
-    printf("Ex-1 U=%4.2f (C1=1, C2=1, C3=2; T1=2, T2=5, T3=7; T=D): ",
-           ((1.0/2.0) + (1.0/5.0) + (1.0/7.0)));
-    numServices = sizeof(ex1_period)/sizeof(uint32_t);
-    if(scheduling_point_feasibility(numServices, ex1_period, ex1_wcet, ex1_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
-
-    printf("Ex-2 U=%4.2f (C1=1, C2=1, C3=1, C4=2; T1=2, T2=5, T3=7, T4=13; T=D): ",
-           ((1.0/2.0) + (1.0/5.0) + (1.0/7.0) + (2.0/13.0)));
-    numServices = sizeof(ex2_period)/sizeof(uint32_t);
-    if(scheduling_point_feasibility(numServices, ex2_period, ex2_wcet, ex2_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
-
-    printf("Ex-3 U=%4.2f (C1=1, C2=2, C3=3; T1=3, T2=5, T3=15; T=D): ",
-        ((1.0/3.0) + (2.0/5.0) + (3.0/15.0)));
-    numServices = sizeof(ex3_period)/sizeof(uint32_t);
-    if(scheduling_point_feasibility(numServices, ex3_period, ex3_wcet, ex3_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
-
-    printf("Ex-4 U=%4.2f (C1=1, C2=1, C3=4; T1=2, T2=4, T3=16; T=D): ",
-           ((1.0/2.0) + (1.0/4.0) + (4.0/16.0)));
-    numServices = sizeof(ex4_period)/sizeof(uint32_t);
-    if(scheduling_point_feasibility(numServices, ex4_period, ex4_wcet, ex4_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
-#endif
-
 }
 
 
