@@ -35,7 +35,17 @@ cheddar_generate_test.o: cheddar_generate_test.c
 cheddar_generate_test:  cheddar_generate_test.o tests.o
 	$(CC) $(LDFLAGS) $(CFLAGS) $^ -o $@
 
+cheddar: cheddar_generate_test
+#https://stackoverflow.com/questions/47358120/how-to-pass-for-loop-variable-to-shell-function-in-makefile
+	for i in `seq 0 9` ; do \
+        for j in RM EDF LLF ; do \
+                echo $$i $$j; \
+                ./cheddar_generate_test $$j $$i > test_$${i}_$${j}.xml; \
+            done \
+    done
+
 clean:
 	-rm -f $(OBJS)
 	-rm -f feasibility_tests feasibility_tests_updated cheddar_generate_test
+	-rm -f *.xml 
 
