@@ -167,12 +167,9 @@ if (protocol == PROTO_EDF) {
         for (int s=0; s < num_services; s++) {
 
            int running = services[s].Runtime < services[s].Cruntime;
-//printf("--> service %d is %d\n", s, running);
            if (running) {
-//printf("--> service %d has deadline %d\n", s, services[s]->Deadline);
             if (services[s].Deadline < earliestDeadline) {
                 earliestDeadline = services[s].Deadline;
-//printf("New lowest deadline %d\n", earliestDeadline);
                 serviceToRun = s;
             }
             STATS_buf[t][s] = services[s].Deadline;
@@ -181,7 +178,6 @@ if (protocol == PROTO_EDF) {
            }
         }
 
-//printf("--> run service %d\n", serviceToRun);
         if (serviceToRun != -1) {
             services[serviceToRun].Runtime++;
             events[t] = serviceToRun;
