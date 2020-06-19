@@ -1,3 +1,4 @@
+#include <limits.h>
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
@@ -8,12 +9,14 @@ typedef struct _service {
     int Cruntime;
 
     //Dynamic counters
-    int Deadline;
+    int Deadline; //This is TTD + 1
     int Runtime;
 } Service;
 
 #define SERVICE_NUM(x) (x+1)
 
+//#define RM_ALG
+#define EDF_ALG
 int main(int argc, char* argv) {
 
 
@@ -66,6 +69,7 @@ int main(int argc, char* argv) {
     int events[TICKS] = { [0 ... (TICKS-1)] = -1 };
 
     //Statistics
+    int misses = 0;
 
     //Run scheduling engine
     for (int t=0; t < TICKS; t++) {
@@ -79,11 +83,13 @@ int main(int argc, char* argv) {
                     Services[s]->Runtime = 0;
                 } else { //missed deadline
                     printf("!S%d - missed\n", SERVICE_NUM(s));
+                    misses++;
                     Services[s]->Runtime = 0;
                 }
             }
         }
 
+#ifdef RM_ALG
         //Run service with highest priority that still needs runtime
         for (int s=0; s < NUM_SERVICES; s++) {
             if (Services[s]->Runtime < Services[s]->Cruntime) {
@@ -93,6 +99,34 @@ int main(int argc, char* argv) {
                 break; //Only run this service
             }
         }
+#endif
+
+#ifdef EDF_ALG
+        //Run service with runtime closest to deadline (EDF)
+        int serviceToRun = -1;
+
+        int earliestDeadline = INT_MAX;
+        for (int s=0; s < NUM_SERVICES; s++) {
+
+           int running = Services[s]->Runtime < Services[s]->Cruntime;
+printf("--> service %d is %d\n", s, running);
+           if (running) {
+printf("--> service %d has deadline %d\n", s, Services[s]->Deadline);
+            if (Services[s]->Deadline < earliestDeadline) {
+                earliestDeadline = Services[s]->Deadline;
+printf("New lowest deadline %d\n", earliestDeadline);
+                serviceToRun = s;
+            }
+           }
+        }
+
+printf("--> run service %d\n", serviceToRun);
+        if (serviceToRun != -1) {
+            Services[serviceToRun]->Runtime++;
+            events[t] = serviceToRun;
+        }
+#endif
+
 
         //Clock tick
         for (int s=0; s < NUM_SERVICES; s++) {
@@ -184,4 +218,6 @@ int main(int argc, char* argv) {
 
     printf("-------------------------\n");
     printf("total           %3f%% cpu\n", total_cpu); 
+
+    printf("\nmisses = %d\n", misses);
 }
