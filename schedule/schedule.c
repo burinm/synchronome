@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../feasibility/tests.h"
 extern s_test_case test_cases[];
@@ -19,17 +20,38 @@ typedef struct _service {
 
 #define SERVICE_NUM(x) (x+1)
 
-//#define RM_ALG
-//#define EDF_ALG
-#define LLF_ALG
+#define PROTO_NONE 0
+#define PROTO_RM 1
+#define PROTO_EDF 2
+#define PROTO_LLF 3
 
 int num_services = 0;
 
 int main(int argc, char* argv[]) {
 
-if (argc != 2) {
-    printf("usage: schedule <test#>\n");
+if (argc != 3) {
+    printf("usage: schedule <test#> <RM/EDF/LLF>\n");
     exit(1);
+}
+
+int protocol = PROTO_NONE;
+
+if (strcmp(argv[2], "RM") == 0) {
+    protocol = PROTO_RM;
+}
+
+if (strcmp(argv[2], "EDF") == 0) {
+    protocol = PROTO_EDF;
+}
+
+if (strcmp(argv[2], "LLF") == 0) {
+    protocol = PROTO_LLF;
+}
+
+
+if (protocol == PROTO_NONE) {
+    printf("error -no such protocol\n");
+    exit(-1);
 }
 
 
@@ -100,11 +122,11 @@ for (int s=0; s < num_services; s++) {
 
     //Statistics
     int misses = 0;
-    int **LLF_stats = calloc(sizeof(int*),  TICKS); //store [tick][Service LLF]
-assert(LLF_stats);
+    int **STATS_buf = calloc(sizeof(int*),  TICKS); //store [tick][Service LLF]
+assert(STATS_buf);
     for (int i=0; i<TICKS; i++) {
-        LLF_stats[i] = calloc(sizeof(int), num_services);
-assert(LLF_stats[i]);
+        STATS_buf[i] = calloc(sizeof(int), num_services);
+assert(STATS_buf[i]);
     }
 
     //Run scheduling engine
@@ -125,7 +147,7 @@ assert(LLF_stats[i]);
             }
         }
 
-#ifdef RM_ALG
+if (protocol == PROTO_RM) {
         //Run service with highest priority that still needs runtime
         for (int s=0; s < num_services; s++) {
             if (services[s].Runtime < services[s].Cruntime) {
@@ -135,9 +157,9 @@ assert(LLF_stats[i]);
                 break; //Only run this service
             }
         }
-#endif
+}
 
-#ifdef EDF_ALG
+if (protocol == PROTO_EDF) {
         //Run service with runtime closest to deadline (EDF)
         int serviceToRun = -1;
 
@@ -153,6 +175,9 @@ assert(LLF_stats[i]);
 //printf("New lowest deadline %d\n", earliestDeadline);
                 serviceToRun = s;
             }
+            STATS_buf[t][s] = services[s].Deadline;
+           } else {
+            STATS_buf[t][s] = -1;
            }
         }
 
@@ -161,9 +186,9 @@ assert(LLF_stats[i]);
             services[serviceToRun].Runtime++;
             events[t] = serviceToRun;
         }
-#endif
+}
 
-#ifdef LLF_ALG
+if (protocol == PROTO_LLF) {
         //Run service with runtime closest to deadline (EDF)
         int serviceToRun = -1;
 
@@ -171,27 +196,23 @@ assert(LLF_stats[i]);
         for (int s=0; s < num_services; s++) {
 
            int running = services[s].Runtime < services[s].Cruntime;
-printf("--> service %d is %s\n", s, running ? "running" : "idle                          X");
            if (running) {
             int laxity = services[s].Deadline - (services[s].Cruntime - services[s].Runtime);
-printf("--> service %d deadline=%d runtime=%d has laxity %d\n", s, services[s].Deadline, services[s].Runtime, laxity);
             if (laxity < leastLaxity) {
                 leastLaxity = laxity;
-printf("New lowest least laxity %d\n", leastLaxity);
                 serviceToRun = s;
             }
-            LLF_stats[t][s] = laxity;
+            STATS_buf[t][s] = laxity;
            } else {
-            LLF_stats[t][s] = -1;
+            STATS_buf[t][s] = -1;
            }
         }
 
-printf("--> run service %d\n\n", serviceToRun);
         if (serviceToRun != -1) {
             services[serviceToRun].Runtime++;
             events[t] = serviceToRun;
         }
-#endif
+}
 
 
         //Clock tick
@@ -249,18 +270,18 @@ printf("--> run service %d\n\n", serviceToRun);
         printf("\n");
     }
 
-#ifdef LLF_ALG
+if (protocol == PROTO_EDF || protocol == PROTO_LLF) {
     for (int s=0; s < num_services; s++) {
         for (int t=0; t < TICKS; t++) {
-            if (LLF_stats[t][s] == -1) {
+            if (STATS_buf[t][s] == -1) {
                 printf("% 4s", "X");
             } else {
-                printf("% 4d", LLF_stats[t][s]);
+                printf("% 4d", STATS_buf[t][s]);
             }
         }
         printf(" :S%d\n",s);
     }
-#endif
+}
 
     //Statistics
     printf("\nStatistics:\n\n");
