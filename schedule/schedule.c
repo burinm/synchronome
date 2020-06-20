@@ -1,3 +1,10 @@
+/* schedule.c - burin (c) 2020
+    Test RM, EDF, and LLF schedules by running them iteratively
+
+    usage: ./schedule <test#> <RM/EDF/LLF>
+
+        note, test cases are hard coded in ../feasibility/tests.c
+*/
 #include <limits.h>
 #include <stdio.h>
 #include <assert.h>
@@ -69,49 +76,6 @@ for (int s=0; s < num_services; s++) {
     services[s].Runtime = 0;
 }
 
-
-/* example from sched-example-0-safe for testing
-    //Already in rate monotonic order
-    Service S1 = { 2, 1 , 0 };
-    Service S2 = { 10, 1 , 0 };
-    Service S3 = { 15, 2, 0 };
-    #define NUM_SERVICES 3
-    Service *Services[NUM_SERVICES] = { &S1, &S2, &S3 };
-*/
-
-/* example from exercise 1 for testing
-    //Already in rate monotonic order
-    Service S1 = { 2, 1 , 0 };
-    Service S2 = { 5, 2 , 0 };
-    Service S3 = { 10, 1, 0 };
-    #define NUM_SERVICES 3
-    Service *Services[NUM_SERVICES] = { &S1, &S2, &S3 };
-*/
-
-/* Exercise 1, homework
-    //Already in rate monotonic order
-    Service S1 = { 3, 1 , 0 };
-    Service S2 = { 5, 2 , 0 };
-    Service S3 = { 15, 3, 0 };
-    #define NUM_SERVICES 3
-    Service *Services[NUM_SERVICES] = { &S1, &S2, &S3 };
-*/
-
-/* Exercise 1, part 4 test
-    //Already in rate monotonic order
-    Service S1 = { 2, 1 , 0 };
-    Service S2 = { 5, 2 , 0 };
-    #define NUM_SERVICES 2
-    Service *Services[NUM_SERVICES] = { &S1, &S2 };
-*/
-
-    //Initialize all service's deadlines
-/*
-    for (int s=0; s < NUM_SERVICES; s++) {
-        Services[s]->Deadline = Services[s]->Tperiod;
-        Services[s]->Runtime = 0; 
-    }
-*/
 
     //TODO - Lowest Common Multiple calculator
     #define LCM 15
@@ -328,5 +292,7 @@ assert(cpu_usage);
         printf("C%d ", services[s].Cruntime);
     }
     printf("\n");
+
+//TODO free all memory for completeness
 
 }

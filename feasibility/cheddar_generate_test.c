@@ -1,3 +1,29 @@
+/* cheddar_generate_test.c - burin (c) 2020
+    Write out cheddar 3.1 compatible XML for all test cases
+    RM/EDF and LLF
+
+
+    Example:
+
+    make cheddar
+
+    gcc  -O0 -g   -c cheddar_generate_test.c -o cheddar_generate_test.o
+    gcc  -O0 -g   -c tests.c -o tests.o
+    gcc  -O0 -g   cheddar_generate_test.o tests.o -o cheddar_generate_test
+    for i in `seq 0 10` ; do \
+            for j in RM EDF LLF ; do \
+                    echo $i $j; \
+                    ./cheddar_generate_test $j $i > test_${i}_${j}.xml; \
+                done \
+        done
+
+    $ ls *.xml
+    test_0_EDF.xml   test_10_RM.xml  test_2_LLF.xml  test_4_EDF.xml  test_5_RM.xml   test_7_LLF.xml  test_9_EDF.xml
+    test_0_LLF.xml   test_1_EDF.xml  test_2_RM.xml   test_4_LLF.xml  test_6_EDF.xml  test_7_RM.xml   test_9_LLF.xml
+    test_0_RM.xml    test_1_LLF.xml  test_3_EDF.xml  test_4_RM.xml   test_6_LLF.xml  test_8_EDF.xml  test_9_RM.xml
+    test_10_EDF.xml  test_1_RM.xml   test_3_LLF.xml  test_5_EDF.xml  test_6_RM.xml   test_8_LLF.xml
+    test_10_LLF.xml  test_2_EDF.xml  test_3_RM.xml   test_5_LLF.xml  test_7_EDF.xml  test_8_RM.xml
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

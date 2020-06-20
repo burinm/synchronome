@@ -1,3 +1,19 @@
+/* feasibility_tests.c - burin (c) 2020
+                         siewert (c) a decade ago
+
+    ****NOTE**** - code for exercise 2 is in feasibility_tests_updated.c
+
+    This was kept as a running reference with my new changes to
+    make sure I didn't break anything.
+
+    i.e.
+        ./feasibility_tests > a
+        ./feasibility_tests_updated > b
+
+        diff a b
+        (only should see changes from new tests)
+
+*/
 #include <math.h>
 #include <stdio.h>
 

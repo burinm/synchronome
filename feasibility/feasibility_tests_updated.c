@@ -1,3 +1,13 @@
+/* feasibility_tests_updated.c - burin (c) 2020
+    Run completion time and scheduling point simulations
+
+    siewert (c) a decade ago
+    Extended feasibility tests from
+        http://ecee.colorado.edu/~ecen5623/ecen/ex/Linux/code/Feasibility/feasibility_tests.c
+
+    Code was cleaned up to only use one entry point for every test.
+    Tests are now in seperate module test.c/h
+*/
 #include <stdint.h>
 #include <math.h>
 #include <stdio.h>
