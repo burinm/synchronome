@@ -187,6 +187,9 @@ int completion_time_feasibility(U32_T numServices, U32_T period[], U32_T wcet[],
 }
 
 
+#define DOESNT_FIT 0 
+#define IT_FITS    1 
+
 int scheduling_point_feasibility(U32_T numServices, U32_T period[],
                                 U32_T wcet[], U32_T deadline[])
 {
@@ -194,7 +197,7 @@ int scheduling_point_feasibility(U32_T numServices, U32_T period[],
 
    for (S2=0; S2 < numServices; S2++) // iterate from highest to lowest priority
    {
-      status=0;
+      status = DOESNT_FIT;
 
       for (S=0; S<=S2; S++) // S = service whose periods must be analyzed
       {
@@ -213,13 +216,15 @@ int scheduling_point_feasibility(U32_T numServices, U32_T period[],
 
                if (temp <= (num_periods*period[S]))
                {
-                   status=1;
+                   status = IT_FITS;
                    break;
                }
+
+               //Keep looking
            }
-           if (status) break;
+           if (status == IT_FITS) break;
       }
-      if (!status) rc=FALSE;
+      if (status == DOESNT_FIT) rc=FALSE;
    }
    return rc;
 }
