@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#define NUM_TEST_CASES  11
+#define NUM_TEST_CASES  12
 
 typedef struct _test {
     int      num_services;

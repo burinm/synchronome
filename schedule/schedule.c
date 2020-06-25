@@ -64,6 +64,11 @@ if (protocol == PROTO_NONE) {
 
 int service = atoi(argv[1]);
 
+if (service > NUM_TEST_CASES -1) {
+    printf("Test case #%d isn't implemented\n", service);
+    exit(0);
+}
+
 num_services = test_cases[service].num_services;
 
 Service* services = malloc(sizeof(Service) * num_services);

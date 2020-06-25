@@ -91,6 +91,14 @@ s_test_case test_cases[NUM_TEST_CASES] = {
 (uint32_t []){1, 1, 1, 2}
 },
 
+{
+// 11 - EDF different vs LLF
+// U=100
+3,
+(uint32_t []){3, 6, 9},
+(uint32_t []){1, 2, 3}
+},
+
 };
 
 void print_test_case(int num_services, s_test_case *test_case, int test_num) {

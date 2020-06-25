@@ -14,3 +14,4 @@ tests.o: ../feasibility/tests.c
 clean:
 	rm -rf $(PROGRAM)
 	rm -rf *.o
+	rm -rf ../feasibility/tests.o
