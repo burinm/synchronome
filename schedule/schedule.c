@@ -83,7 +83,9 @@ for (int s=0; s < num_services; s++) {
 
 
     //TODO - Lowest Common Multiple calculator
-    #define LCM 15
+    //#define LCM 15
+    //define LCM 24 
+    #define LCM 10 
 
     //Record events for easier printout, -1 == nothing happened
     #define TICKS (LCM * 2) // Run two total periods

@@ -99,6 +99,30 @@ s_test_case test_cases[NUM_TEST_CASES] = {
 (uint32_t []){1, 2, 3}
 },
 
+{
+// 12 - Exam question #18 
+// U=100
+4,
+(uint32_t []){6, 8, 12, 24},
+(uint32_t []){1, 2, 4, 6}
+},
+
+{
+// 13 - Exam question # 20
+// U=100
+4,
+(uint32_t []){4, 8, 12, 16},
+(uint32_t []){1, 2, 3, 4}
+},
+
+{
+// 14 - Exam question # 23
+// U=100
+3,
+(uint32_t []){2, 5, 10},
+(uint32_t []){1, 1, 3}
+},
+
 };
 
 void print_test_case(int num_services, s_test_case *test_case, int test_num) {
