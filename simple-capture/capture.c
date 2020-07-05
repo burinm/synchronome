@@ -119,11 +119,10 @@ image_formats.type = V4L2_BUF_TYPE_VIDEO_CAPTURE; //start enumeration here
 
 while (ioctl(camera_fd, VIDIOC_ENUM_FMT, &image_formats) == 0) {
     printf("\t[%u]%-32s ", image_formats.index, image_formats.description); 
-    uint32_t pixelformat = image_formats.pixelformat;
-    printf("pixelformat %c:%c:%c:%c ", (char)pixelformat & 0xff,
-                                       (char)(pixelformat >> 8) & 0xff,
-                                       (char)(pixelformat >> 16) & 0xff,
-                                       (char)(pixelformat >> 24) & 0xff); 
+    printf("pixelformat "); 
+    print_pixelformat(image_formats.pixelformat);
+    printf(" "); 
+
     if (image_formats.flags & V4L2_FMT_FLAG_COMPRESSED) {
         printf(" V4L2_FMT_FLAG_COMPRESSED");
     }
@@ -134,7 +133,7 @@ while (ioctl(camera_fd, VIDIOC_ENUM_FMT, &image_formats) == 0) {
     printf("\n");
 }
 
-printf("\n");
+printf("\nTODO: which capture type is set?\n");
 
 if (errno != EINVAL) {
     perror("Couldn't enumerate camera image formats");
@@ -146,18 +145,48 @@ if (image_formats.index == 0) {
     goto error;
 }
 
-#if 0
-struct v4l2_format camera_formats;
-memset (&camera_formats, 0, sizeof(struct v4l2_format));
-camera_formats.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+struct v4l2_format camera_format;
+struct v4l2_pix_format *pix = &camera_format.fmt.pix;
 
-if (ioctl(camera_fd, VIDIOC_G_FMT, &v4l2_format) == -1) {
-    perror("ioctl VIDIOC_ENUMINPUT failed");
+memset(&camera_format, 0, sizeof(struct v4l2_format));
+camera_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+if (ioctl(camera_fd, VIDIOC_G_FMT, &camera_format) == -1) {
+    perror("ioctl VIDIOC_G_FMT failed");
     goto error;
 }
-#endif
 
+printf("video (%u x %u) ", pix->width, pix->height);
+print_pixelformat(pix->pixelformat);
+printf(" field(%u) bytesperline(%u)\n", pix->field, pix->bytesperline);
 
+//Change to YUYV
+printf("Change to YUYV 320x240\n");
+memset(&camera_format, 0, sizeof(struct v4l2_format));
+camera_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    pix->width = 320;
+    pix->height = 240; 
+    pix->pixelformat = v4l2_fourcc('Y','U','Y','V');
+    //pix->pixelformat = v4l2_fourcc('M','J','P','G');
+
+if (ioctl(camera_fd, VIDIOC_S_FMT, &camera_format) == -1) {
+    perror("ioctl VIDIOC_G_FMT failed");
+    goto error;
+}
+
+//Print out current format again
+memset(&camera_format, 0, sizeof(struct v4l2_format));
+camera_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+if (ioctl(camera_fd, VIDIOC_G_FMT, &camera_format) == -1) {
+    perror("ioctl VIDIOC_G_FMT failed");
+    goto error;
+}
+
+printf("video (%u x %u) ", pix->width, pix->height);
+print_pixelformat(pix->pixelformat);
+printf(" field(%u) bytesperline(%u)\n", pix->field, pix->bytesperline);
+//End print out current format
 
 
 error:
