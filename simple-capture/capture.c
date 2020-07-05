@@ -82,7 +82,7 @@ if (ioctl(camera_fd, VIDIOC_ENUMINPUT, &camera_input) == -1) {
 
 
 //I'm guessing .std isn't set because a USB camera?
-printf("\n[INPUT %s(%u) (0x%.16llx)]\n", camera_input.name, camera_input.index, camera_input.std);
+printf("\n[INPUT %s index = %u std(0x%.16llx)]\n", camera_input.name, camera_input.index, camera_input.std);
 
 
 #if 0 //Don't think this works on USB cameras
@@ -118,8 +118,20 @@ image_formats.index = 0; //start enumeration here
 image_formats.type = V4L2_BUF_TYPE_VIDEO_CAPTURE; //start enumeration here 
 
 while (ioctl(camera_fd, VIDIOC_ENUM_FMT, &image_formats) == 0) {
-    printf("\t[%u]%-32s\n", image_formats.index, image_formats.description); 
+    printf("\t[%u]%-32s ", image_formats.index, image_formats.description); 
+    uint32_t pixelformat = image_formats.pixelformat;
+    printf("pixelformat %c:%c:%c:%c ", (char)pixelformat & 0xff,
+                                       (char)(pixelformat >> 8) & 0xff,
+                                       (char)(pixelformat >> 16) & 0xff,
+                                       (char)(pixelformat >> 24) & 0xff); 
+    if (image_formats.flags & V4L2_FMT_FLAG_COMPRESSED) {
+        printf(" V4L2_FMT_FLAG_COMPRESSED");
+    }
+    if (image_formats.flags & V4L2_FMT_FLAG_EMULATED) {
+        printf(" V4L2_FMT_FLAG_EMULATED");
+    }
     image_formats.index++;
+    printf("\n");
 }
 
 printf("\n");
