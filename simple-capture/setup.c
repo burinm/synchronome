@@ -22,7 +22,8 @@ int open_camera(char* camera) {
     }
 
     printf("Device node %s exists\n", camera);
-    printf("Devid: Major %u Minor %u\n", MAJOR(s_test.st_rdev), MINOR(s_test.st_rdev));
+    printf("Devid: Major %u Minor %u\n", (unsigned int)MAJOR(s_test.st_rdev),
+                                         (unsigned int)MINOR(s_test.st_rdev));
     /*Note: could use CONFIG_VIDEO_FIXED_MINOR_RANGES to fix minor number */
 
     if (MAJOR(s_test.st_rdev) != CAMERA_MAJ_ID) {
@@ -82,7 +83,6 @@ int show_camera_capabilities(int camera_fd) {
         perror("ioctl VIDIOC_ENUMINPUT failed");
         return -1;
     }
-
 
     //I'm guessing .std isn't set because a USB camera?
     printf("\n[INPUT %s index = %u std(0x%.16llx)]\n", camera_input.name, camera_input.index, camera_input.std);
@@ -165,11 +165,34 @@ int show_camera_image_format(int camera_fd) {
         return -1;
     }
 
-    printf("video (%u x %u) ", pix->width, pix->height);
+    printf("[video %u x %u]\n", pix->width, pix->height);
+    printf("\tpixelformat: ");
     print_pixelformat(pix->pixelformat);
-    printf(" field(%u) bytesperline(%u)\n", pix->field, pix->bytesperline);
+    printf("\n");
+    printf("\tfield: %u\n", pix->field);
+    printf("\tbytesperline: %u\n", pix->bytesperline);
+    printf("\tbuffer size %u\n", pix->sizeimage);
+    printf("\t\tv4l2_colorspace %u\n", pix->colorspace);
+    printf("\t\tv4l2_ycbcr_encoding %u\n", pix->ycbcr_enc);
+    printf("\t\tv4l2_quantization %u\n", pix->quantization);
+    printf("\t\tv4l2_xfer_func %u\n", pix->xfer_func);
 
 return 0;
+}
+
+int query_buffer_size(int camera_fd) {
+    struct v4l2_format camera_format;
+    struct v4l2_pix_format *pix = &camera_format.fmt.pix;
+
+    memset(&camera_format, 0, sizeof(struct v4l2_format));
+    camera_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+    if (ioctl(camera_fd, VIDIOC_G_FMT, &camera_format) == -1) {
+        perror("ioctl VIDIOC_G_FMT failed");
+        return -1;
+    }
+
+return pix->sizeimage;
 }
 
 int camera_set_yuyv(int camera_fd) {
