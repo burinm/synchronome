@@ -41,8 +41,8 @@ int open_camera(char* camera) {
 return camera_fd;
 }
 
-void close_camera(int camera_fd) {
-    close(camera_fd);
+int close_camera(int camera_fd) {
+    return close(camera_fd);
 }
 
 int show_camera_capabilities(int camera_fd) {

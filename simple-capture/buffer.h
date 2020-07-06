@@ -1,4 +1,4 @@
 typedef struct {
-    int size;
     void* start;
+    size_t size;
 } buffer_t;
