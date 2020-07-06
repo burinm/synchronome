@@ -9,6 +9,7 @@
 
 #include "setup.h"
 #include "buffer.h"
+#include "dumptools.h"
 
 #define USE_CTRL_C
 
@@ -194,6 +195,7 @@ printf(".");
     }
     
     printf("buf index %d dequeued!\n", current_b.index);
+    dump_buffer_with_timestamp(&buffers[current_b.index]);
 
     //Requeue buffer - TODO - do I need to clear it?
     if (ioctl(camera_fd, VIDIOC_QBUF, &current_b) == -1) {
@@ -215,7 +217,7 @@ error3:
 //TODO - Does the driver do this with VIDIOC_REQBUFS, count = 0?
     for (int i=0; i < rb.count; i++) {
         if (buffers[i].start) { 
-            printf("freeing buffer #%d (%p)\n", i, buffers[i].start);
+            printf("munmap buffer #%d (%p)\n", i, buffers[i].start);
             munmap(buffers[i].start, buffers[i].size);
         }
     }
