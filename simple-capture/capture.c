@@ -195,7 +195,8 @@ printf(".");
     }
     
     printf("buf index %d dequeued!\n", current_b.index);
-    dump_buffer_with_timestamp(&buffers[current_b.index]);
+    //dump_buffer_with_timestamp(&buffers[current_b.index]);
+    dump_yuv422_to_rgb_raw(&buffers[current_b.index]);
 
     //Requeue buffer - TODO - do I need to clear it?
     if (ioctl(camera_fd, VIDIOC_QBUF, &current_b) == -1) {
