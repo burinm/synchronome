@@ -15,7 +15,7 @@ int fd = -1;
 int count = 0;
 
 
-void dump_buffer_with_timestamp(buffer_t *b) {
+void dump_buffer_raw(buffer_t *b) {
 
 
     fd = _open_for_write("yuv");
