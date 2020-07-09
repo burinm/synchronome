@@ -17,6 +17,7 @@ all:	capture sharpen
 clean:
 	-rm -f *.o *.d
 	-rm -f capture sharpen
+	-rm -f *.yuv *.ppm
 
 clean-frames:
 	-rm -f *.yuv *.ppm

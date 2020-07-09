@@ -14,7 +14,9 @@
 #include "setup.h"
 #include "v4l2_capabilities.h"
 
-int open_camera(char* camera) {
+int open_camera(char* camera, video_t *v) {
+    v->camera_fd = -1;
+
     struct stat s_test;
     if (stat(camera, &s_test) != 0) {
         perror("Couldn't open camera");
@@ -38,7 +40,9 @@ int open_camera(char* camera) {
         perror("Couldn't open camera");
         return -1;
     }
-return camera_fd;
+
+    v->camera_fd = camera_fd;
+return 0;
 }
 
 int close_camera(int camera_fd) {

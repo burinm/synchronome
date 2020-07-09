@@ -13,7 +13,7 @@
 
 #define USE_CTRL_C
 
-int camera_fd = -1;
+//int camera_fd = -1;
 
 #ifdef USE_CTRL_C
 /* catch signal */
@@ -25,6 +25,7 @@ int running = 1;
 
 int main() {
 
+
 #ifdef USE_CTRL_C
 //install ctrl_c signal handler 
 struct sigaction action;
@@ -32,49 +33,54 @@ action.sa_handler = ctrl_c;
 sigaction(SIGINT, &action, NULL);
 #endif
 
-if ((camera_fd = open_camera(CAMERA_DEV)) == -1) {
+video_t video;
+memset(&video, 0, sizeof(video_t));
+video.camera_fd = -1;
+video.width = 320; //TODO, pass these in camera init request
+video.height = 240;
+
+if (open_camera(CAMERA_DEV, &video) == -1) {
     exit(0);
 }
 
 /* This can all be setup/checked with v4l2-ctl also */
-if (show_camera_capabilities(camera_fd) == -1) {
+if (show_camera_capabilities(video.camera_fd) == -1) {
     goto error;
 }
 
-if (enumerate_camera_image_formats(camera_fd) == -1) {
+if (enumerate_camera_image_formats(video.camera_fd) == -1) {
     goto error;
 }
 
-if (show_camera_image_format(camera_fd) == -1) {
+if (show_camera_image_format(video.camera_fd) == -1) {
     goto error;
 }
 
-if (camera_set_yuyv(camera_fd) == -1) {
+if (camera_set_yuyv(video.camera_fd) == -1) {
     goto error;
 }
 
-if (show_camera_image_format(camera_fd) == -1) {
+if (show_camera_image_format(video.camera_fd) == -1) {
     goto error;
 }
 /* End - This can all be setup/checked with v4l2-ctl also */
 
 //Request some buffers!
-struct v4l2_requestbuffers rb;
-
-if (request_buffers(&rb, camera_fd) == -1) {
+if (request_buffers(&video) == -1) {
     perror("Couldn't allocate buffers");
     goto error;
 }
 
 //Enqueue all the buffers
-for (int i=0; i < rb.count; i++) {
+for (int i=0; i < video.num_buffers; i++) {
     struct v4l2_buffer b;
     memset(&b, 0, sizeof(struct v4l2_buffer)); 
     b.index = i;
-    b.type = rb.type;
-    b.memory = rb.memory;
+    b.type = video.type;
+    b.memory = video.memory;
 
-    if (ioctl(camera_fd, VIDIOC_QBUF, &b) == -1) {
+    
+    if (enqueue_buf(&b, video.camera_fd) == -1) {
         printf("Couldn't enqueue buffer, index %d:", i);
         perror(NULL);
         goto error3;
@@ -94,7 +100,7 @@ for (int i=0; i < rb.count; i++) {
 
 //Start streaming
 int stream_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-if (ioctl(camera_fd, VIDIOC_STREAMON, &stream_type) == -1) {
+if (ioctl(video.camera_fd, VIDIOC_STREAMON, &stream_type) == -1) {
     perror("Couldn't start stream");
     goto error3;
 }
@@ -106,10 +112,10 @@ struct v4l2_buffer current_b;
 while(running) {
 
     memset(&current_b, 0, sizeof(struct v4l2_buffer)); 
-    current_b.type = rb.type;
-    current_b.memory = rb.memory;
+    current_b.type = video.type;
+    current_b.memory = video.memory;
     
-    ret = ioctl(camera_fd, VIDIOC_DQBUF, &current_b);
+    ret = dequeue_buf(&current_b, video.camera_fd);
     if (ret == -1) {
         perror("VIDIOC_DQBUF");
         running = 0;
@@ -126,7 +132,7 @@ printf(".");
     dump_yuv422_to_rgb_raw(&buffers[current_b.index]);
 
     //Requeue buffer - TODO - do I need to clear it?
-    if (ioctl(camera_fd, VIDIOC_QBUF, &current_b) == -1) {
+    if (enqueue_buf(&current_b, video.camera_fd) == -1) {
         perror("VIDIOC_QBUF");
         running = 0;
         goto error4;
@@ -137,19 +143,19 @@ printf(".");
 }
 
 error4:
-if (ioctl(camera_fd, VIDIOC_STREAMOFF, &stream_type) == -1) {
+if (ioctl(video.camera_fd, VIDIOC_STREAMOFF, &stream_type) == -1) {
     perror("Couldn't stop stream");
 }
 
 error3:
-deallocate_buffers(&rb, camera_fd);
+deallocate_buffers(&video);
 
 //error2:
  //   free_buffers();
 
 error:
-    if (close_camera(camera_fd) == -1) {
-        printf("problem closing fd=%d\n", camera_fd);
+    if (close_camera(video.camera_fd) == -1) {
+        printf("problem closing fd=%d\n", video.camera_fd);
         perror(NULL);
     } else {
         printf("closed camera device\n");

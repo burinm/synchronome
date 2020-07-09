@@ -2,31 +2,36 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+#include <assert.h>
 
 #include "buffer.h"
+#include "setup.h"
 
 buffer_t buffers[NUM_BUF];
 
-void _free_buffers(int camera_fd);
-void _munmap_buffers(struct v4l2_requestbuffers* rb);
+void _free_buffers(video_t *v);
+void _munmap_buffers(int num_buffers);
 
-int request_buffers(struct v4l2_requestbuffers* rb, int camera_fd) {
+int request_buffers(video_t *v) {
+    assert(v->camera_fd != -1);
 
-    memset(rb, 0, sizeof(struct v4l2_requestbuffers));
-    rb->count = NUM_BUF;  //simple ping pong strategy
-    rb->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    rb->memory = V4L2_MEMORY_MMAP; //TODO try for DMA
+    struct v4l2_requestbuffers rb;
 
-    if (ioctl(camera_fd, VIDIOC_REQBUFS, rb) == -1) {
+    memset(&rb, 0, sizeof(struct v4l2_requestbuffers));
+    rb.count = NUM_BUF;  //simple ping pong strategy
+    rb.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    rb.memory = V4L2_MEMORY_MMAP; //TODO try for DMA
+
+    if (ioctl(v->camera_fd, VIDIOC_REQBUFS, &rb) == -1) {
         perror("Couldn't allocate buffers");
         return -1; 
     }
 
     //Did we get all the buffer we asked for?
-    if (rb->count < NUM_BUF) {
+    if (rb.count < NUM_BUF) {
         printf("Did not get requested amount of buffers\n");
 
-        _free_buffers(camera_fd);
+        _free_buffers(v);
         return -1;
     }
 
@@ -34,18 +39,18 @@ int request_buffers(struct v4l2_requestbuffers* rb, int camera_fd) {
 
     //Code taken/modified from here:
     // https://www.kernel.org/doc/html/v4.9/media/uapi/v4l/mmap.html
-    for (int i=0; i < rb->count; i++) {
+    for (int i=0; i < rb.count; i++) {
         struct v4l2_buffer b;
 
         memset(&b, 0, sizeof(struct v4l2_buffer));
         b.index = i;
-        b.type = rb->type;
-        b.memory = rb->memory;
+        b.type = rb.type;
+        b.memory = rb.memory;
 
-        if (ioctl(camera_fd, VIDIOC_QUERYBUF, &b) == -1) {
+        if (ioctl(v->camera_fd, VIDIOC_QUERYBUF, &b) == -1) {
             printf("Couldn't get buffer info, index %d:", i);
             perror(NULL);
-            _free_buffers(camera_fd);
+            _free_buffers(v);
             return -1;
         }
 
@@ -61,10 +66,12 @@ int request_buffers(struct v4l2_requestbuffers* rb, int camera_fd) {
             serving as parameter to the mmap() function not useful for
             applications.
          */
-        buffers[i].start = mmap(NULL, b.length, PROT_READ | PROT_WRITE, MAP_SHARED, camera_fd, b.m.offset);
+        buffers[i].start = mmap(NULL, b.length, PROT_READ | PROT_WRITE, MAP_SHARED,
+                                v->camera_fd, b.m.offset);
+
         if (buffers[i].start == MAP_FAILED) {
             printf("Couldn't map buffer!\n");
-            deallocate_buffers(rb, camera_fd);
+            deallocate_buffers(v);
             return -1;
         }
 
@@ -72,31 +79,45 @@ int request_buffers(struct v4l2_requestbuffers* rb, int camera_fd) {
 
 
     }
-return NUM_BUF;
+
+    v->num_buffers = rb.count;
+    v->type = rb.type;
+    v->memory = rb.memory;
+return 0;
 }
 
-void deallocate_buffers(struct v4l2_requestbuffers* rb, int camera_fd) {
-     _munmap_buffers(rb);
-     _free_buffers(camera_fd);
+void deallocate_buffers(video_t *v) {
+     _munmap_buffers(v->num_buffers);
+     _free_buffers(v);
+}
+
+int enqueue_buf(struct v4l2_buffer* b, int camera_fd) {
+    return ioctl(camera_fd, VIDIOC_QBUF, b);
+}
+
+int dequeue_buf(struct v4l2_buffer* b, int camera_fd) {
+    return ioctl(camera_fd, VIDIOC_DQBUF, b);
 }
 
 
-void _free_buffers(int camera_fd) {
+
+
+void _free_buffers(video_t *v) {
     //Try to free buffers. (count = 0) Implicit VIDIOC_STREAMOFF
     struct v4l2_requestbuffers rb;
     memset(&rb, 0, sizeof(struct v4l2_requestbuffers));
-    rb.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    rb.memory = V4L2_MEMORY_MMAP;
+    rb.type = v->type;
+    rb.memory = v->memory;
 
-    if (ioctl(camera_fd, VIDIOC_REQBUFS, &rb) == -1) {
+    if (ioctl(v->camera_fd, VIDIOC_REQBUFS, &rb) == -1) {
         perror("Couldn't free buffers");
     }
     printf("freed internal buffers\n");
 }
 
-void _munmap_buffers(struct v4l2_requestbuffers* rb) {
+void _munmap_buffers(int num_buffers) {
 //TODO - Does the driver do this with VIDIOC_REQBUFS, count = 0?
-for (int i=0; i < rb->count; i++) {
+for (int i=0; i < num_buffers; i++) {
         if (buffers[i].start) {
             printf("munmap buffer #%d (%p)\n", i, buffers[i].start);
             if (munmap(buffers[i].start, buffers[i].size) == -1) {
