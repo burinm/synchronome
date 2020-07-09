@@ -3,17 +3,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include <sys/ioctl.h>
 #include <linux/videodev2.h> //sudo apt-get install libv4l-dev
-//#include <sys/mman.h>
 
 #include "setup.h"
 #include "buffer.h"
 #include "dumptools.h"
 
 #define USE_CTRL_C
-
-//int camera_fd = -1;
 
 #ifdef USE_CTRL_C
 /* catch signal */
@@ -24,7 +20,6 @@ void ctrl_c(int addr);
 int running = 1;
 
 int main() {
-
 
 #ifdef USE_CTRL_C
 //install ctrl_c signal handler 
@@ -99,8 +94,7 @@ for (int i=0; i < video.num_buffers; i++) {
 }
 
 //Start streaming
-int stream_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-if (ioctl(video.camera_fd, VIDIOC_STREAMON, &stream_type) == -1) {
+if (start_streaming(&video) == -1) {
     perror("Couldn't start stream");
     goto error3;
 }
@@ -143,7 +137,7 @@ printf(".");
 }
 
 error4:
-if (ioctl(video.camera_fd, VIDIOC_STREAMOFF, &stream_type) == -1) {
+if (stop_streaming(&video) == -1) {
     perror("Couldn't stop stream");
 }
 
@@ -160,8 +154,8 @@ error:
     } else {
         printf("closed camera device\n");
     }
-    
 
+return 0;
 }
 
 

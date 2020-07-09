@@ -26,4 +26,7 @@ int camera_set_yuyv(int camera_fd);
 //Get size of capture buffer from format data
 int query_buffer_size(int camera_fd);
 
+int start_streaming(video_t *v);
+int stop_streaming(video_t *v);
+
 #endif

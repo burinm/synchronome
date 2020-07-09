@@ -7,6 +7,7 @@
 #include <sys/ioctl.h>
 #include <string.h>
 #include <errno.h>
+#include <assert.h>
 #include <linux/videodev2.h> //sudo apt-get install libv4l-dev
 
 #include <linux/kdev_t.h> //MAJOR/MINOR
@@ -222,3 +223,14 @@ int camera_set_yuyv(int camera_fd) {
     return 0;
 }
 
+int start_streaming(video_t *v) {
+    assert(v->camera_fd);
+    int stream_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    return ioctl(v->camera_fd, VIDIOC_STREAMON, &stream_type);
+}
+
+int stop_streaming(video_t *v) {
+    assert(v->camera_fd);
+    int stream_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    return ioctl(v->camera_fd, VIDIOC_STREAMOFF, &stream_type);
+}
