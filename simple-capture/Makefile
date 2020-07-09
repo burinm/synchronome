@@ -12,11 +12,11 @@ CFILES= capture.c setup.c v4l2_capabilities.c dumptools.c transformation.c
 SRCS= ${HFILES} ${CFILES}
 OBJS= ${CFILES:.c=.o}
 
-all:	capture test_starter
+all:	capture sharpen
 
 clean:
 	-rm -f *.o *.d
-	-rm -f capture test_starter
+	-rm -f capture sharpen
 
 clean-frames:
 	-rm -f *.yuv *.ppm
@@ -24,7 +24,10 @@ clean-frames:
 capture: ${OBJS}
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)
 
-test_starter: capture_starter.o
+#test_starter: capture_starter.o
+#	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)
+
+sharpen: sharpen.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)
 
 depend:
