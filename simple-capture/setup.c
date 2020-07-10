@@ -244,3 +244,124 @@ int stop_streaming(video_t *v) {
     int stream_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     return ioctl(v->camera_fd, VIDIOC_STREAMOFF, &stream_type);
 }
+
+int try_refocus(int camera_fd) {
+    struct v4l2_ext_control c[1];
+    struct v4l2_ext_controls ext;
+    memset(&ext, 0, sizeof(struct v4l2_ext_controls));
+    ext.ctrl_class = V4L2_CTRL_CLASS_CAMERA;
+    ext.count = 1;
+    ext.controls = c;
+
+    printf("[autofocus].");
+    fflush(stdout);
+
+    memset(&c[0], 0, sizeof(struct v4l2_ext_control));
+    c[0].id = V4L2_CID_FOCUS_AUTO;
+    c[0].value = 0; //Set autofocus to off
+
+    if (ioctl(camera_fd, VIDIOC_S_EXT_CTRLS, &ext) == -1) {
+        perror("ioctl V4L2_CID_FOCUS_AUTO failed");
+        return -1;
+    }
+    printf("off.");
+    fflush(stdout);
+
+    sleep(1); //
+
+    memset(&c[0], 0, sizeof(struct v4l2_ext_control));
+    c[0].id = V4L2_CID_FOCUS_ABSOLUTE;
+    //c[0].value = 156; //Distance to my wall, lol
+    c[0].value = 0; //Distance to my wall, lol
+
+    if (ioctl(camera_fd, VIDIOC_S_EXT_CTRLS, &ext) == -1) {
+        perror("ioctl V4L2_CID_FOCUS_ABSOLUTE failed");
+        return -1;
+    }
+    //printf("focus forced to 156\n");
+    printf("infinity.");
+    fflush(stdout);
+
+#if 1 //TODO - can't figure out autofocus grrrr.
+    sleep(1); //
+
+    memset(&c[0], 0, sizeof(struct v4l2_ext_control));
+    c[0].id = V4L2_CID_FOCUS_AUTO;
+    c[0].value = 1; //Set autofocus to on
+
+    if (ioctl(camera_fd, VIDIOC_S_EXT_CTRLS, &ext) == -1) {
+        perror("ioctl V4L2_CID_FOCUS_AUTO failed");
+        return -1;
+    }
+    printf("on.");
+    fflush(stdout);
+
+
+    sleep(2); //TODO - find real documentation
+#endif
+
+#if 0 //status doesn't work
+    memset(&c[0], 0, sizeof(struct v4l2_ext_control));
+    c[0].id = V4L2_CID_AUTO_FOCUS_STATUS;
+
+    int try = 1000;
+    while(try) {
+        if (ioctl(camera_fd, VIDIOC_G_EXT_CTRLS, &ext) == -1) {
+            perror("ioctl V4L2_CID_AUTO_FOCUS_STATUS failed");
+            try=0;
+            break;
+        }
+        if (c[0].value & V4L2_AUTO_FOCUS_STATUS_BUSY) {
+            printf(".");
+            fflush(stdout);
+            try--;
+            continue;
+        }
+        if (c[0].value & V4L2_AUTO_FOCUS_STATUS_REACHED) {
+            printf("done ");
+            break;
+        }
+        if (c[0].value & V4L2_AUTO_FOCUS_STATUS_IDLE) {
+            printf("idle ");
+            break;
+        }
+        if (c[0].value & V4L2_AUTO_FOCUS_STATUS_FAILED) {
+            printf("failed ");
+            break;
+        }
+
+        try--;
+
+    }
+
+    if (try) {
+        printf(" succeeded\n");
+    } else {
+        printf(" failed! (0x%x)\n", c[0].value);
+    }
+#endif
+
+#if 1
+    memset(&c[0], 0, sizeof(struct v4l2_ext_control));
+    c[0].id = V4L2_CID_FOCUS_AUTO;
+    c[0].value = 0; //Set autofocus to off
+
+    if (ioctl(camera_fd, VIDIOC_S_EXT_CTRLS, &ext) == -1) {
+        perror("ioctl V4L2_CID_FOCUS_AUTO failed");
+        return -1;
+    }
+    printf("off.");
+    fflush(stdout);
+#endif
+
+    //Autofocus must be off to read this control
+    memset(&c[0], 0, sizeof(struct v4l2_ext_control));
+    c[0].id = V4L2_CID_FOCUS_ABSOLUTE;
+    if (ioctl(camera_fd, VIDIOC_G_EXT_CTRLS, &ext) == -1) {
+        perror("ioctl VIDIOC_G_EXT_CTRLS failed");
+        return -1;
+    }
+    printf("[refocused at %d]\n", c[0].value);
+
+return 0;
+}

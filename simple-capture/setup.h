@@ -32,4 +32,8 @@ int query_buffer_size(int camera_fd);
 int start_streaming(video_t *v);
 int stop_streaming(video_t *v);
 
+//Some controls
+int try_refocus(int camera_fd);
+
+
 #endif

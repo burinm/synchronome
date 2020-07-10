@@ -36,6 +36,7 @@ if (open_camera(CAMERA_DEV, &video) == -1) {
     exit(0);
 }
 
+
 /* This can all be setup/checked with v4l2-ctl also */
 if (show_camera_capabilities(video.camera_fd) == -1) {
     goto error;
@@ -105,6 +106,10 @@ for (int i=0; i < video.num_buffers; i++) {
 if (start_streaming(&video) == -1) {
     perror("Couldn't start stream");
     goto error3;
+}
+
+if (try_refocus(video.camera_fd) == -1) {
+    printf("Refocus failed!\n");
 }
 
 
