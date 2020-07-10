@@ -55,9 +55,12 @@ void dump_yuv422_to_rgb_raw(buffer_t *b) {
     if (fd == -1) {
         return;
     }
-    count = write(fd, PPM_HEADER, sizeof(PPM_HEADER));
-    if (count != sizeof(PPM_HEADER)) {
-        printf("all bytes not written %d of %d\n", count, sizeof(PPM_HEADER));
+
+    //Do not write the terminating \0
+    int header_size = sizeof(PPM_HEADER) -1;
+    count = write(fd, PPM_HEADER, header_size);
+    if (count != header_size) {
+        printf("all bytes not written %d of %d\n", count, header_size);
     }
 
 
@@ -70,8 +73,10 @@ void dump_yuv422_to_rgb_raw(buffer_t *b) {
             Cr = (int)iter[i+3];
 
             yuv2rgb(Y0, Cb, Cr, &R, &G, &B);
+            //yuv2rgb_float(Y0, Cb, Cr, &R, &G, &B);
             rgb_two_pixels[0] = R; rgb_two_pixels[1] = G; rgb_two_pixels[2] = B;
             yuv2rgb(Y1, Cb, Cr, &R, &G, &B);
+            //yuv2rgb_float(Y1, Cb, Cr, &R, &G, &B);
             rgb_two_pixels[3] = R; rgb_two_pixels[4] = G; rgb_two_pixels[5] = B;
 
             count = write(fd, rgb_two_pixels, BYTES_RGB_PIXELS);
