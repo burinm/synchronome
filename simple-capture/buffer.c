@@ -8,6 +8,7 @@
 #include "setup.h"
 
 buffer_t buffers[NUM_BUF];
+buffer_t wo_buffer;
 
 void _free_buffers(video_t *v);
 void _munmap_buffers(int num_buffers);
@@ -127,4 +128,3 @@ for (int i=0; i < num_buffers; i++) {
         }
     }
 }
-

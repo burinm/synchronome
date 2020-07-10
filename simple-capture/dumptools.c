@@ -4,93 +4,82 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <assert.h>
+
 #include "dumptools.h"
 #include "transformation.h"
 #include "setup.h"
 
-int _open_for_write(char* suffix);
+buffer_t wo_buffer;
+
+int _open_for_write(int index, char* suffix);
 
 char filename[FILE_NAME_SIZE];
 struct timespec timestamp;
 int fd = -1;
 int count = 0;
 
-
 void dump_buffer_raw(buffer_t *b) {
+    static int frame_num = 0;
 
-
-    fd = _open_for_write("yuv");
+    fd = _open_for_write(frame_num, "yuv");
     if (fd == -1) {
         return;
     }
 
+    //TODO - break into chunks?
     count = write(fd, b->start, b->size);
     if (count != b->size) {
         printf("all bytes not written %d of %d\n", count, b->size);
     }
 
+    frame_num++;
+
     close(fd);
 }
 
-void dump_yuv422_to_rgb_raw(buffer_t *b) {
-#define BYTES_YUYV_PIXELS 4
-#define BYTES_RGB_PIXELS  6
+int ppm_header_with_timestamp(buffer_t *b) {
 
-//https://gcc.gnu.org/onlinedocs/cpp/Stringizing.html (lame!)
-#define xstr(s) str(s)
-#define str(s) #s
+    int count = 0;
+    count = snprintf((char*)b->start, PPM_HEADER_MAX_LEN, "%s%s#%010lu sec %09lu nsec\n%s",
+                PPM_HEADER_DESC,
+                PPM_HEADER_RES,
+                timestamp.tv_sec, timestamp.tv_nsec,
+                PPM_HEADER_DEPTH);
 
-//Boo, this is brittle
-#define PPM_HEADER  xstr(P6\n)\
-                    xstr(X_RES Y_RES)\
-                    xstr(\n255\n)
+assert(count > 0);
 
-#define PPM_SUFFIX      "ppm"
+    //Write over the terminating \0
+    count--;
 
-    int Y0, Cb, Y1, Cr;
-    unsigned char R, G, B;
-    unsigned char rgb_two_pixels[BYTES_RGB_PIXELS];
+return count;
+}
 
-    fd = _open_for_write(PPM_SUFFIX);
+void dump_rgb_raw_buffer(buffer_t *b) {
+
+    static uint16_t frame_num = 0;
+
+    fd = _open_for_write(frame_num, PPM_SUFFIX);
     if (fd == -1) {
         return;
     }
 
-    //Do not write the terminating \0
-    int header_size = sizeof(PPM_HEADER) -1;
-    count = write(fd, PPM_HEADER, header_size);
-    if (count != header_size) {
-        printf("all bytes not written %d of %d\n", count, header_size);
+    //TODO - break into chunks?
+    count = write(fd, b->start, b->size);
+    if (count != b->size) {
+        printf("all bytes not written %d of %d\n", count, b->size);
     }
 
+    frame_num++;
 
-    unsigned char * iter = (unsigned char*)b->start;
-    for (int i=0; i<b->size; i+=BYTES_YUYV_PIXELS) {
-        if (b->size - i >= BYTES_YUYV_PIXELS) {
-            Y0 = (int)iter[i];
-            Cb = (int)iter[i+1];
-            Y1 = (int)iter[i+2];
-            Cr = (int)iter[i+3];
-
-            yuv2rgb(Y0, Cb, Cr, &R, &G, &B);
-            //yuv2rgb_float(Y0, Cb, Cr, &R, &G, &B);
-            rgb_two_pixels[0] = R; rgb_two_pixels[1] = G; rgb_two_pixels[2] = B;
-            yuv2rgb(Y1, Cb, Cr, &R, &G, &B);
-            //yuv2rgb_float(Y1, Cb, Cr, &R, &G, &B);
-            rgb_two_pixels[3] = R; rgb_two_pixels[4] = G; rgb_two_pixels[5] = B;
-
-            count = write(fd, rgb_two_pixels, BYTES_RGB_PIXELS);
-            if (count != BYTES_RGB_PIXELS) {
-                printf("all bytes not written %d of %d\n", count, BYTES_RGB_PIXELS);
-            }
-        }
-    }
+    close(fd);
 }
 
-inline int _open_for_write(char* suffix) {
+int _open_for_write(int index, char* suffix) {
 
-    clock_gettime(CLOCK_MONOTONIC, &timestamp);
-    snprintf(filename, FILE_NAME_SIZE, "frame%lu.%09lu.%s", timestamp.tv_sec, timestamp.tv_nsec, suffix);
+    //TODO - eliminate snprintf
+    snprintf(filename, FILE_NAME_SIZE, "frame.%06u.%s", index, suffix);
 
     printf("writing:%s\n", filename);
     fd = open(filename, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
@@ -100,4 +89,16 @@ inline int _open_for_write(char* suffix) {
         return -1;
     }
     return fd;
+}
+
+/* write out buffer management */
+int wo_buffer_init(buffer_t *b) {
+    int size = sizeof(unsigned int) * WRITEOUT_BUF_SIZE;
+    b->start = malloc(size);
+    b->size = size;
+    if (b->start) {
+        return 0;
+    } else {
+        return -1;
+    }
 }

@@ -271,15 +271,15 @@ int try_refocus(int camera_fd) {
 
     memset(&c[0], 0, sizeof(struct v4l2_ext_control));
     c[0].id = V4L2_CID_FOCUS_ABSOLUTE;
-    //c[0].value = 156; //Distance to my wall, lol
-    c[0].value = 0; //Distance to my wall, lol
+    c[0].value = 153; //Distance to my wall, lol
+    //c[0].value = 0; //infinity
 
     if (ioctl(camera_fd, VIDIOC_S_EXT_CTRLS, &ext) == -1) {
         perror("ioctl V4L2_CID_FOCUS_ABSOLUTE failed");
         return -1;
     }
-    //printf("focus forced to 156\n");
-    printf("infinity.");
+    printf("focus forced to 153\n");
+    //printf("infinity.");
     fflush(stdout);
 
 #if 1 //TODO - can't figure out autofocus grrrr.

@@ -7,6 +7,7 @@
 
 #include "setup.h"
 #include "buffer.h"
+#include "transformation.h"
 #include "dumptools.h"
 
 #define USE_CTRL_C
@@ -27,6 +28,12 @@ struct sigaction action;
 action.sa_handler = ctrl_c;
 sigaction(SIGINT, &action, NULL);
 #endif
+
+//Allocate other buffers
+if (wo_buffer_init(&wo_buffer) == -1) {
+    printf("couldn't allocate write out buffer\n");
+    exit(-1);
+}
 
 video_t video;
 memset(&video, 0, sizeof(video_t));
@@ -116,6 +123,8 @@ if (try_refocus(video.camera_fd) == -1) {
 int ret = -1;
 struct v4l2_buffer current_b;
 
+int header_offset = 0;
+
 while(running) {
 
     memset(&current_b, 0, sizeof(struct v4l2_buffer)); 
@@ -136,7 +145,10 @@ printf(".");
     
     printf("buf index %d dequeued!\n", current_b.index);
     //dump_buffer_raw(&buffers[current_b.index]);
-    dump_yuv422_to_rgb_raw(&buffers[current_b.index]);
+    //dump_yuv422_to_rgb_raw(&buffers[current_b.index]);
+    header_offset = ppm_header_with_timestamp(&wo_buffer);
+    yuv444torgb888(&buffers[current_b.index], &wo_buffer, header_offset);
+    dump_rgb_raw_buffer(&wo_buffer);
 
     //Requeue buffer - TODO - do I need to clear it?
     if (enqueue_buf(&current_b, video.camera_fd) == -1) {

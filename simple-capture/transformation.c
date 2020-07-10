@@ -1,3 +1,7 @@
+#include <assert.h>
+#include "transformation.h"
+
+
 // yuv2rgb - (c) from siewert starter code
 // This is probably the most acceptable conversion from camera YUYV to RGB
 //
@@ -38,4 +42,56 @@ void yuv2rgb(int y, int u, int v, unsigned char *r, unsigned char *g, unsigned c
    *r = r1 ;
    *g = g1 ;
    *b = b1 ;
+}
+
+//From starter code (c) seiwert
+void yuv2rgb_float(float y, float u, float v,
+        unsigned char *r, unsigned char *g, unsigned char *b)
+{
+    float r_temp, g_temp, b_temp;
+
+    // R = 1.164(Y-16) + 1.1596(V-128)
+    r_temp = 1.164*(y-16.0) + 1.1596*(v-128.0);
+    *r = r_temp > 255.0 ? 255 : (r_temp < 0.0 ? 0 : (unsigned char)r_temp);
+
+    // G = 1.164(Y-16) - 0.813*(V-128) - 0.391*(U-128)
+    g_temp = 1.164*(y-16.0) - 0.813*(v-128.0) - 0.391*(u-128.0);
+    *g = g_temp > 255.0 ? 255 : (g_temp < 0.0 ? 0 : (unsigned char)g_temp);
+
+    // B = 1.164*(Y-16) + 2.018*(U-128)
+    b_temp = 1.164*(y-16.0) + 2.018*(u-128.0);
+    *b = b_temp > 255.0 ? 255 : (b_temp < 0.0 ? 0 : (unsigned char)b_temp);
+}
+
+/* Matrix transformations  */
+void yuv444torgb888(buffer_t *src, buffer_t *dst, size_t offset) {
+
+#define BYTES_YUYV_PIXELS 4
+#define BYTES_RGB_PIXELS  6
+
+    int Y0, Cb, Y1, Cr;
+    unsigned char R, G, B;
+    int count = offset;
+    unsigned char * dest = (unsigned char*)dst->start;
+
+    unsigned char * iter = (unsigned char*)src->start;
+    for (int i=0; i<src->size; i+=BYTES_YUYV_PIXELS) {
+        if (src->size - i >= BYTES_YUYV_PIXELS) {
+            Y0 = (int)iter[i];
+            Cb = (int)iter[i+1];
+            Y1 = (int)iter[i+2];
+            Cr = (int)iter[i+3];
+
+            yuv2rgb(Y0, Cb, Cr, &R, &G, &B);
+            //yuv2rgb_float(Y0, Cb, Cr, &R, &G, &B);
+            dest[count + 0] = R; dest[count + 1] = G; dest[count + 2] = B;
+            yuv2rgb(Y1, Cb, Cr, &R, &G, &B);
+            //yuv2rgb_float(Y1, Cb, Cr, &R, &G, &B);
+            dest[count + 3] = R; dest[count + 4] = G; dest[count + 5] = B;
+
+            count += 6;
+assert(count < dst->size);
+
+        }
+    }
 }

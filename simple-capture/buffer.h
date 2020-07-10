@@ -13,6 +13,7 @@ typedef struct {
 } buffer_t;
 
 extern buffer_t buffers[NUM_BUF]; //Holds pointers to mmaped buffers
+extern buffer_t wo_buffer; //Temporary buffer for file output (write out)
 
 int request_buffers(video_t *v);
 void deallocate_buffers(video_t *v);
