@@ -31,8 +31,6 @@ sigaction(SIGINT, &action, NULL);
 video_t video;
 memset(&video, 0, sizeof(video_t));
 video.camera_fd = -1;
-video.width = 320; //TODO, pass these in camera init request
-video.height = 240;
 
 if (open_camera(CAMERA_DEV, &video) == -1) {
     exit(0);
@@ -51,7 +49,17 @@ if (show_camera_image_format(video.camera_fd) == -1) {
     goto error;
 }
 
-if (camera_set_yuyv(video.camera_fd) == -1) {
+if (camera_set_yuyv(&video, X_RES, Y_RES) == -1) {
+    goto error;
+}
+
+if (video.width != X_RES) {
+    printf("Requested width %d not set (returned %d)\n", X_RES, video.width);
+    goto error;
+}
+
+if (video.height != Y_RES) {
+    printf("Requested height %d not set (returned %d)\n", Y_RES, video.height);
     goto error;
 }
 

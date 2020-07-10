@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include "dumptools.h"
 #include "transformation.h"
+#include "setup.h"
 
 int _open_for_write(char* suffix);
 
@@ -34,7 +35,16 @@ void dump_buffer_raw(buffer_t *b) {
 void dump_yuv422_to_rgb_raw(buffer_t *b) {
 #define BYTES_YUYV_PIXELS 4
 #define BYTES_RGB_PIXELS  6
-#define PPM_HEADER      "P6\n320 240\n255\n"
+
+//https://gcc.gnu.org/onlinedocs/cpp/Stringizing.html (lame!)
+#define xstr(s) str(s)
+#define str(s) #s
+
+//Boo, this is brittle
+#define PPM_HEADER  xstr(P6\n)\
+                    xstr(X_RES Y_RES)\
+                    xstr(\n255\n)
+
 #define PPM_SUFFIX      "ppm"
 
     int Y0, Cb, Y1, Cr;

@@ -200,26 +200,36 @@ int query_buffer_size(int camera_fd) {
 return pix->sizeimage;
 }
 
-int camera_set_yuyv(int camera_fd) {
+int camera_set_yuyv(video_t *v, int width, int height) {
 
     //Change to YUYV
-    printf("Change to YUYV 320x240\n");
+    printf("Change to YUYV %dx%d\n", width, height);
 
     struct v4l2_format camera_format;
     struct v4l2_pix_format *pix = &camera_format.fmt.pix;
     memset(&camera_format, 0, sizeof(struct v4l2_format));
 
     camera_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        pix->width = 320;
-        pix->height = 240; 
+        pix->width = width;
+        pix->height = height;
         pix->pixelformat = v4l2_fourcc('Y','U','Y','V');
         //pix->pixelformat = v4l2_fourcc('M','J','P','G');
 
-    if (ioctl(camera_fd, VIDIOC_S_FMT, &camera_format) == -1) {
+    if (ioctl(v->camera_fd, VIDIOC_S_FMT, &camera_format) == -1) {
         perror("ioctl VIDIOC_G_FMT failed");
         return -1;
     }
 
+    memset(&camera_format, 0, sizeof(struct v4l2_format));
+    camera_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+    if (ioctl(v->camera_fd, VIDIOC_G_FMT, &camera_format) == -1) {
+        perror("ioctl VIDIOC_G_FMT failed");
+        return -1;
+    }
+
+    v->width = pix->width;
+    v->height = pix->height;
     return 0;
 }
 
