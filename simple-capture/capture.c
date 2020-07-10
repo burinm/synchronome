@@ -123,7 +123,7 @@ if (try_refocus(video.camera_fd) == -1) {
 int ret = -1;
 struct v4l2_buffer current_b;
 
-int header_offset = 0;
+int header_length = 0;
 
 while(running) {
 
@@ -145,9 +145,12 @@ printf(".");
     
     printf("buf index %d dequeued!\n", current_b.index);
     //dump_buffer_raw(&buffers[current_b.index]);
-    //dump_yuv422_to_rgb_raw(&buffers[current_b.index]);
-    header_offset = ppm_header_with_timestamp(&wo_buffer);
-    yuv444torgb888(&buffers[current_b.index], &wo_buffer, header_offset);
+
+    //Stamp header
+    header_length = ppm_header_with_timestamp(&wo_buffer);
+    //Buffer transformation
+    yuv444torgb888(&buffers[current_b.index], &wo_buffer, header_length);
+    //Write out buffer to disk
     dump_rgb_raw_buffer(&wo_buffer);
 
     //Requeue buffer - TODO - do I need to clear it?

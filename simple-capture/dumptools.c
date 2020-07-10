@@ -50,9 +50,6 @@ int ppm_header_with_timestamp(buffer_t *b) {
 
 assert(count > 0);
 
-    //Write over the terminating \0
-    count--;
-
 return count;
 }
 
