@@ -49,7 +49,7 @@ extern buffer_t wo_buffer;
 
 extern char header_buf[PGM_HEADER_MAX_LEN];
 
-#define WRITEOUT_BUF_SIZE (FRAME_SIZE)
+#define WRITEOUT_BUF_SIZE FRAME_SIZE
 
 void dump_buffer_raw(buffer_t *b);
 void dump_yuv422_to_rgb_raw(buffer_t *b);

@@ -20,11 +20,17 @@ extern unsigned char sharpen_buffer[SHARPEN_COLS * X_RES];
 
 #define SHARPEN_BUF_SIZE   FRAME_SIZE 
 extern buffer_t sharpen_buffer;
-extern float SHARPEN_FLT[SHARPEN_SIZE];
+extern float SHARPEN_FLT[SHARPEN_SIZE +1];
 
-#define SHARPEN_WIKIPEDIA_EXAMPLE   {  0.0, -1.0,  0.0, \
-                                      -1.0,  5.0, -1.0, \
-                                       0.0, -1.0,  0.0, }
+#define _I (-4.0/8.0)
+
+#define SHARPEN_WIKIPEDIA_EXAMPLE   {  0.0,   _I,  0.0, \
+                                        _I,  5.0,   _I, \
+                                       0.0,   _I,  0.0, }
+
+#define SHARPEN_PROFESSOR_EXAMPLE   {   _I,   _I,   _I, \
+                                        _I,  5.0,   _I, \
+                                        _I,   _I,   _I, }
 
 //TODO deallocate sharpen buffer
 int init_sharpen_buffer(buffer_t* b);

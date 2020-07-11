@@ -46,6 +46,7 @@ if (init_sharpen_buffer(&sharpen_buffer) == -1) {
 }
 #endif
 
+//printf("wo %d, sh %d\n", wo_buffer.size, sharpen_buffer.size);
 
 video_t video;
 memset(&video, 0, sizeof(video_t));
@@ -168,16 +169,18 @@ printf(".");
 #endif
 
 #ifdef PGM_CAPTURE
-    yuv422toG8(&buffers[current_b.index], &wo_buffer, 0);
 
     #ifdef SHARPEN_ON
-        //yuv422toG8(&buffers[current_b.index], &sharpen_buffer, 0);
+        yuv422toG8(&buffers[current_b.index], &sharpen_buffer, 0);
+    #else
+        yuv422toG8(&buffers[current_b.index], &wo_buffer, 0);
+
     #endif
 
 #endif
 
     #ifdef SHARPEN_ON
-    //sharpen(&sharpen_buffer, &wo_buffer, header_length);
+    sharpen(&sharpen_buffer, &wo_buffer, 0);
     #endif
 
     //Write out buffer to disk

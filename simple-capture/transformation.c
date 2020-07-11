@@ -121,9 +121,6 @@ assert(count+1 < dst->size);
 
         }
     }
-#ifdef SHARPEN_ON
-printf("c %d, src %d, dst %d\n", count, src->size, dst->size);
-#endif
 }
 
 inline void yuv2grey(int y, unsigned char *grey)

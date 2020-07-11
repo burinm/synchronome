@@ -5,7 +5,7 @@
 #include "sharpen.h"
 
 buffer_t sharpen_buffer;
-float SHARPEN_FLT[SHARPEN_SIZE] = SHARPEN_WIKIPEDIA_EXAMPLE; 
+float SHARPEN_FLT[SHARPEN_SIZE +1] = SHARPEN_TYPE;
 
 void print_sharpen_filter() {
     printf("<sharpen %dx%d>\n\n", SHARPEN_ROWS, SHARPEN_COLS);
@@ -37,24 +37,29 @@ void sharpen(buffer_t *src, buffer_t* dst, size_t offset) {
 
 //TODO - copy outside of filter box...
 
-    unsigned char* b = (unsigned char*)src->start;
+    unsigned char* in = (unsigned char*)src->start;
     unsigned char* out = (unsigned char*)dst->start;
     /* FILTER_RANGE is the distance from the center of the pixel
        we are transforming. So we need to leave a border around
        the transformation
     */
-    for (int i=0; i < Y_RES - SHARPEN_COLS; i++) {
 
-        filter_pos = 0;
-        row_sum = 0;  
+    for (int i=0; i < Y_RES - SHARPEN_ROWS; i++) {
+
         
-        for (int j=0; j < X_RES - SHARPEN_ROWS; j++) {
+        for (int j=0; j < X_RES - SHARPEN_COLS; j++) {
+            filter_pos = 0;
+            row_sum = 0;
+
             //Sum up the box of values * filter matrix
-            for (int k=0; k < SHARPEN_COLS; k++) {
-                for (int l=0; l < SHARPEN_ROWS; l++) {
-                    row_sum += SHARPEN_FLT[filter_pos++] * b[k*X_RES + l];  
+            for (int k=0; k < SHARPEN_ROWS; k++) {
+                for (int l=0; l < SHARPEN_COLS; l++) {
+                    int index = (k * X_RES + l) + (i * X_RES) + j;
+assert(index < src->size);
+                    row_sum += SHARPEN_FLT[filter_pos++] * (float)in[index];
                 }
             }
+
             //The clamps!!
             if (row_sum < 0.0) {
                 row_sum = 0;
