@@ -80,6 +80,8 @@ void yuv422torgb888(buffer_t *src, buffer_t *dst, size_t offset) {
             Y1 = (int)iter[i+2];
             Cr = (int)iter[i+3];
 
+assert(count < dst->size);
+
             yuv2rgb(Y0, Cb, Cr, &R, &G, &B);
             dest[count + 0] = R; dest[count + 1] = G; dest[count + 2] = B;
 
@@ -88,7 +90,6 @@ void yuv422torgb888(buffer_t *src, buffer_t *dst, size_t offset) {
 
             count += BYTES_RGB_PIXELS;
 
-assert(count < dst->size);
 
         }
     }

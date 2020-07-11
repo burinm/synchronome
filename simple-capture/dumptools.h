@@ -47,14 +47,14 @@ extern buffer_t wo_buffer;
     #define IMAGE_HEADER_MAX_LENGTH PGM_HEADER_MAX_LEN
 #endif
 
+extern char header_buf[PGM_HEADER_MAX_LEN];
 
-#define WRITEOUT_BUF_SIZE (IMAGE_HEADER_MAX_LENGTH + FRAME_SIZE)
+#define WRITEOUT_BUF_SIZE (FRAME_SIZE)
 
 void dump_buffer_raw(buffer_t *b);
 void dump_yuv422_to_rgb_raw(buffer_t *b);
 
-int ppm_header_with_timestamp(buffer_t *b);
-int pgm_header_with_timestamp(buffer_t *b);
+int header_with_timestamp(int fd);
 
 void dump_rgb_raw_buffer(buffer_t *b);
 

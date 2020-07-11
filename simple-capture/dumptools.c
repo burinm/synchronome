@@ -11,6 +11,7 @@
 #include "transformation.h"
 #include "setup.h"
 
+char header_buf[PGM_HEADER_MAX_LEN];
 buffer_t wo_buffer;
 
 int _open_for_write(int index, char* suffix);
@@ -39,30 +40,33 @@ void dump_buffer_raw(buffer_t *b) {
     close(fd);
 }
 
-int ppm_header_with_timestamp(buffer_t *b) {
+int header_with_timestamp(int fd) {
 
+    int header_size = 0;
     int count = 0;
-    count = snprintf((char*)b->start, PPM_HEADER_MAX_LEN, "%s%s#%010lu sec %09lu nsec\n%s",
+
+#ifdef PPM_CAPTURE
+    header_size = snprintf(header_buf, PGM_HEADER_MAX_LEN, "%s%s#%010lu sec %09lu nsec\n%s",
                 PPM_HEADER_DESC,
                 PPM_HEADER_RES,
                 timestamp.tv_sec, timestamp.tv_nsec,
                 PPM_HEADER_DEPTH);
+#endif
 
-assert(count > 0);
-
-return count;
-}
-
-int pgm_header_with_timestamp(buffer_t *b) {
-
-    int count = 0;
-    count = snprintf((char*)b->start, PGM_HEADER_MAX_LEN, "%s%s#%010lu sec %09lu nsec\n%s",
+#ifdef PGM_CAPTURE
+    header_size = snprintf(header_buf, PGM_HEADER_MAX_LEN, "%s%s#%010lu sec %09lu nsec\n%s",
                 PGM_HEADER_DESC,
                 PGM_HEADER_RES,
                 timestamp.tv_sec, timestamp.tv_nsec,
                 PGM_HEADER_DEPTH);
+#endif
 
-assert(count > 0);
+assert(header_size > 0);
+
+    count = write(fd, header_buf, header_size);
+    if (count != header_size) {
+        printf("all header bytes not written %d of %d\n", count, header_size);
+    }
 
 return count;
 }
@@ -75,6 +79,8 @@ void dump_rgb_raw_buffer(buffer_t *b) {
     if (fd == -1) {
         return;
     }
+
+    (void)header_with_timestamp(fd);
 
     //TODO - break into chunks?
     count = write(fd, b->start, b->size);

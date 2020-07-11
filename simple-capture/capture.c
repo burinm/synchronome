@@ -141,8 +141,6 @@ if (try_refocus(video.camera_fd) == -1) {
 int ret = -1;
 struct v4l2_buffer current_b;
 
-int header_length = 0;
-
 while(running) {
 
     memset(&current_b, 0, sizeof(struct v4l2_buffer)); 
@@ -164,16 +162,13 @@ printf(".");
     printf("buf index %d dequeued!\n", current_b.index);
     //dump_buffer_raw(&buffers[current_b.index]);
 
-    //Stamp header
 #ifdef PPM_CAPTURE
-    header_length = ppm_header_with_timestamp(&wo_buffer);
     //Buffer transformation
-    yuv422torgb888(&buffers[current_b.index], &wo_buffer, header_length);
+    yuv422torgb888(&buffers[current_b.index], &wo_buffer, 0);
 #endif
 
 #ifdef PGM_CAPTURE
-    header_length = pgm_header_with_timestamp(&wo_buffer);
-    yuv422toG8(&buffers[current_b.index], &wo_buffer, header_length);
+    yuv422toG8(&buffers[current_b.index], &wo_buffer, 0);
 
     #ifdef SHARPEN_ON
         //yuv422toG8(&buffers[current_b.index], &sharpen_buffer, 0);
