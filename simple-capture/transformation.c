@@ -64,12 +64,10 @@ void yuv2rgb_float(float y, float u, float v,
 }
 
 /* Matrix transformations  */
-void yuv444torgb888(buffer_t *src, buffer_t *dst, size_t offset) {
+void yuv422torgb888(buffer_t *src, buffer_t *dst, size_t offset) {
 
-#define BYTES_YUYV_PIXELS 4
-#define BYTES_RGB_PIXELS  6
-
-    int Y0, Cb, Y1, Cr;
+    int Y0, Y1;
+    int Cb, Cr;
     unsigned char R, G, B;
     int count = offset;
     unsigned char * dest = (unsigned char*)dst->start;
@@ -83,15 +81,47 @@ void yuv444torgb888(buffer_t *src, buffer_t *dst, size_t offset) {
             Cr = (int)iter[i+3];
 
             yuv2rgb(Y0, Cb, Cr, &R, &G, &B);
-            //yuv2rgb_float(Y0, Cb, Cr, &R, &G, &B);
             dest[count + 0] = R; dest[count + 1] = G; dest[count + 2] = B;
+
             yuv2rgb(Y1, Cb, Cr, &R, &G, &B);
-            //yuv2rgb_float(Y1, Cb, Cr, &R, &G, &B);
             dest[count + 3] = R; dest[count + 4] = G; dest[count + 5] = B;
 
-            count += 6;
+            count += BYTES_RGB_PIXELS;
+
 assert(count < dst->size);
 
         }
     }
+}
+
+void yuv422toG8(buffer_t *src, buffer_t *dst, size_t offset) {
+
+    int Y0, Y1;
+    unsigned char Grey;
+    int count = offset;
+    unsigned char * dest = (unsigned char*)dst->start;
+
+    unsigned char * iter = (unsigned char*)src->start;
+    for (int i=0; i<src->size; i+=BYTES_YUYV_PIXELS) {
+        if (src->size - i >= BYTES_YUYV_PIXELS) {
+            Y0 = (int)iter[i];
+            Y1 = (int)iter[i+2];
+
+            yuv2grey(Y0, &Grey);
+            dest[count + 0] = Grey;
+
+            yuv2grey(Y1, &Grey);
+            dest[count + 1] = Grey;
+
+            count += BYTES_GREY_PIXELS;
+
+assert(count < dst->size);
+
+        }
+    }
+}
+
+inline void yuv2grey(int y, unsigned char *grey)
+{
+   *grey = y;
 }

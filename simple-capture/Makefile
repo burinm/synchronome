@@ -17,10 +17,10 @@ all:	capture sharpen
 clean:
 	-rm -f *.o *.d
 	-rm -f capture sharpen
-	-rm -f *.yuv *.ppm
+	-rm -f *.yuv *.ppm *.pgm
 
 clean-frames:
-	-rm -f *.yuv *.ppm
+	-rm -f *.yuv *.ppm *.pgm
 
 capture: ${OBJS}
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)

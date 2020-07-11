@@ -53,11 +53,25 @@ assert(count > 0);
 return count;
 }
 
+int pgm_header_with_timestamp(buffer_t *b) {
+
+    int count = 0;
+    count = snprintf((char*)b->start, PGM_HEADER_MAX_LEN, "%s%s#%010lu sec %09lu nsec\n%s",
+                PGM_HEADER_DESC,
+                PGM_HEADER_RES,
+                timestamp.tv_sec, timestamp.tv_nsec,
+                PGM_HEADER_DEPTH);
+
+assert(count > 0);
+
+return count;
+}
+
 void dump_rgb_raw_buffer(buffer_t *b) {
 
     static uint16_t frame_num = 0;
 
-    fd = _open_for_write(frame_num, PPM_SUFFIX);
+    fd = _open_for_write(frame_num, IMAGE_SUFFIX);
     if (fd == -1) {
         return;
     }

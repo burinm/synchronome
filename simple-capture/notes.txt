@@ -1,2 +1,4 @@
 mplayer -demuxer rawvideo -rawvideo w=320:h=240:format=yuy2 *.yuv  fps=30 -loop 0
 ffmpeg -pattern_type glob -framerate 60 -i "*.ppm" -codec copy output.avi
+
+rsync -av 10.0.0.17:~/ecen5623/simple-capture/*.ppm .

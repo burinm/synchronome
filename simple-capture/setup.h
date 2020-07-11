@@ -7,6 +7,10 @@
 #define X_RES   640
 #define Y_RES   480
 
+//Select one
+//#define PPM_CAPTURE
+#define PGM_CAPTURE
+
 #include <stdint.h>
 
 typedef struct {

@@ -147,9 +147,17 @@ printf(".");
     //dump_buffer_raw(&buffers[current_b.index]);
 
     //Stamp header
+#ifdef PPM_CAPTURE
     header_length = ppm_header_with_timestamp(&wo_buffer);
     //Buffer transformation
-    yuv444torgb888(&buffers[current_b.index], &wo_buffer, header_length);
+    yuv422torgb888(&buffers[current_b.index], &wo_buffer, header_length);
+#endif
+
+#ifdef PGM_CAPTURE
+    header_length = pgm_header_with_timestamp(&wo_buffer);
+    yuv422toG8(&buffers[current_b.index], &wo_buffer, header_length);
+#endif
+
     //Write out buffer to disk
     dump_rgb_raw_buffer(&wo_buffer);
 
