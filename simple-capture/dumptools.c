@@ -104,7 +104,7 @@ int _open_for_write(int index, char* suffix) {
 
 /* write out buffer management */
 int wo_buffer_init(buffer_t *b) {
-    int size = sizeof(unsigned int) * WRITEOUT_BUF_SIZE;
+    int size = sizeof(unsigned char) * WRITEOUT_BUF_SIZE;
     b->start = malloc(size);
     b->size = size;
     if (b->start) {

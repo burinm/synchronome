@@ -107,6 +107,8 @@ void yuv422toG8(buffer_t *src, buffer_t *dst, size_t offset) {
             Y0 = (int)iter[i];
             Y1 = (int)iter[i+2];
 
+assert(count+1 < dst->size);
+
             yuv2grey(Y0, &Grey);
             dest[count + 0] = Grey;
 
@@ -115,10 +117,12 @@ void yuv422toG8(buffer_t *src, buffer_t *dst, size_t offset) {
 
             count += BYTES_GREY_PIXELS;
 
-assert(count < dst->size);
 
         }
     }
+#ifdef SHARPEN_ON
+printf("c %d, src %d, dst %d\n", count, src->size, dst->size);
+#endif
 }
 
 inline void yuv2grey(int y, unsigned char *grey)

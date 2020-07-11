@@ -10,6 +10,10 @@
 #include "transformation.h"
 #include "dumptools.h"
 
+#ifdef SHARPEN_ON
+    #include "sharpen.h"
+#endif
+
 #define USE_CTRL_C
 
 #ifdef USE_CTRL_C
@@ -34,6 +38,14 @@ if (wo_buffer_init(&wo_buffer) == -1) {
     printf("couldn't allocate write out buffer\n");
     exit(-1);
 }
+
+#ifdef SHARPEN_ON
+if (init_sharpen_buffer(&sharpen_buffer) == -1) {
+    printf("couldn't allocate write out buffer\n");
+    exit(-1);
+}
+#endif
+
 
 video_t video;
 memset(&video, 0, sizeof(video_t));
@@ -109,6 +121,12 @@ for (int i=0; i < video.num_buffers; i++) {
 
 }
 
+#ifdef SHARPEN_ON
+    printf("\nApplying filter: ");
+    print_sharpen_filter();
+    printf("\n");
+#endif
+
 //Start streaming
 if (start_streaming(&video) == -1) {
     perror("Couldn't start stream");
@@ -156,7 +174,16 @@ printf(".");
 #ifdef PGM_CAPTURE
     header_length = pgm_header_with_timestamp(&wo_buffer);
     yuv422toG8(&buffers[current_b.index], &wo_buffer, header_length);
+
+    #ifdef SHARPEN_ON
+        //yuv422toG8(&buffers[current_b.index], &sharpen_buffer, 0);
+    #endif
+
 #endif
+
+    #ifdef SHARPEN_ON
+    //sharpen(&sharpen_buffer, &wo_buffer, header_length);
+    #endif
 
     //Write out buffer to disk
     dump_rgb_raw_buffer(&wo_buffer);

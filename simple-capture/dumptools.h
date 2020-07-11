@@ -48,7 +48,7 @@ extern buffer_t wo_buffer;
 #endif
 
 
-#define WRITEOUT_BUF_SIZE (IMAGE_HEADER_MAX_LENGTH + X_RES * Y_RES * BYTES_PER_PIXEL)
+#define WRITEOUT_BUF_SIZE (IMAGE_HEADER_MAX_LENGTH + FRAME_SIZE)
 
 void dump_buffer_raw(buffer_t *b);
 void dump_yuv422_to_rgb_raw(buffer_t *b);
@@ -58,6 +58,7 @@ int pgm_header_with_timestamp(buffer_t *b);
 
 void dump_rgb_raw_buffer(buffer_t *b);
 
+//TODO deallocate wo_buffer
 int wo_buffer_init(buffer_t *b);
 
 #endif

@@ -1,149 +1,76 @@
-#include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <fcntl.h>
+#include <stdlib.h>
+#include <assert.h>
+#include "sharpen.h"
 
+buffer_t sharpen_buffer;
+float SHARPEN_FLT[SHARPEN_SIZE] = SHARPEN_WIKIPEDIA_EXAMPLE; 
 
-#define IMG_HEIGHT (240)
-#define IMG_WIDTH (320)
-
-typedef double FLOAT;
-
-typedef unsigned int UINT32;
-typedef unsigned long long int UINT64;
-typedef unsigned char UINT8;
-
-// PPM Edge Enhancement Code
-//
-UINT8 header[22];
-UINT8 R[IMG_HEIGHT*IMG_WIDTH];
-UINT8 G[IMG_HEIGHT*IMG_WIDTH];
-UINT8 B[IMG_HEIGHT*IMG_WIDTH];
-UINT8 convR[IMG_HEIGHT*IMG_WIDTH];
-UINT8 convG[IMG_HEIGHT*IMG_WIDTH];
-UINT8 convB[IMG_HEIGHT*IMG_WIDTH];
-
-#define K 4.0
-
-FLOAT PSF[9] = {-K/8.0, -K/8.0, -K/8.0, -K/8.0, K+1.0, -K/8.0, -K/8.0, -K/8.0, -K/8.0};
-
-
-int main(int argc, char *argv[])
-{
-    int fdin, fdout, bytesRead=0, bytesLeft, i, j;
-    //UINT64 microsecs=0;
-    //UINT64 millisecs=0;
-    FLOAT temp;
+void print_sharpen_filter() {
+    printf("<sharpen %dx%d>\n\n", SHARPEN_ROWS, SHARPEN_COLS);
     
-    if(argc < 3)
-    {
-       printf("Usage: sharpen input_file.ppm output_file.ppm\n");
-       exit(-1);
-    }
-    else
-    {
-        if((fdin = open(argv[1], O_RDONLY, 0644)) < 0)
-        {
-            printf("Error opening %s\n", argv[1]);
+    for (int row=0; row < SHARPEN_ROWS; row++) {
+        printf("[ ");
+        for (int col=0; col < SHARPEN_COLS; col++) {
+            printf("% 01.1f ", SHARPEN_FLT[row * SHARPEN_COLS + col]);
         }
-        //else
-        //    printf("File opened successfully\n");
-
-        if((fdout = open(argv[2], (O_RDWR | O_CREAT), 0666)) < 0)
-        {
-            printf("Error opening %s\n", argv[1]);
-        }
-        //else
-        //    printf("Output file=%s opened successfully\n", "sharpen.ppm");
+        printf("]\n");
     }
 
-    bytesLeft=21;
+}
 
-    //printf("Reading header\n");
+int init_sharpen_buffer(buffer_t* b) {
+    b->start = malloc(sizeof(unsigned char) * SHARPEN_BUF_SIZE);
+    b->size = SHARPEN_BUF_SIZE;
 
-    do
-    {
-        //printf("bytesRead=%d, bytesLeft=%d\n", bytesRead, bytesLeft);
-        bytesRead=read(fdin, (void *)header, bytesLeft);
-        bytesLeft -= bytesRead;
-    } while(bytesLeft > 0);
-
-    header[21]='\0';
-
-    //printf("header = %s\n", header); 
-
-    // Read RGB data
-    for(i=0; i<IMG_HEIGHT*IMG_WIDTH; i++)
-    {
-        read(fdin, (void *)&R[i], 1); convR[i]=R[i];
-        read(fdin, (void *)&G[i], 1); convG[i]=G[i];
-        read(fdin, (void *)&B[i], 1); convB[i]=B[i];
+    if (b->start) {
+        return 0;
     }
 
-    // Skip first and last row, no neighbors to convolve with
-    for(i=1; i<((IMG_HEIGHT)-1); i++)
-    {
+return -1;
+}
 
-        // Skip first and last column, no neighbors to convolve with
-        for(j=1; j<((IMG_WIDTH)-1); j++)
-        {
-            temp=0;
-            temp += (PSF[0] * (FLOAT)R[((i-1)*IMG_WIDTH)+j-1]);
-            temp += (PSF[1] * (FLOAT)R[((i-1)*IMG_WIDTH)+j]);
-            temp += (PSF[2] * (FLOAT)R[((i-1)*IMG_WIDTH)+j+1]);
-            temp += (PSF[3] * (FLOAT)R[((i)*IMG_WIDTH)+j-1]);
-            temp += (PSF[4] * (FLOAT)R[((i)*IMG_WIDTH)+j]);
-            temp += (PSF[5] * (FLOAT)R[((i)*IMG_WIDTH)+j+1]);
-            temp += (PSF[6] * (FLOAT)R[((i+1)*IMG_WIDTH)+j-1]);
-            temp += (PSF[7] * (FLOAT)R[((i+1)*IMG_WIDTH)+j]);
-            temp += (PSF[8] * (FLOAT)R[((i+1)*IMG_WIDTH)+j+1]);
-	    if(temp<0.0) temp=0.0;
-	    if(temp>255.0) temp=255.0;
-	    convR[(i*IMG_WIDTH)+j]=(UINT8)temp;
+void sharpen(buffer_t *src, buffer_t* dst, size_t offset) {
+    float row_sum;
+    int filter_pos;
 
-            temp=0;
-            temp += (PSF[0] * (FLOAT)G[((i-1)*IMG_WIDTH)+j-1]);
-            temp += (PSF[1] * (FLOAT)G[((i-1)*IMG_WIDTH)+j]);
-            temp += (PSF[2] * (FLOAT)G[((i-1)*IMG_WIDTH)+j+1]);
-            temp += (PSF[3] * (FLOAT)G[((i)*IMG_WIDTH)+j-1]);
-            temp += (PSF[4] * (FLOAT)G[((i)*IMG_WIDTH)+j]);
-            temp += (PSF[5] * (FLOAT)G[((i)*IMG_WIDTH)+j+1]);
-            temp += (PSF[6] * (FLOAT)G[((i+1)*IMG_WIDTH)+j-1]);
-            temp += (PSF[7] * (FLOAT)G[((i+1)*IMG_WIDTH)+j]);
-            temp += (PSF[8] * (FLOAT)G[((i+1)*IMG_WIDTH)+j+1]);
-	    if(temp<0.0) temp=0.0;
-	    if(temp>255.0) temp=255.0;
-	    convG[(i*IMG_WIDTH)+j]=(UINT8)temp;
+//TODO - copy outside of filter box...
 
-            temp=0;
-            temp += (PSF[0] * (FLOAT)B[((i-1)*IMG_WIDTH)+j-1]);
-            temp += (PSF[1] * (FLOAT)B[((i-1)*IMG_WIDTH)+j]);
-            temp += (PSF[2] * (FLOAT)B[((i-1)*IMG_WIDTH)+j+1]);
-            temp += (PSF[3] * (FLOAT)B[((i)*IMG_WIDTH)+j-1]);
-            temp += (PSF[4] * (FLOAT)B[((i)*IMG_WIDTH)+j]);
-            temp += (PSF[5] * (FLOAT)B[((i)*IMG_WIDTH)+j+1]);
-            temp += (PSF[6] * (FLOAT)B[((i+1)*IMG_WIDTH)+j-1]);
-            temp += (PSF[7] * (FLOAT)B[((i+1)*IMG_WIDTH)+j]);
-            temp += (PSF[8] * (FLOAT)B[((i+1)*IMG_WIDTH)+j+1]);
-	    if(temp<0.0) temp=0.0;
-	    if(temp>255.0) temp=255.0;
-	    convB[(i*IMG_WIDTH)+j]=(UINT8)temp;
-        }
+    unsigned char* b = (unsigned char*)src->start;
+    unsigned char* out = (unsigned char*)dst->start;
+    /* FILTER_RANGE is the distance from the center of the pixel
+       we are transforming. So we need to leave a border around
+       the transformation
+    */
+    for (int i=0; i < Y_RES - SHARPEN_COLS; i++) {
+
+        filter_pos = 0;
+        row_sum = 0;  
+        
+        for (int j=0; j < X_RES - SHARPEN_ROWS; j++) {
+            //Sum up the box of values * filter matrix
+            for (int k=0; k < SHARPEN_COLS; k++) {
+                for (int l=0; l < SHARPEN_ROWS; l++) {
+                    row_sum += SHARPEN_FLT[filter_pos++] * b[k*X_RES + l];  
+                }
+            }
+            //The clamps!!
+            if (row_sum < 0.0) {
+                row_sum = 0;
+            }
+            if (row_sum > 255.0) {
+                row_sum = 255;
+            }
+
+            //Center pixel
+            int pos =  (i + FILTER_RANGE) * X_RES +
+                       (j + FILTER_RANGE) +
+                       offset;
+assert(pos < dst->size);
+            out[pos] = (uint8_t)row_sum;
+        } 
     }
-
-    write(fdout, (void *)header, 21);
-
-    // Write RGB data
-    for(i=0; i<IMG_HEIGHT*IMG_WIDTH; i++)
-    {
-        write(fdout, (void *)&convR[i], 1);
-        write(fdout, (void *)&convG[i], 1);
-        write(fdout, (void *)&convB[i], 1);
-    }
-
-
-    close(fdin);
-    close(fdout);
- 
+        
+        
 }

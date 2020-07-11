@@ -7,12 +7,12 @@ CFLAGS= -O0 -g -Wall $(INCLUDE_DIRS) $(CDEFS)
 LIBS= -lrt
 
 HFILES= 
-CFILES= capture.c setup.c v4l2_capabilities.c buffer.c dumptools.c transformation.c
+CFILES= capture.c setup.c v4l2_capabilities.c buffer.c dumptools.c transformation.c sharpen.c
 
 SRCS= ${HFILES} ${CFILES}
 OBJS= ${CFILES:.c=.o}
 
-all:	capture sharpen
+all:	capture
 
 clean:
 	-rm -f *.o *.d
@@ -28,8 +28,8 @@ capture: ${OBJS}
 #test_starter: capture_starter.o
 #	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)
 
-sharpen: sharpen.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)
+#sharpen: __sharpen.o
+#	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)
 
 depend:
 
