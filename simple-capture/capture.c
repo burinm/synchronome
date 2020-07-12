@@ -10,6 +10,11 @@
 #include "transformation.h"
 #include "dumptools.h"
 
+#ifdef PROFILE_FRAMES
+    #include <time.h>
+    #include "timetools.h"
+#endif
+
 #ifdef SHARPEN_ON
     #include "sharpen.h"
 #endif
@@ -22,6 +27,7 @@
 void ctrl_c(int addr);
 #endif
 
+//TODO - make error macro that will still print out in silent mode
 int printf_on = 1;
 int running = 1;
 
@@ -143,13 +149,44 @@ if (try_refocus(video.camera_fd) == -1) {
 }
 
 /* for profiling, turn off all console output */
-//printf_on = 0;
-printf_on = 1;
+#ifdef PROFILE_FRAMES
+    printf_on = 0;
+#else
+    printf_on = 1;
+#endif
 
 int ret = -1;
 struct v4l2_buffer current_b;
 
+#ifdef PROFILE_FRAMES
+struct timespec timestamp;
+struct timespec timestamp_last;
+struct timespec diff;
+float average_ms = 0;
+int average_count = 0;
+
+memset(&timestamp_last, 0, sizeof(struct timespec));
+#endif
+
 while(running) {
+
+#ifdef PROFILE_FRAMES
+    clock_gettime(CLOCK_MONOTONIC, &timestamp);
+    if (timestamp_last.tv_sec != 0) {
+        if (timespec_subtract(&diff, &timestamp, &timestamp_last) == 0) {    
+            console("diff: %010lu.%09lu\n", diff.tv_sec, diff.tv_nsec); 
+            average_ms += diff.tv_sec * 1000 + diff.tv_nsec / 1000000;
+            average_count++;
+        } else {
+            console_error("diff: negative!!\n");
+        }
+    }
+    timestamp_last = timestamp;
+
+    if (average_count == PROFILE_ITERS) {
+        running = 0;
+    }
+#endif
 
     memset(&current_b, 0, sizeof(struct v4l2_buffer)); 
     current_b.type = video.type;
@@ -193,8 +230,11 @@ console(".");
     sharpen(&sharpen_buffer, &wo_buffer, 0);
     #endif
 
+#ifndef PROFILE_FRAMES
     //Write out buffer to disk
     dump_rgb_raw_buffer(&wo_buffer);
+#endif
+
 
     //Requeue buffer - TODO - do I need to clear it?
     if (enqueue_buf(&current_b, video.camera_fd) == -1) {
@@ -225,6 +265,11 @@ error:
     } else {
         console("closed camera device\n");
     }
+#ifdef PROFILE_FRAMES
+    printf_on = 1;
+    console("frames = %d\n", average_count);
+    console("average frame time: %03.3fms\n", average_ms / average_count);
+#endif
 
 return 0;
 }

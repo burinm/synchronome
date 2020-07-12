@@ -7,7 +7,7 @@ CFLAGS= -O0 -g -Wall $(INCLUDE_DIRS) $(CDEFS)
 LIBS= -lrt
 
 HFILES= 
-CFILES= capture.c setup.c v4l2_capabilities.c buffer.c dumptools.c transformation.c sharpen.c
+CFILES= capture.c setup.c v4l2_capabilities.c buffer.c dumptools.c transformation.c sharpen.c timetools.c
 
 SRCS= ${HFILES} ${CFILES}
 OBJS= ${CFILES:.c=.o}

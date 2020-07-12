@@ -1,6 +1,10 @@
 #ifndef __SETUP_H__
 #define __SETUP_H__
 
+//Test frames without writing to disk
+//#define PROFILE_FRAMES
+#define PROFILE_ITERS   1000
+
 #define CAMERA_DEV  "/dev/video0"
 #define CAMERA_MAJ_ID   81
 
@@ -19,6 +23,7 @@
 extern int printf_on;
 // https://stackoverflow.com/questions/20639632/how-to-wrap-printf-into-a-function-or-macro
 #define console(format, ...) if (printf_on) { printf((format), ##__VA_ARGS__); }
+#define console_error(format, ...) printf((format), ##__VA_ARGS__)
 
 #include <stdint.h>
 
