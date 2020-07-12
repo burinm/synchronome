@@ -20,7 +20,7 @@ extern buffer_t wo_buffer;
 #define PPM_HEADER_DEPTH   "255\n"            //    5
 
 // +1 because srncpy includes '\0' as one of the bytes
-#define PPM_HEADER_MAX_LEN                        (47 + 1)
+#define PPM_HEADER_MAX_LEN                        (47 + 2)
 
 /* -----------------------PGM--------------------------- */
 //Boo, this is brittle, c strings are terrible
@@ -31,7 +31,7 @@ extern buffer_t wo_buffer;
 #define PGM_HEADER_DEPTH   "255\n"            //    5
 
 // +1 because srncpy includes '\0' as one of the bytes
-#define PGM_HEADER_MAX_LEN                        (47 + 1)
+#define PGM_HEADER_MAX_LEN                        (47 + 2)
 
 
 /* -------Selection of image type------------------------ */

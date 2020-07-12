@@ -2,7 +2,7 @@
 #define __SETUP_H__
 
 //Test frames without writing to disk
-#define PROFILE_FRAMES
+//#define PROFILE_FRAMES
 #define PROFILE_ITERS   500
 
 #define CAMERA_DEV  "/dev/video0"
@@ -12,11 +12,11 @@
 #define Y_RES   480
 
 //Select one
-//#define PPM_CAPTURE
-#define PGM_CAPTURE
+#define PPM_CAPTURE
+//#define PGM_CAPTURE
 
 //Select other options
-#define SHARPEN_ON
+//#define SHARPEN_ON
 //#define SHARPEN_TYPE SHARPEN_WIKIPEDIA_EXAMPLE
 #define SHARPEN_TYPE SHARPEN_PROFESSOR_EXAMPLE
 
