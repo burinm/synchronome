@@ -167,8 +167,11 @@ printf(".");
     //dump_buffer_raw(&buffers[current_b.index]);
 
 #ifdef PPM_CAPTURE
-    //Buffer transformation
-    yuv422torgb888(&buffers[current_b.index], &wo_buffer, 0);
+    #ifdef SHARPEN_ON
+        yuv422toG8(&buffers[current_b.index], &sharpen_buffer, 0);
+    #else
+        yuv422torgb888(&buffers[current_b.index], &wo_buffer, 0);
+    #endif
 #endif
 
 #ifdef PGM_CAPTURE

@@ -33,38 +33,42 @@ void sharpen(buffer_t *src, buffer_t* dst, size_t offset) {
        the transformation
     */
 
-    for (int i=0; i < Y_RES - SHARPEN_ROWS; i++) {
+    //pixel position (one loop for greyscale, 3 for rgb)
+    for (int pp = 0; pp < BYTES_PER_PIXEL; pp++) {
 
-        
-        for (int j=0; j < X_RES - SHARPEN_COLS; j++) {
-            filter_pos = 0;
-            row_sum = 0;
+        for (int i=0; i < Y_RES - SHARPEN_ROWS; i++) {
 
-            //Sum up the box of values * filter matrix
-            for (int k=0; k < SHARPEN_ROWS; k++) {
-                for (int l=0; l < SHARPEN_COLS; l++) {
-                    int index = (k * X_RES + l) + (i * X_RES) + j;
-assert(index < src->size);
-                    row_sum += SHARPEN_FLT[filter_pos++] * (float)in[index];
-                }
-            }
-
-            //The clamps!!
-            if (row_sum < 0.0) {
+            for (int j=pp; j < (X_RES - SHARPEN_COLS) * BYTES_PER_PIXEL; j+=BYTES_PER_PIXEL) {
+                filter_pos = 0;
                 row_sum = 0;
-            }
-            if (row_sum > 255.0) {
-                row_sum = 255;
-            }
 
-            //Center pixel
-            int pos =  (i + FILTER_RANGE) * X_RES +
-                       (j + FILTER_RANGE) +
-                       offset;
-assert(pos < dst->size);
-            out[pos] = (uint8_t)row_sum;
-        } 
+                //Sum up the box of values * filter matrix
+                for (int k=0; k < SHARPEN_ROWS; k++) {
+                    for (int l=pp; l < SHARPEN_COLS * BYTES_PER_PIXEL; l+=BYTES_PER_PIXEL) {
+                        int index = (k * X_RES + l) + (i * X_RES) + j;
+    assert(index < src->size);
+    assert(filter_pos < SHARPEN_SIZE);
+                        row_sum += SHARPEN_FLT[filter_pos++] * (float)in[index];
+                    }
+                }
+
+                //The clamps!!
+                if (row_sum < 0.0) {
+                    row_sum = 0;
+                }
+                if (row_sum > 255.0) {
+                    row_sum = 255;
+                }
+
+                //Center pixel
+                int pos =  ((i + FILTER_RANGE) * X_RES) * BYTES_PER_PIXEL +
+                           (j + FILTER_RANGE) * BYTES_PER_PIXEL +
+                           pp +
+                           offset;
+    assert(pos < dst->size);
+                out[pos] = (uint8_t)row_sum;
+            }
+        }
     }
-        
-        
+
 }

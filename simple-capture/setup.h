@@ -12,7 +12,7 @@
 //#define PGM_CAPTURE
 
 //Select other options
-//#define SHARPEN_ON
+#define SHARPEN_ON
 //#define SHARPEN_TYPE SHARPEN_WIKIPEDIA_EXAMPLE
 #define SHARPEN_TYPE SHARPEN_PROFESSOR_EXAMPLE
 
