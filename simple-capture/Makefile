@@ -14,13 +14,13 @@ OBJS= ${CFILES:.c=.o}
 
 all:	capture
 
-clean:
+clean: clean-frames
 	-rm -f *.o *.d
-	-rm -f capture sharpen
-	-rm -f *.yuv *.ppm *.pgm
+	-rm -f capture sharpen test_starter
 
 clean-frames:
 	-rm -f *.yuv *.ppm *.pgm
+	-rm -f timestamps.txt
 
 capture: ${OBJS}
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)

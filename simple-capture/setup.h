@@ -8,13 +8,13 @@
 #define Y_RES   480
 
 //Select one
-//#define PPM_CAPTURE
-#define PGM_CAPTURE
+#define PPM_CAPTURE
+//#define PGM_CAPTURE
 
 //Select other options
-#define SHARPEN_ON
-#define SHARPEN_TYPE SHARPEN_WIKIPEDIA_EXAMPLE
-//#define SHARPEN_TYPE SHARPEN_PROFESSOR_EXAMPLE
+//#define SHARPEN_ON
+//#define SHARPEN_TYPE SHARPEN_WIKIPEDIA_EXAMPLE
+#define SHARPEN_TYPE SHARPEN_PROFESSOR_EXAMPLE
 
 extern int printf_on;
 // https://stackoverflow.com/questions/20639632/how-to-wrap-printf-into-a-function-or-macro
