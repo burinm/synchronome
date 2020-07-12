@@ -150,6 +150,7 @@ if (try_refocus(video.camera_fd) == -1) {
 
 /* for profiling, turn off all console output */
 #ifdef PROFILE_FRAMES
+    printf("\n[Profiling ON - iters = %d, ", PROFILE_ITERS);
     printf_on = 0;
 #else
     printf_on = 1;
@@ -218,7 +219,8 @@ console(".");
 #ifdef PGM_CAPTURE
 
     #ifdef SHARPEN_ON
-        yuv422toG8(&buffers[current_b.index], &sharpen_buffer, 0);
+        y_channel_sharpen(&buffers[current_b.index], &wo_buffer, 0);
+        //yuv422toG8(&buffers[current_b.index], &sharpen_buffer, 0);
     #else
         yuv422toG8(&buffers[current_b.index], &wo_buffer, 0);
 
@@ -227,7 +229,7 @@ console(".");
 #endif
 
     #ifdef SHARPEN_ON
-    sharpen(&sharpen_buffer, &wo_buffer, 0);
+    //sharpen(&sharpen_buffer, &wo_buffer, 0);
     #endif
 
 #ifndef PROFILE_FRAMES
@@ -267,7 +269,7 @@ error:
     }
 #ifdef PROFILE_FRAMES
     printf_on = 1;
-    console("frames = %d\n", average_count);
+    console("total frames = %d\n", average_count);
     console("average frame time: %03.3fms\n", average_ms / average_count);
 #endif
 
