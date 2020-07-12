@@ -2,6 +2,7 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+#include <stdlib.h>
 #include <assert.h>
 
 #include "buffer.h"
@@ -126,5 +127,17 @@ for (int i=0; i < num_buffers; i++) {
                 perror(NULL);
             }
         }
+    }
+}
+
+/* regular buffer management */
+int allocate_frame_buffer(buffer_t *b) {
+    int size = sizeof(unsigned char) * FRAME_SIZE;
+    b->start = malloc(size);
+    b->size = size;
+    if (b->start) {
+        return 0;
+    } else {
+        return -1;
     }
 }

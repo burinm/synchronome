@@ -107,15 +107,3 @@ int _open_for_write(int index, char* suffix) {
     }
     return fd;
 }
-
-/* write out buffer management */
-int wo_buffer_init(buffer_t *b) {
-    int size = sizeof(unsigned char) * WRITEOUT_BUF_SIZE;
-    b->start = malloc(size);
-    b->size = size;
-    if (b->start) {
-        return 0;
-    } else {
-        return -1;
-    }
-}

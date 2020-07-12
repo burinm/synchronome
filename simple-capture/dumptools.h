@@ -37,19 +37,15 @@ extern buffer_t wo_buffer;
 /* -------Selection of image type------------------------ */
 #ifdef PPM_CAPTURE
     #define IMAGE_SUFFIX      "ppm"
-    #define BYTES_PER_PIXEL 3 //Changes with output format
     #define IMAGE_HEADER_MAX_LENGTH PPM_HEADER_MAX_LEN
 #endif
 
 #ifdef PGM_CAPTURE
     #define IMAGE_SUFFIX      "pgm"
-    #define BYTES_PER_PIXEL 1 //Changes with output format
     #define IMAGE_HEADER_MAX_LENGTH PGM_HEADER_MAX_LEN
 #endif
 
 extern char header_buf[PGM_HEADER_MAX_LEN];
-
-#define WRITEOUT_BUF_SIZE FRAME_SIZE
 
 void dump_buffer_raw(buffer_t *b);
 void dump_yuv422_to_rgb_raw(buffer_t *b);
@@ -57,8 +53,5 @@ void dump_yuv422_to_rgb_raw(buffer_t *b);
 int header_with_timestamp(int fd);
 
 void dump_rgb_raw_buffer(buffer_t *b);
-
-//TODO deallocate wo_buffer
-int wo_buffer_init(buffer_t *b);
 
 #endif

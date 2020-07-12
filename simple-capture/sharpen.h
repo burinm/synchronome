@@ -32,8 +32,6 @@ extern float SHARPEN_FLT[SHARPEN_SIZE +1];
                                         _I,  5.0,   _I, \
                                         _I,   _I,   _I, }
 
-//TODO deallocate sharpen buffer
-int init_sharpen_buffer(buffer_t* b);
 void print_sharpen_filter();
 void sharpen(buffer_t *src, buffer_t* dst, size_t offset);
 

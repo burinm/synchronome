@@ -20,17 +20,6 @@ void print_sharpen_filter() {
 
 }
 
-int init_sharpen_buffer(buffer_t* b) {
-    b->start = malloc(sizeof(unsigned char) * SHARPEN_BUF_SIZE);
-    b->size = SHARPEN_BUF_SIZE;
-
-    if (b->start) {
-        return 0;
-    }
-
-return -1;
-}
-
 void sharpen(buffer_t *src, buffer_t* dst, size_t offset) {
     float row_sum;
     int filter_pos;

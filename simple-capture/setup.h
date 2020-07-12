@@ -6,14 +6,13 @@
 
 #define X_RES   640
 #define Y_RES   480
-#define FRAME_SIZE  (X_RES * Y_RES * BYTES_PER_PIXEL)
 
 //Select one
-//#define PPM_CAPTURE
-#define PGM_CAPTURE
+#define PPM_CAPTURE
+//#define PGM_CAPTURE
 
 //Select other options
-#define SHARPEN_ON
+//#define SHARPEN_ON
 //#define SHARPEN_TYPE SHARPEN_WIKIPEDIA_EXAMPLE
 #define SHARPEN_TYPE SHARPEN_PROFESSOR_EXAMPLE
 

@@ -34,17 +34,20 @@ sigaction(SIGINT, &action, NULL);
 #endif
 
 //Allocate other buffers
-if (wo_buffer_init(&wo_buffer) == -1) {
+if (allocate_frame_buffer(&wo_buffer) == -1) {
     printf("couldn't allocate write out buffer\n");
     exit(-1);
 }
 
 #ifdef SHARPEN_ON
-if (init_sharpen_buffer(&sharpen_buffer) == -1) {
+if (allocate_frame_buffer(&sharpen_buffer) == -1) {
     printf("couldn't allocate write out buffer\n");
     exit(-1);
 }
 #endif
+
+//TODO - free sharpen_buffer
+//TODO - free wo_buffer
 
 //printf("wo %d, sh %d\n", wo_buffer.size, sharpen_buffer.size);
 
