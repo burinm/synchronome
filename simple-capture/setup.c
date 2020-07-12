@@ -278,7 +278,7 @@ int try_refocus(int camera_fd) {
         perror("ioctl V4L2_CID_FOCUS_ABSOLUTE failed");
         return -1;
     }
-    printf("focus forced to 153\n");
+    printf("focus forced to 153.");
     //printf("infinity.");
     fflush(stdout);
 
