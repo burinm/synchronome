@@ -40,7 +40,7 @@ void dump_buffer_raw(buffer_t *b) {
     close(fd);
 }
 
-int header_with_timestamp(int fd) {
+int header_with_timestamp(int fd, struct timespec *timestamp) {
 
     int header_size = 0;
     int count = 0;
@@ -49,7 +49,7 @@ int header_with_timestamp(int fd) {
     header_size = snprintf(header_buf, PGM_HEADER_MAX_LEN, "%s%s#%010lu sec %09lu nsec\n%s",
                 PPM_HEADER_DESC,
                 PPM_HEADER_RES,
-                timestamp.tv_sec, timestamp.tv_nsec,
+                timestamp->tv_sec, timestamp->tv_nsec,
                 PPM_HEADER_DEPTH);
 #endif
 
@@ -57,7 +57,7 @@ int header_with_timestamp(int fd) {
     header_size = snprintf(header_buf, PGM_HEADER_MAX_LEN, "%s%s#%010lu sec %09lu nsec\n%s",
                 PGM_HEADER_DESC,
                 PGM_HEADER_RES,
-                timestamp.tv_sec, timestamp.tv_nsec,
+                timestamp->tv_sec, timestamp->tv_nsec,
                 PGM_HEADER_DEPTH);
 #endif
 
@@ -71,16 +71,20 @@ assert(header_size > 0);
 return count;
 }
 
+static struct timespec frame_time;
 void dump_rgb_raw_buffer(buffer_t *b) {
 
     static uint16_t frame_num = 0;
+
+    //Frame timestamps are right after all the processing is done
+    clock_gettime(CLOCK_MONOTONIC, &frame_time);
 
     fd = _open_for_write(frame_num, IMAGE_SUFFIX);
     if (fd == -1) {
         return;
     }
 
-    (void)header_with_timestamp(fd);
+    (void)header_with_timestamp(fd, &frame_time);
 
     //TODO - break into chunks?
     count = write(fd, b->start, b->size);

@@ -52,7 +52,7 @@ void sharpen(buffer_t *src, buffer_t* dst, size_t offset) {
                     }
                 }
 
-                //The clamps!!
+                //The clamps!! https://youtu.be/T9BdI-jB8xc
                 if (row_sum < 0.0) {
                     row_sum = 0;
                 }

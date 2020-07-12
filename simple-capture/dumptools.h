@@ -50,7 +50,7 @@ extern char header_buf[PGM_HEADER_MAX_LEN];
 void dump_buffer_raw(buffer_t *b);
 void dump_yuv422_to_rgb_raw(buffer_t *b);
 
-int header_with_timestamp(int fd);
+int header_with_timestamp(int fd, struct timespec *timestamp);
 
 void dump_rgb_raw_buffer(buffer_t *b);
 
