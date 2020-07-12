@@ -24,13 +24,13 @@ int open_camera(char* camera, video_t *v) {
         return -1;
     }
 
-    printf("Device node %s exists\n", camera);
-    printf("Devid: Major %u Minor %u\n", (unsigned int)MAJOR(s_test.st_rdev),
+    console("Device node %s exists\n", camera);
+    console("Devid: Major %u Minor %u\n", (unsigned int)MAJOR(s_test.st_rdev),
                                          (unsigned int)MINOR(s_test.st_rdev));
     /*Note: could use CONFIG_VIDEO_FIXED_MINOR_RANGES to fix minor number */
 
     if (MAJOR(s_test.st_rdev) != CAMERA_MAJ_ID) {
-        printf("This doesn't appear to be a camera device\n");
+        console("This doesn't appear to be a camera device\n");
         return -1; 
     }
 
@@ -61,19 +61,19 @@ int show_camera_capabilities(int camera_fd) {
 
     // https://www.kernel.org/doc/html/v4.9/media/uapi/v4l/vidioc-querycap.html#vidioc-querycap
     uint32_t version = camera_caps.version;
-    printf("[Camera version is %u.%u.%u]\n", (version >> 16) & 0xff,
+    console("[Camera version is %u.%u.%u]\n", (version >> 16) & 0xff,
                                            (version >> 8) & 0xff,
                                             version & 0xff);
-    printf("     Driver: %-16s\n", camera_caps.driver);
-    printf("       card: %-32s\n", camera_caps.card);
-    printf("        bus: %-32s\n", camera_caps.bus_info);
-    printf("       caps: 0x%x\n", camera_caps.capabilities);
+    console("     Driver: %-16s\n", camera_caps.driver);
+    console("       card: %-32s\n", camera_caps.card);
+    console("        bus: %-32s\n", camera_caps.bus_info);
+    console("       caps: 0x%x\n", camera_caps.capabilities);
     print_caps(camera_caps.capabilities);
-    printf("\n");
+    console("\n");
 
-    printf("device caps: 0x%x\n", camera_caps.device_caps);
+    console("device caps: 0x%x\n", camera_caps.device_caps);
     print_caps(camera_caps.device_caps);
-    printf("\n");
+    console("\n");
 
     //Find current video input (assuming this camera only has one)
     // These are modeled as video cards with connectors, so I'm assumiing
@@ -90,7 +90,7 @@ int show_camera_capabilities(int camera_fd) {
     }
 
     //I'm guessing .std isn't set because a USB camera?
-    printf("\n[INPUT %s index = %u std(0x%.16llx)]\n", camera_input.name, camera_input.index, camera_input.std);
+    console("\n[INPUT %s index = %u std(0x%.16llx)]\n", camera_input.name, camera_input.index, camera_input.std);
 
 return 0;
 }
@@ -101,16 +101,16 @@ return 0;
 // taken from examples here: https://www.kernel.org/doc/html/v4.9/media/uapi/v4l/standard.html
 struct v4l2_standard standard;
 memset(&standard, 0, sizeof(struct v4l2_standard));
-standard.index = 0; //start enumeration here 
+standard.index = 0; //start enumeration here
 
 while (ioctl(camera_fd, VIDIOC_ENUMSTD, &standard) == 0) {
     if (standard.id & camera_input.std) {
-        printf("[%s]", standard.name); 
+        console("[%s]", standard.name);
     }
     standard.index++;
 }
 
-printf("\n");
+console("\n");
 
 if (errno != EINVAL) {
     perror("Couldn't enumerate camera INPUT standards");
@@ -118,12 +118,12 @@ if (errno != EINVAL) {
 }
 
 if (standard.index == 0) {
-    printf("No camera input standards found. (is this really a camera device?)\n");
+    console("No camera input standards found. (is this really a camera device?)\n");
     return -1;
 }
 #endif
 
-int enumerate_camera_image_formats(int camera_fd) { 
+int enumerate_camera_image_formats(int camera_fd) {
 
     struct v4l2_fmtdesc image_formats;
     memset(&image_formats, 0, sizeof(struct v4l2_fmtdesc));
@@ -131,19 +131,19 @@ int enumerate_camera_image_formats(int camera_fd) {
     image_formats.type = V4L2_BUF_TYPE_VIDEO_CAPTURE; //start enumeration here 
 
     while (ioctl(camera_fd, VIDIOC_ENUM_FMT, &image_formats) == 0) {
-        printf("\t[%u]%-32s ", image_formats.index, image_formats.description); 
-        printf("pixelformat "); 
+        console("\t[%u]%-32s ", image_formats.index, image_formats.description);
+        console("pixelformat ");
         print_pixelformat(image_formats.pixelformat);
-        printf(" "); 
+        console(" ");
 
         if (image_formats.flags & V4L2_FMT_FLAG_COMPRESSED) {
-            printf(" V4L2_FMT_FLAG_COMPRESSED");
+            console(" V4L2_FMT_FLAG_COMPRESSED");
         }
         if (image_formats.flags & V4L2_FMT_FLAG_EMULATED) {
-            printf(" V4L2_FMT_FLAG_EMULATED");
+            console(" V4L2_FMT_FLAG_EMULATED");
         }
         image_formats.index++;
-        printf("\n");
+        console("\n");
     }
 
     if (errno != EINVAL) {
@@ -152,7 +152,7 @@ int enumerate_camera_image_formats(int camera_fd) {
     }
 
     if (image_formats.index == 0) {
-        printf("No camera image formats found!\n");
+        console("No camera image formats found!\n");
         return -1;
     }
 return 0;
@@ -170,17 +170,17 @@ int show_camera_image_format(int camera_fd) {
         return -1;
     }
 
-    printf("[video %u x %u]\n", pix->width, pix->height);
-    printf("\tpixelformat: ");
+    console("[video %u x %u]\n", pix->width, pix->height);
+    console("\tpixelformat: ");
     print_pixelformat(pix->pixelformat);
-    printf("\n");
-    printf("\tfield: %u\n", pix->field);
-    printf("\tbytesperline: %u\n", pix->bytesperline);
-    printf("\tbuffer size %u\n", pix->sizeimage);
-    printf("\t\tv4l2_colorspace %u\n", pix->colorspace);
-    printf("\t\tv4l2_ycbcr_encoding %u\n", pix->ycbcr_enc);
-    printf("\t\tv4l2_quantization %u\n", pix->quantization);
-    printf("\t\tv4l2_xfer_func %u\n", pix->xfer_func);
+    console("\n");
+    console("\tfield: %u\n", pix->field);
+    console("\tbytesperline: %u\n", pix->bytesperline);
+    console("\tbuffer size %u\n", pix->sizeimage);
+    console("\t\tv4l2_colorspace %u\n", pix->colorspace);
+    console("\t\tv4l2_ycbcr_encoding %u\n", pix->ycbcr_enc);
+    console("\t\tv4l2_quantization %u\n", pix->quantization);
+    console("\t\tv4l2_xfer_func %u\n", pix->xfer_func);
 
 return 0;
 }
@@ -203,7 +203,7 @@ return pix->sizeimage;
 int camera_set_yuyv(video_t *v, int width, int height) {
 
     //Change to YUYV
-    printf("Change to YUYV %dx%d\n", width, height);
+    console("Change to YUYV %dx%d\n", width, height);
 
     struct v4l2_format camera_format;
     struct v4l2_pix_format *pix = &camera_format.fmt.pix;
@@ -253,7 +253,7 @@ int try_refocus(int camera_fd) {
     ext.count = 1;
     ext.controls = c;
 
-    printf("[autofocus].");
+    console("[autofocus].");
     fflush(stdout);
 
     memset(&c[0], 0, sizeof(struct v4l2_ext_control));
@@ -264,7 +264,7 @@ int try_refocus(int camera_fd) {
         perror("ioctl V4L2_CID_FOCUS_AUTO failed");
         return -1;
     }
-    printf("off.");
+    console("off.");
     fflush(stdout);
 
     sleep(1); //
@@ -278,8 +278,8 @@ int try_refocus(int camera_fd) {
         perror("ioctl V4L2_CID_FOCUS_ABSOLUTE failed");
         return -1;
     }
-    printf("focus forced to 153.");
-    //printf("infinity.");
+    console("focus forced to 153.");
+    //console("infinity.");
     fflush(stdout);
 
 #if 1 //TODO - can't figure out autofocus grrrr.
@@ -293,7 +293,7 @@ int try_refocus(int camera_fd) {
         perror("ioctl V4L2_CID_FOCUS_AUTO failed");
         return -1;
     }
-    printf("on.");
+    console("on.");
     fflush(stdout);
 
 
@@ -312,21 +312,21 @@ int try_refocus(int camera_fd) {
             break;
         }
         if (c[0].value & V4L2_AUTO_FOCUS_STATUS_BUSY) {
-            printf(".");
+            console(".");
             fflush(stdout);
             try--;
             continue;
         }
         if (c[0].value & V4L2_AUTO_FOCUS_STATUS_REACHED) {
-            printf("done ");
+            console("done ");
             break;
         }
         if (c[0].value & V4L2_AUTO_FOCUS_STATUS_IDLE) {
-            printf("idle ");
+            console("idle ");
             break;
         }
         if (c[0].value & V4L2_AUTO_FOCUS_STATUS_FAILED) {
-            printf("failed ");
+            console("failed ");
             break;
         }
 
@@ -335,9 +335,9 @@ int try_refocus(int camera_fd) {
     }
 
     if (try) {
-        printf(" succeeded\n");
+        console(" succeeded\n");
     } else {
-        printf(" failed! (0x%x)\n", c[0].value);
+        console(" failed! (0x%x)\n", c[0].value);
     }
 #endif
 
@@ -350,7 +350,7 @@ int try_refocus(int camera_fd) {
         perror("ioctl V4L2_CID_FOCUS_AUTO failed");
         return -1;
     }
-    printf("off.");
+    console("off.");
     fflush(stdout);
 #endif
 
@@ -361,7 +361,7 @@ int try_refocus(int camera_fd) {
         perror("ioctl VIDIOC_G_EXT_CTRLS failed");
         return -1;
     }
-    printf("[refocused at %d]\n", c[0].value);
+    console("[refocused at %d]\n", c[0].value);
 
 return 0;
 }

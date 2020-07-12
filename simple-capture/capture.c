@@ -22,6 +22,7 @@
 void ctrl_c(int addr);
 #endif
 
+int printf_on = 1;
 int running = 1;
 
 int main() {
@@ -35,13 +36,13 @@ sigaction(SIGINT, &action, NULL);
 
 //Allocate other buffers
 if (allocate_frame_buffer(&wo_buffer) == -1) {
-    printf("couldn't allocate write out buffer\n");
+    console("couldn't allocate write out buffer\n");
     exit(-1);
 }
 
 #ifdef SHARPEN_ON
 if (allocate_frame_buffer(&sharpen_buffer) == -1) {
-    printf("couldn't allocate write out buffer\n");
+    console("couldn't allocate write out buffer\n");
     exit(-1);
 }
 #endif
@@ -49,7 +50,7 @@ if (allocate_frame_buffer(&sharpen_buffer) == -1) {
 //TODO - free sharpen_buffer
 //TODO - free wo_buffer
 
-//printf("wo %d, sh %d\n", wo_buffer.size, sharpen_buffer.size);
+//console("wo %d, sh %d\n", wo_buffer.size, sharpen_buffer.size);
 
 video_t video;
 memset(&video, 0, sizeof(video_t));
@@ -78,12 +79,12 @@ if (camera_set_yuyv(&video, X_RES, Y_RES) == -1) {
 }
 
 if (video.width != X_RES) {
-    printf("Requested width %d not set (returned %d)\n", X_RES, video.width);
+    console("Requested width %d not set (returned %d)\n", X_RES, video.width);
     goto error;
 }
 
 if (video.height != Y_RES) {
-    printf("Requested height %d not set (returned %d)\n", Y_RES, video.height);
+    console("Requested height %d not set (returned %d)\n", Y_RES, video.height);
     goto error;
 }
 
@@ -108,7 +109,7 @@ for (int i=0; i < video.num_buffers; i++) {
 
     
     if (enqueue_buf(&b, video.camera_fd) == -1) {
-        printf("Couldn't enqueue buffer, index %d:", i);
+        console("Couldn't enqueue buffer, index %d:", i);
         perror(NULL);
         goto error3;
     }
@@ -120,15 +121,15 @@ for (int i=0; i < video.num_buffers; i++) {
         continue;
     }
 
-    printf("Could not queue buffer, index %d (flags)\n", i);
+    console("Could not queue buffer, index %d (flags)\n", i);
     goto error3;
 
 }
 
 #ifdef SHARPEN_ON
-    printf("\nApplying filter: ");
+    console("\nApplying filter: ");
     print_sharpen_filter();
-    printf("\n");
+    console("\n");
 #endif
 
 //Start streaming
@@ -138,9 +139,12 @@ if (start_streaming(&video) == -1) {
 }
 
 if (try_refocus(video.camera_fd) == -1) {
-    printf("Refocus failed!\n");
+    console("Refocus failed!\n");
 }
 
+/* for profiling, turn off all console output */
+//printf_on = 0;
+printf_on = 1;
 
 int ret = -1;
 struct v4l2_buffer current_b;
@@ -157,13 +161,13 @@ while(running) {
         running = 0;
         goto error4; 
     }
-printf(".");
+console(".");
 
     if (ret == EAGAIN) {
         continue;
     }
     
-    printf("buf index %d dequeued!\n", current_b.index);
+    console("buf index %d dequeued!\n", current_b.index);
     //dump_buffer_raw(&buffers[current_b.index]);
 
 #ifdef PPM_CAPTURE
@@ -199,7 +203,7 @@ printf(".");
         goto error4;
     }
 
-printf(".");
+console(".");
 
 }
 
@@ -216,10 +220,10 @@ deallocate_buffers(&video);
 
 error:
     if (close_camera(video.camera_fd) == -1) {
-        printf("problem closing fd=%d\n", video.camera_fd);
+        console("problem closing fd=%d\n", video.camera_fd);
         perror(NULL);
     } else {
-        printf("closed camera device\n");
+        console("closed camera device\n");
     }
 
 return 0;
@@ -228,7 +232,7 @@ return 0;
 
 #ifdef USE_CTRL_C
 void ctrl_c(int addr) {
-    printf("ctrl-c\n");
+    console("ctrl-c\n");
     running = 0;
 }
 #endif

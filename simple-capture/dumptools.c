@@ -32,7 +32,7 @@ void dump_buffer_raw(buffer_t *b) {
     //TODO - break into chunks?
     count = write(fd, b->start, b->size);
     if (count != b->size) {
-        printf("all bytes not written %d of %d\n", count, b->size);
+        console("all bytes not written %d of %d\n", count, b->size);
     }
 
     frame_num++;
@@ -65,7 +65,7 @@ assert(header_size > 0);
 
     count = write(fd, header_buf, header_size);
     if (count != header_size) {
-        printf("all header bytes not written %d of %d\n", count, header_size);
+        console("all header bytes not written %d of %d\n", count, header_size);
     }
 
 return count;
@@ -85,7 +85,7 @@ void dump_rgb_raw_buffer(buffer_t *b) {
     //TODO - break into chunks?
     count = write(fd, b->start, b->size);
     if (count != b->size) {
-        printf("all bytes not written %d of %d\n", count, b->size);
+        console("all bytes not written %d of %d\n", count, b->size);
     }
 
     frame_num++;
@@ -98,10 +98,10 @@ int _open_for_write(int index, char* suffix) {
     //TODO - eliminate snprintf
     snprintf(filename, FILE_NAME_SIZE, "frame.%06u.%s", index, suffix);
 
-    printf("writing:%s\n", filename);
+    console("writing:%s\n", filename);
     fd = open(filename, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
     if (fd == -1) {
-        printf("Couldn't create file %s", filename);
+        console("Couldn't create file %s", filename);
         perror(NULL);
         return -1;
     }

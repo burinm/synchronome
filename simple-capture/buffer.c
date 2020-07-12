@@ -31,7 +31,7 @@ int request_buffers(video_t *v) {
 
     //Did we get all the buffer we asked for?
     if (rb.count < NUM_BUF) {
-        printf("Did not get requested amount of buffers\n");
+        console("Did not get requested amount of buffers\n");
 
         _free_buffers(v);
         return -1;
@@ -50,7 +50,7 @@ int request_buffers(video_t *v) {
         b.memory = rb.memory;
 
         if (ioctl(v->camera_fd, VIDIOC_QUERYBUF, &b) == -1) {
-            printf("Couldn't get buffer info, index %d:", i);
+            console("Couldn't get buffer info, index %d:", i);
             perror(NULL);
             _free_buffers(v);
             return -1;
@@ -72,12 +72,12 @@ int request_buffers(video_t *v) {
                                 v->camera_fd, b.m.offset);
 
         if (buffers[i].start == MAP_FAILED) {
-            printf("Couldn't map buffer!\n");
+            console("Couldn't map buffer!\n");
             deallocate_buffers(v);
             return -1;
         }
 
-        printf("buffer #%d start=0x%p mmap=0x%u\n", i, buffers[i].start,  b.m.offset);
+        console("buffer #%d start=0x%p mmap=0x%u\n", i, buffers[i].start,  b.m.offset);
 
 
     }
@@ -114,16 +114,16 @@ void _free_buffers(video_t *v) {
     if (ioctl(v->camera_fd, VIDIOC_REQBUFS, &rb) == -1) {
         perror("Couldn't free buffers");
     }
-    printf("freed internal buffers\n");
+    console("freed internal buffers\n");
 }
 
 void _munmap_buffers(int num_buffers) {
 //TODO - Does the driver do this with VIDIOC_REQBUFS, count = 0?
 for (int i=0; i < num_buffers; i++) {
         if (buffers[i].start) {
-            printf("munmap buffer #%d (%p)\n", i, buffers[i].start);
+            console("munmap buffer #%d (%p)\n", i, buffers[i].start);
             if (munmap(buffers[i].start, buffers[i].size) == -1) {
-                printf("Couldn't munmap buffer #%d (%p) size %u", i, buffers[i].start, buffers[i].size);
+                console("Couldn't munmap buffer #%d (%p) size %u", i, buffers[i].start, buffers[i].size);
                 perror(NULL);
             }
         }

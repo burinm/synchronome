@@ -8,14 +8,14 @@ buffer_t sharpen_buffer;
 float SHARPEN_FLT[SHARPEN_SIZE +1] = SHARPEN_TYPE;
 
 void print_sharpen_filter() {
-    printf("<sharpen %dx%d>\n\n", SHARPEN_ROWS, SHARPEN_COLS);
+    console("<sharpen %dx%d>\n\n", SHARPEN_ROWS, SHARPEN_COLS);
     
     for (int row=0; row < SHARPEN_ROWS; row++) {
-        printf("[ ");
+        console("[ ");
         for (int col=0; col < SHARPEN_COLS; col++) {
-            printf("% 01.1f ", SHARPEN_FLT[row * SHARPEN_COLS + col]);
+            console("% 01.1f ", SHARPEN_FLT[row * SHARPEN_COLS + col]);
         }
-        printf("]\n");
+        console("]\n");
     }
 
 }
