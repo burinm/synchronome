@@ -54,7 +54,6 @@ if (set_main_realtime() == -1) {
 
 //Startup tests
 long int clock_get_latency = test_clock_gettime_latency();
-printf("clock_gettime takes an average of %ld nsec to run\n", clock_get_latency);
 
 
 printf("Creating frame grabber thread\n");
@@ -96,8 +95,11 @@ pthread_join(thread_framegrab, NULL);
 
 memlog_dump(FRAME_LOG);
 
-printf("jitter max = % .ld\n", jitter_max - jitter_frame);
-printf("jitter min = % .ld\n", jitter_min - jitter_frame);
+//printf("jitter max = % .ld ns\n", jitter_max - jitter_frame);
+//printf("jitter min = % .ld ns\n", jitter_min - jitter_frame);
+printf("jitter max = % .ld us\n", (jitter_max - jitter_frame) / 1000);
+printf("jitter min = % .ld us\n", (jitter_min - jitter_frame) / 1000);
+printf("clock_gettime takes an average of %ld nsec to run\n", clock_get_latency);
 
 }
 void sequencer(int v) {
