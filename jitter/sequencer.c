@@ -5,6 +5,7 @@
 #include <string.h>
 #include <semaphore.h>
 #include <pthread.h>
+#include <limits.h>
 #include <errno.h>
 
 #include "realtime.h"
@@ -19,6 +20,10 @@ pthread_t thread_framegrab;
 void* frame(void* v);
 memlog_t* FRAME_LOG;
 
+//stats
+long int jitter_max = INT_MIN;
+long int jitter_min = INT_MAX;
+int jitter_frame = 10000000;
 
 int running = 1;
 
@@ -91,6 +96,9 @@ pthread_join(thread_framegrab, NULL);
 
 memlog_dump(FRAME_LOG);
 
+printf("jitter max = % .ld\n", jitter_max - jitter_frame);
+printf("jitter min = % .ld\n", jitter_min - jitter_frame);
+
 }
 void sequencer(int v) {
     sem_post(&sem_framegrab);
@@ -98,10 +106,31 @@ void sequencer(int v) {
 
 void* frame(void* v) {
     int ret = -1; 
+    struct timespec tick;
+    struct timespec tick_prev;
+    struct timespec diff;
+
+    memset (&tick_prev, 0, sizeof(struct timespec));
 
     printf("Frame grabber started\n");
     while(running) {
+
         ret = sem_wait(&sem_framegrab);
+
+        clock_gettime(CLOCK_MONOTONIC, &tick);
+
+        if (tick_prev.tv_sec != 0) {
+            timespec_subtract(&diff, &tick, &tick_prev);
+            //printf("jitter %lld.%.9ld\n", (long long)diff.tv_sec, diff.tv_nsec);
+
+            if (diff.tv_nsec > jitter_max) {
+                jitter_max = diff.tv_nsec;
+            }
+
+            if (diff.tv_nsec < jitter_min) {
+                jitter_min = diff.tv_nsec;
+            }
+        }
         if (ret == -1) {
             perror("sem_wait sem_framegrab failed");
             //TODO - handle EINTR
@@ -111,6 +140,7 @@ void* frame(void* v) {
         }
         MEMLOG_LOG(FRAME_LOG, MEMLOG_E_S1_RUN);
         //printf("[frame]\n");
+        tick_prev = tick;
     }
 }
 
