@@ -28,10 +28,17 @@ struct sigaction s;
 s.sa_handler = sequencer;
 sigaction(SIGALRM, &s, NULL);
 
+//Setup semaphores
+if (sem_init(&sem_framegrab, 0, 0) == -1) {
+    perror("Couldn't init semaphore sem_framegrab");
+    exit(-1);
+}
+
 if (set_main_realtime() == -1) {
     exit(-1);
 }
 
+printf("Creating frame grabber thread\n");
 pthread_attr_t rt_sched_attr;  // For realtime H/M/L threads
 schedule_realtime(&rt_sched_attr);
 schedule_priority(&rt_sched_attr, HIGH_PRI);
@@ -64,30 +71,25 @@ if (timer_settime(timer1, 0, &it, NULL) == -1 ) {
     exit(-1);
 }
 
-if (sem_init(&sem_framegrab, 0, 0) == -1) {
-    perror("Couldn't init semaphore sem_framegrab");
-    exit(-1);
-}
 
+printf("Ready.\n");
 pthread_join(thread_framegrab, NULL);
 
 }
 void sequencer(int v) {
-
-    while(running) {
     sem_post(&sem_framegrab);
-    }
 }
 
 void* frame(void* v) {
     int ret = -1; 
 
+    printf("Frame grabber started\n");
     while(running) {
         ret = sem_wait(&sem_framegrab);
         if (ret == -1) {
             perror("sem_wait sem_framegrab failed");
             //TODO - handle EINTR
-            if (errno == EINTR) {
+            if (errno == EINTR) { //Aha, if this is in a different thread, the signal doesn't touch it
                 continue;
             }
         }
