@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include "realtime.h"
+#include "timetools.h"
 
 int set_main_realtime() { //TODO - for now, this is sharing processor 1
 
@@ -76,4 +77,32 @@ int schedule_priority(pthread_attr_t *attr, int pri) {
         return 0;
     }
 return -1;
+}
+
+long int test_clock_gettime_latency() {
+    struct timespec start;
+    struct timespec finish;
+    struct timespec dummy;
+    long int count = 100000;
+
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    for (long int i=0; i < count; i++) {
+        (void)clock_gettime(CLOCK_MONOTONIC, &dummy);
+    }
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+
+    if (timespec_subtract(&dummy, &finish, &start) == 1) {
+        printf("time was negative!\n");
+    }
+
+    long int result = dummy.tv_sec * 1000000000;
+    result += dummy.tv_nsec;
+    if (dummy.tv_sec > 0) {
+        printf("Warning, may overflow\n");
+    }
+    printf("clock_gettime took %ld nsec for %ld iterations\n", result, count);
+
+    result /= count;
+
+return result;
 }
