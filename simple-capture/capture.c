@@ -177,7 +177,7 @@ if (try_refocus(video.camera_fd) == -1) {
     //stats
     long int jitter_max = INT_MIN;
     long int jitter_min = INT_MAX;
-    int jitter_frame = 10000000;
+    int jitter_frame = 60000000;
 #else
     printf_on = 1;
 #endif
@@ -189,7 +189,7 @@ struct v4l2_buffer current_b;
 struct timespec timestamp;
 struct timespec timestamp_last;
 struct timespec diff;
-float average_ms = 0;
+long int average_ms = 0;
 int average_count = 0;
 
 memset(&timestamp_last, 0, sizeof(struct timespec));
@@ -207,6 +207,7 @@ while(running) {
 #ifdef CAPTURE_STANDALONE
 #else
     s_ret = sem_wait(&sem_framegrab);
+#endif
 
     MEMLOG_LOG(FRAME_LOG, MEMLOG_E_S1_RUN);
 
@@ -214,14 +215,14 @@ while(running) {
     clock_gettime(CLOCK_MONOTONIC, &timestamp);
 #endif
 
+#ifdef CAPTURE_STANDALONE
+#else
     if (s_ret == -1) {
         perror("sem_wait sem_framegrab failed");
-        error_exit(-1);
-#if 0
         if (errno == EINTR) { //Aha, if this is in a different thread, the signal doesn't touch it
-            //continue;
+            error_exit(-2);
         }
-#endif
+        error_exit(-1);
     }
 #endif
 
@@ -295,7 +296,8 @@ while(running) {
     //sharpen(&sharpen_buffer, &wo_buffer, 0);
     #endif
 
-#ifndef PROFILE_FRAMES
+#ifdef PROFILE_FRAMES
+#else
     //Write out buffer to disk
     dump_rgb_raw_buffer(&wo_buffer);
 #endif
@@ -331,7 +333,7 @@ error:
 #ifdef PROFILE_FRAMES
     printf_on = 1;
     console("total frames = %d\n", average_count);
-    console("average frame time: %03.3fms\n", average_ms / average_count);
+    console("average frame time: %03.3fms\n", (float)average_ms / (float)average_count);
 
     console("jitter max = % .ld us\n", (jitter_max - jitter_frame) / 1000);
     console("jitter min = % .ld us\n", (jitter_min - jitter_frame) / 1000);
