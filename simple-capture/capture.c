@@ -44,6 +44,7 @@ int running = 1;
 int main() {
 #else
 
+extern pthread_barrier_t bar_thread_inits;
 extern sem_t sem_framegrab;
 extern int running;
 #define error_exit(x)   pthread_exit((void*)x)
@@ -197,13 +198,18 @@ memset(&timestamp_last, 0, sizeof(struct timespec));
 #ifdef CAPTURE_STANDALONE
 #else
 int s_ret;
+pthread_barrier_wait(&bar_thread_inits); //GO!!
 #endif
+
 
 while(running) {
     //MEMLOG_LOG(FRAME_LOG, MEMLOG_E_S1_PERIOD);
 #ifdef CAPTURE_STANDALONE
 #else
     s_ret = sem_wait(&sem_framegrab);
+
+    MEMLOG_LOG(FRAME_LOG, MEMLOG_E_S1_RUN);
+
 #ifdef PROFILE_FRAMES
     clock_gettime(CLOCK_MONOTONIC, &timestamp);
 #endif
@@ -218,7 +224,6 @@ while(running) {
 #endif
     }
 #endif
-    MEMLOG_LOG(FRAME_LOG, MEMLOG_E_S1_RUN);
 
 #ifdef PROFILE_FRAMES
     if (timestamp_last.tv_sec != 0) {
@@ -302,7 +307,6 @@ while(running) {
         running = 0;
         goto error4;
     }
-console(".");
 
 }
 

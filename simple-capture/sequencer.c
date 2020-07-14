@@ -14,6 +14,8 @@
 void ctrl_c(int s);
 void sequencer(int v);
 
+pthread_barrier_t bar_thread_inits;
+
 sem_t sem_framegrab;
 pthread_t thread_framegrab;
 extern void* frame(void* v);
@@ -29,10 +31,10 @@ struct sigaction s0;
 s0.sa_handler = ctrl_c;
 sigaction(SIGINT, &s0, NULL);
 
-//Catch SIGALRM and run seqencer
+//Catch SIGUSR2 and run seqencer
 struct sigaction s1;
 s1.sa_handler = sequencer;
-sigaction(SIGALRM, &s1, NULL);
+sigaction(SIGUSR2, &s1, NULL);
 
 //Setup semaphores
 if (sem_init(&sem_framegrab, 0, 0) == -1) {
@@ -47,6 +49,8 @@ if (set_main_realtime() == -1) {
 //Startup tests
 long int clock_get_latency = test_clock_gettime_latency();
 
+//Start
+pthread_barrier_init(&bar_thread_inits, NULL, 2);
 
 printf("Creating frame grabber thread\n");
 pthread_attr_t rt_sched_attr;  // For realtime H/M/L threads
@@ -61,8 +65,14 @@ if (pthread_create(&thread_framegrab, &rt_sched_attr, frame, NULL) == -1) {
 //Interval timer for sequencer loop
 timer_t timer1; // note not defined with a struct
 
+
 //Install timer
-if (timer_create(CLOCK_MONOTONIC, NULL, &timer1) == -1 ) {
+struct sigevent sv;
+sv.sigev_notify = SIGEV_SIGNAL;
+sv.sigev_signo = SIGUSR2;
+
+//if (timer_create(CLOCK_MONOTONIC, NULL, &timer1) == -1 ) {
+if (timer_create(CLOCK_MONOTONIC, &sv, &timer1) == -1 ) {
     perror("Couldn't create timer");
     exit(-1);
 }
@@ -75,6 +85,8 @@ it.it_interval.tv_nsec = 60000000; //60ms
 //it.it_interval.tv_nsec = 200000000; //200ms 
 it.it_value.tv_sec = 1; //delay 1 second to start
 it.it_value.tv_nsec = 0;
+
+pthread_barrier_wait(&bar_thread_inits); //GO!!
 
 if (timer_settime(timer1, 0, &it, NULL) == -1 ) {
     perror("couldn't set timer");
