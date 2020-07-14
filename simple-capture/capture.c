@@ -5,13 +5,21 @@
 #include <errno.h>
 #include <linux/videodev2.h> //sudo apt-get install libv4l-dev
 
+#ifdef CAPTURE_STANDALONE
+#else
+    #include <pthread.h>
+    #include <semaphore.h>
+#endif
+
 #include "setup.h"
 #include "buffer.h"
 #include "transformation.h"
 #include "dumptools.h"
+#include "memlog.h"
 
 #ifdef PROFILE_FRAMES
     #include <time.h>
+    #include <limits.h>
     #include "timetools.h"
 #endif
 
@@ -19,37 +27,49 @@
     #include "sharpen.h"
 #endif
 
-#define USE_CTRL_C
 
-#ifdef USE_CTRL_C
+#ifdef CAPTURE_STANDALONE
 /* catch signal */
 #include <signal.h>
 void ctrl_c(int addr);
 #endif
 
-//TODO - make error macro that will still print out in silent mode
+memlog_t* FRAME_LOG;
+
+#ifdef CAPTURE_STANDALONE
 int printf_on = 1;
 int running = 1;
+#define error_exit(x)   exit(x)
 
 int main() {
+#else
 
-#ifdef USE_CTRL_C
+extern sem_t sem_framegrab;
+extern int running;
+#define error_exit(x)   pthread_exit((void*)x)
+void* frame(void* v) {
+#endif
+
+#ifdef CAPTURE_STANDALONE
 //install ctrl_c signal handler 
 struct sigaction action;
 action.sa_handler = ctrl_c;
 sigaction(SIGINT, &action, NULL);
 #endif
 
+//Logging on
+FRAME_LOG = memlog_init();
+
 //Allocate other buffers
 if (allocate_frame_buffer(&wo_buffer) == -1) {
     console("couldn't allocate write out buffer\n");
-    exit(-1);
+    error_exit(-1);
 }
 
 #ifdef SHARPEN_ON
 if (allocate_frame_buffer(&sharpen_buffer) == -1) {
     console("couldn't allocate write out buffer\n");
-    exit(-1);
+    error_exit(-1);
 }
 #endif
 
@@ -63,7 +83,7 @@ memset(&video, 0, sizeof(video_t));
 video.camera_fd = -1;
 
 if (open_camera(CAMERA_DEV, &video) == -1) {
-    exit(0);
+    error_exit(0);
 }
 
 
@@ -152,6 +172,11 @@ if (try_refocus(video.camera_fd) == -1) {
 #ifdef PROFILE_FRAMES
     printf("\n[Profiling ON - iters = %d, ", PROFILE_ITERS);
     printf_on = 0;
+
+    //stats
+    long int jitter_max = INT_MIN;
+    long int jitter_min = INT_MAX;
+    int jitter_frame = 10000000;
 #else
     printf_on = 1;
 #endif
@@ -169,10 +194,33 @@ int average_count = 0;
 memset(&timestamp_last, 0, sizeof(struct timespec));
 #endif
 
-while(running) {
+#ifdef CAPTURE_STANDALONE
+#else
+int s_ret;
+#endif
 
+while(running) {
+    //MEMLOG_LOG(FRAME_LOG, MEMLOG_E_S1_PERIOD);
+#ifdef CAPTURE_STANDALONE
+#else
+    s_ret = sem_wait(&sem_framegrab);
 #ifdef PROFILE_FRAMES
     clock_gettime(CLOCK_MONOTONIC, &timestamp);
+#endif
+
+    if (s_ret == -1) {
+        perror("sem_wait sem_framegrab failed");
+        error_exit(-1);
+#if 0
+        if (errno == EINTR) { //Aha, if this is in a different thread, the signal doesn't touch it
+            //continue;
+        }
+#endif
+    }
+#endif
+    MEMLOG_LOG(FRAME_LOG, MEMLOG_E_S1_RUN);
+
+#ifdef PROFILE_FRAMES
     if (timestamp_last.tv_sec != 0) {
         if (timespec_subtract(&diff, &timestamp, &timestamp_last) == 0) {    
             console("diff: %010lu.%09lu\n", diff.tv_sec, diff.tv_nsec); 
@@ -184,27 +232,37 @@ while(running) {
     }
     timestamp_last = timestamp;
 
+    if (diff.tv_nsec > jitter_max) {
+        jitter_max = diff.tv_nsec;
+    }
+
+    if (diff.tv_nsec < jitter_min) {
+        jitter_min = diff.tv_nsec;
+    }
+
+    //if (diff.tv_nsec > 100000000) {
+      //  console_error("!\n");
+    //}
+
     if (average_count == PROFILE_ITERS) {
         running = 0;
     }
 #endif
 
+
     memset(&current_b, 0, sizeof(struct v4l2_buffer)); 
     current_b.type = video.type;
     current_b.memory = video.memory;
     
-    ret = dequeue_buf(&current_b, video.camera_fd);
-    if (ret == -1) {
-        perror("VIDIOC_DQBUF");
-        running = 0;
-        goto error4; 
-    }
-console(".");
+    do { //TODO - safety breakout here
+        ret = dequeue_buf(&current_b, video.camera_fd);
+        if (ret == -1) {
+            perror("VIDIOC_DQBUF");
+            running = 0;
+            goto error4;
+        }
+    } while(ret == EAGAIN);
 
-    if (ret == EAGAIN) {
-        continue;
-    }
-    
     console("buf index %d dequeued!\n", current_b.index);
     //dump_buffer_raw(&buffers[current_b.index]);
 
@@ -244,7 +302,6 @@ console(".");
         running = 0;
         goto error4;
     }
-
 console(".");
 
 }
@@ -271,13 +328,17 @@ error:
     printf_on = 1;
     console("total frames = %d\n", average_count);
     console("average frame time: %03.3fms\n", average_ms / average_count);
+
+    console("jitter max = % .ld us\n", (jitter_max - jitter_frame) / 1000);
+    console("jitter min = % .ld us\n", (jitter_min - jitter_frame) / 1000);
 #endif
+    memlog_dump(FRAME_LOG);
 
 return 0;
 }
 
 
-#ifdef USE_CTRL_C
+#ifdef CAPTURE_STANDALONE
 void ctrl_c(int addr) {
     console("ctrl-c\n");
     running = 0;

@@ -4,15 +4,10 @@ CC=gcc
 
 CDEFS=
 CFLAGS= -O0 -g -Wall $(INCLUDE_DIRS) $(CDEFS)
-LIBS= -lrt
 
-HFILES= 
-CFILES= capture.c setup.c v4l2_capabilities.c buffer.c dumptools.c transformation.c sharpen.c timetools.c
+OBJS= setup.o v4l2_capabilities.o buffer.o dumptools.o transformation.o sharpen.o timetools.o memlog.o 
 
-SRCS= ${HFILES} ${CFILES}
-OBJS= ${CFILES:.c=.o}
-
-all:	capture
+all:	capture sequencer
 
 clean: clean-frames
 	-rm -f *.o *.d
@@ -22,8 +17,14 @@ clean-frames:
 	-rm -f *.yuv *.ppm *.pgm
 	-rm -f timestamps.txt
 
-capture: ${OBJS}
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)
+sequencer: ${OBJS} sequencer.o capture.o realtime.o memlog.o
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ -lrt -lpthread
+
+capture: ${OBJS} capture_standalone.o
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ -lrt
+
+capture_standalone.o: capture.c
+	$(CC) -DCAPTURE_STANDALONE $(LDFLAGS) $(CFLAGS) -c $^ -o $@
 
 #test_starter: capture_starter.o
 #	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)
