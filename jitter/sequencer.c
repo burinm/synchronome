@@ -20,12 +20,15 @@ pthread_t thread_framegrab;
 void* frame(void* v);
 memlog_t* FRAME_LOG;
 
+//#define PERIOD_NS   10000000
+#define PERIOD_NS   6000000 //60ms
 //stats
 long int jitter_max = INT_MIN;
 long int jitter_min = INT_MAX;
-int jitter_frame = 10000000;
+int jitter_frame = PERIOD_NS;
 
 int running = 1;
+int printf_on = 1;
 
 int main() {
 
@@ -80,7 +83,7 @@ printf("timer id = %d\n", timer1);
 
 struct itimerspec it;
 it.it_interval.tv_sec = 0;
-it.it_interval.tv_nsec = 10000000; //10ms 
+it.it_interval.tv_nsec = PERIOD_NS; //10ms
 it.it_value.tv_sec = 1; //delay 1 second to start
 it.it_value.tv_nsec = 0;
 
