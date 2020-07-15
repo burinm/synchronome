@@ -126,6 +126,11 @@ if (request_buffers(&video) == -1) {
     goto error;
 }
 
+if (mmap_buffers(&video) == -1) {
+    perror("Couldn't allocate buffers");
+    goto error;
+}
+
 //Enqueue all the buffers
 for (int i=0; i < video.num_buffers; i++) {
     struct v4l2_buffer b;
@@ -191,6 +196,7 @@ struct timespec timestamp_last;
 struct timespec diff;
 long int average_ms = 0;
 int average_count = 0;
+int jitter_delay_count = 0;
 
 memset(&timestamp_last, 0, sizeof(struct timespec));
 #endif
@@ -238,12 +244,14 @@ while(running) {
     }
     timestamp_last = timestamp;
 
-    if (diff.tv_nsec > jitter_max) {
-        jitter_max = diff.tv_nsec;
-    }
+    if (jitter_delay_count++ > 5) {
+        if (diff.tv_nsec > jitter_max) {
+            jitter_max = diff.tv_nsec;
+        }
 
-    if (diff.tv_nsec < jitter_min) {
-        jitter_min = diff.tv_nsec;
+        if (diff.tv_nsec < jitter_min) {
+            jitter_min = diff.tv_nsec;
+        }
     }
 
     //if (diff.tv_nsec > 100000000) {
