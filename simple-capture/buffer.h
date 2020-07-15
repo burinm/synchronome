@@ -6,7 +6,7 @@
 #include <linux/videodev2.h>
 
 //Internal camera buffers
-#define NUM_BUF 2
+#define NUM_BUF   10
 
 typedef struct {
     void* start;
@@ -19,6 +19,8 @@ extern buffer_t wo_buffer; //Temporary buffer for file output (write out)
 
 int request_buffers(video_t *v);
 void deallocate_buffers(video_t *v);
+
+int mmap_buffers(video_t *v);
 
 int enqueue_buf(struct v4l2_buffer* b, int camera_fd);
 int dequeue_buf(struct v4l2_buffer* b, int camera_fd);

@@ -22,7 +22,8 @@ int request_buffers(video_t *v) {
     memset(&rb, 0, sizeof(struct v4l2_requestbuffers));
     rb.count = NUM_BUF;  //simple ping pong strategy
     rb.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    rb.memory = V4L2_MEMORY_MMAP; //TODO try for DMA
+    rb.memory = V4L2_MEMORY_MMAP;
+    //rb.memory = V4L2_MEMORY_DMABUF; //TODO try for DMA
 
     if (ioctl(v->camera_fd, VIDIOC_REQBUFS, &rb) == -1) {
         perror("Couldn't allocate buffers");
@@ -37,17 +38,25 @@ int request_buffers(video_t *v) {
         return -1;
     }
 
+    v->num_buffers = rb.count;
+    v->type = rb.type;
+    v->memory = rb.memory;
+return 0;
+}
+
+int mmap_buffers(video_t *v) {
+
     memset(&buffers, 0, sizeof(buffer_t) * NUM_BUF);
 
     //Code taken/modified from here:
     // https://www.kernel.org/doc/html/v4.9/media/uapi/v4l/mmap.html
-    for (int i=0; i < rb.count; i++) {
+    for (int i=0; i < v->num_buffers; i++) {
         struct v4l2_buffer b;
 
         memset(&b, 0, sizeof(struct v4l2_buffer));
         b.index = i;
-        b.type = rb.type;
-        b.memory = rb.memory;
+        b.type = v->type;
+        b.memory = v->memory;
 
         if (ioctl(v->camera_fd, VIDIOC_QUERYBUF, &b) == -1) {
             console("Couldn't get buffer info, index %d:", i);
@@ -79,12 +88,8 @@ int request_buffers(video_t *v) {
 
         console("buffer #%d start=0x%p mmap=0x%u\n", i, buffers[i].start,  b.m.offset);
 
-
     }
 
-    v->num_buffers = rb.count;
-    v->type = rb.type;
-    v->memory = rb.memory;
 return 0;
 }
 

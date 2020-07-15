@@ -10,6 +10,8 @@
 
 #define X_RES   640
 #define Y_RES   480
+//#define X_RES  1920
+//#define Y_RES  1080
 
 //Select one
 #define PPM_CAPTURE
