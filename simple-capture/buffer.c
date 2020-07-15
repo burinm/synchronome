@@ -4,15 +4,23 @@
 #include <sys/ioctl.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <unistd.h> //close for DMA fd
 
 #include "buffer.h"
 #include "setup.h"
 
+//mmap buffers
 buffer_t buffers[NUM_BUF];
 buffer_t wo_buffer;
 
+#if 0 //DMA buffers
+int dma_fds[NUM_BUF];
+void _close_dma_fds();
+#endif
+
 void _free_buffers(video_t *v);
 void _munmap_buffers(int num_buffers);
+
 
 int request_buffers(video_t *v) {
     assert(v->camera_fd != -1);
@@ -23,7 +31,8 @@ int request_buffers(video_t *v) {
     rb.count = NUM_BUF;  //simple ping pong strategy
     rb.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     rb.memory = V4L2_MEMORY_MMAP;
-    //rb.memory = V4L2_MEMORY_DMABUF; //TODO try for DMA
+    //Note DMA doesn't seem to be supported
+    //rb.memory = V4L2_MEMORY_DMABUF; // Invalid argument
 
     if (ioctl(v->camera_fd, VIDIOC_REQBUFS, &rb) == -1) {
         perror("Couldn't allocate buffers");
@@ -93,6 +102,34 @@ int mmap_buffers(video_t *v) {
 return 0;
 }
 
+#if 0
+int export_dma_buffers(video_t *v) {
+    for (int i=0; i < v->num_buffers; i++) {
+        //Code taken/modified from here:
+        // https://www.kernel.org/doc/html/v4.19/media/uapi/v4l/vidioc-expbuf.html#vidioc-expbuf
+        struct v4l2_exportbuffer e;
+        memset(&e, 0, sizeof(struct v4l2_exportbuffer));
+        e.type = v->type;
+        e.index = i;
+
+        if (ioctl(v->camera_fd, VIDIOC_EXPBUF, &e) == -1) {
+            console("Couldn't get DMA fd, index %d:", i);
+            perror(NULL);
+            _close_dma_fds(v->num_buffers);
+            return -1;
+        }
+
+        if (e.fd < 1) {
+            console("DMA fd error: %d\n", e.fd);
+            return -1;
+        }
+
+        dma_fds[i] = e.fd;
+    }
+return 0;
+}
+#endif
+
 void deallocate_buffers(video_t *v) {
      _munmap_buffers(v->num_buffers);
      _free_buffers(v);
@@ -134,6 +171,17 @@ for (int i=0; i < num_buffers; i++) {
         }
     }
 }
+
+#if 0
+void _close_dma_fds(int num_buffers) {
+    for (int i=0; i < num_buffers; i++) {
+        if (dma_fds[i]) {
+            close(dma_fds[i]);
+        }
+    }
+}
+#endif
+
 
 /* regular buffer management */
 int allocate_frame_buffer(buffer_t *b) {
