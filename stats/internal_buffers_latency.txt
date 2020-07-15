@@ -1,0 +1,21 @@
+Test for 500 iteration capture of YUYV -> PPM 640x480 frame profiling
+
+Num buffers     Average latency/frame       buffer only
+1               103.046ms                   64.552ms
+2               49.520ms                    32.926ms
+3               39.050ms                    32.760ms
+4               38.144ms                    32.796ms
+5               38.076ms                    32.728ms
+6               38.144ms                    32.664ms
+7               38.104ms                    32.598ms
+8               38.992ms                    32.356ms
+9               43.018ms    38.126ms        32.320ms
+10              38.162ms                    32.394ms
+11              43.656ms    38.100ms        32.282ms
+12              43.618ms    43.574ms        32.094ms
+13              43.040ms                    32.080ms
+14              38.126ms                    31.968ms
+15              38.116ms                    31.904ms
+16              38.178ms                    31.808ms
+
+32              38.080ms                    30.940ms
