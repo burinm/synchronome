@@ -167,19 +167,25 @@ printf("clock_gettime takes an average of %ld nsec to run\n", clock_get_latency)
 
 static int sequence = 0;
 void sequencer(int v) {
-    if (sequence % 3 == 0) { // 3 * 10 = 30ms , 33Hz
-        sem_post(&sem_framegrab);
-    }
+    if (running) {
+        if (sequence % 6 == 0) { // 6 * 10 = 60ms, 16.7Hz
+            sem_post(&sem_framegrab);
+        }
 
-    if (sequence % 3 == 0) { // 3 * 10 = 30ms, 33Hz (must keep up with input)
-        sem_post(&sem_processing);
-    }
+        if (sequence % 6 == 0) { // 6 * 10 = 60ms, 16.7Hz (must keep up with input)
+            sem_post(&sem_processing);
+        }
 
-    if (sequence % 6 == 0) { // 6 * 10 = 60ms, 16.7Hz
-        sem_post(&sem_writeout);
-    }
+        if (sequence % 10 == 0) { // 10 * 10 = 100ms, 10Hz
+            sem_post(&sem_writeout);
+        }
 
-    sequence++; if (sequence == 90) { sequence = 0; }
+        sequence++; if (sequence == 90) { sequence = 0; }
+    } else { //unblock everyone
+            sem_post(&sem_framegrab);
+            sem_post(&sem_processing);
+            sem_post(&sem_writeout);
+    }
 }
 
 void ctrl_c(int s) {

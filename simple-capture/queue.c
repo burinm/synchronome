@@ -157,8 +157,13 @@ int dequeue_P(mqd_t Q, buffer_t *p) {
     int bytes_received = 0;
     char b[MQ_BUFFER_PAYLOAD_SIZE];
 
+    //2 second timeout (for ctrl_c)
+    struct timespec _t;
+    clock_gettime(CLOCK_REALTIME, &_t);
+    _t.tv_sec += 2;
+
     do{
-        bytes_received = mq_receive(Q, b, MQ_BUFFER_PAYLOAD_SIZE, &prio);
+        bytes_received = mq_timedreceive(Q, b, MQ_BUFFER_PAYLOAD_SIZE, &prio, &_t);
         if (bytes_received == -1 && errno != EAGAIN) {
             perror("Couldn't get message!\n");
             return -1;
@@ -200,8 +205,13 @@ int dequeue_V42L_frame(mqd_t Q, struct v4l2_buffer *p) {
     int bytes_received = 0;
     char b[MQ_FRAME_PAYLOAD_SIZE];
 
+    //2 second timeout (for ctrl_c)
+    struct timespec _t;
+    clock_gettime(CLOCK_REALTIME, &_t);
+    _t.tv_sec += 2;
+
     do{
-        bytes_received = mq_receive(Q, b, MQ_FRAME_PAYLOAD_SIZE, &prio);
+        bytes_received = mq_timedreceive(Q, b, MQ_FRAME_PAYLOAD_SIZE, &prio, &_t);
         if (bytes_received == -1 && errno != EAGAIN) {
             perror("Couldn't get message!\n");
             return -1;
