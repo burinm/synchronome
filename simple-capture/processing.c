@@ -23,14 +23,14 @@ void _deallocate_processing();
 */
 
 buffer_t raw_buffers[NUM_BUF];
-int raw_index = 0;
+static int raw_index = 0;
 
 void* processing(void* v) {
     video_t video;
     memcpy(&video, (video_t*)v, sizeof(video_t));
 
     if (_init_processing() == -1) {
-        error_exit(-1);
+        error_unbarrier_exit(-1);
     }
 
     pthread_barrier_wait(&bar_thread_inits); //GO!!

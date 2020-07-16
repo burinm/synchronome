@@ -76,30 +76,30 @@ if (camera_check_init(&video) == -1) {
         console("closed camera device\n");
     }
     error_cleanup(ERROR_LEVEL_0, &video);
-    error_exit(0);
+    error_unbarrier_exit(0);
 }
 
 if (camera_init_internal_buffers(&video) == -1) {
     error_cleanup(ERROR_LEVEL_2, &video);
-    error_exit(-1);
+    error_unbarrier_exit(-1);
 }
 
 if (allocate_other_buffers() == -1) {
     error_cleanup(ERROR_LEVEL_3, &video);
-    error_exit(-1);
+    error_unbarrier_exit(-1);
 }
 
 //Start streaming
 if (start_streaming(&video) == -1) {
     perror("Couldn't start stream");
     error_cleanup(ERROR_LEVEL_3, &video);
-    error_exit(-1);
+    error_unbarrier_exit(-1);
 }
 
 if (try_refocus(video.camera_fd) == -1) {
     console("Refocus failed!\n");
     error_cleanup(ERROR_LEVEL_3, &video);
-    error_exit(-1);
+    error_unbarrier_exit(-1);
 }
 
 #ifdef SHARPEN_ON

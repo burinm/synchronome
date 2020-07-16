@@ -12,6 +12,7 @@
 #include "timetools.h"
 #include "queue.h"
 #include "processing.h"
+#include "writeout.h"
 #include "memlog.h"
 
 void ctrl_c(int s);
@@ -27,6 +28,9 @@ extern memlog_t* FRAME_LOG;
 
 //processing thread
 pthread_t thread_processing;
+
+//writeou thread
+pthread_t thread_writeout;
 
 int running = 1;
 int printf_on = 1;
@@ -70,8 +74,8 @@ if (open_camera(CAMERA_DEV, &video) == -1) {
     exit(-1);
 }
 
-//Start
-pthread_barrier_init(&bar_thread_inits, NULL, 3);
+//Start, wait on (1)main, (2)frame, (3)processor, (4)writeout
+pthread_barrier_init(&bar_thread_inits, NULL, 4);
 
 printf("Creating frame grabber thread\n");
 pthread_attr_t rt_sched_attr;  // For realtime H/M/L threads
@@ -90,6 +94,14 @@ schedule_priority(&rt_sched_attr, MID_PRI);
 
 if (pthread_create(&thread_processing, &rt_sched_attr, processing, (void*)&video) == -1) {
     perror("Couldn't create processing thread");
+    exit(-1);
+}
+
+//Writeout thread
+schedule_priority(&rt_sched_attr, MID_PRI);
+
+if (pthread_create(&thread_writeout, &rt_sched_attr, writeout, (void*)&video) == -1) {
+    perror("Couldn't create writeout thread");
     exit(-1);
 }
 
@@ -126,6 +138,8 @@ if (timer_settime(timer1, 0, &it, NULL) == -1 ) {
 
 printf("Ready.\n");
 pthread_join(thread_framegrab, NULL);
+pthread_join(thread_processing, NULL);
+pthread_join(thread_writeout, NULL);
 
 //memlog_dump(FRAME_LOG);
 

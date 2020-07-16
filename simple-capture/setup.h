@@ -29,8 +29,14 @@ extern int printf_on;
 
 #ifdef CAPTURE_STANDALONE
     #define error_exit(x)   exit(x)
+    #define error_unbarrier_exit(x) exit(x)
 #else
-    #define error_exit(x)   { pthread_barrier_wait(&bar_thread_inits); \
+    #define error_exit(x)   { \
+                                  running =0; \
+                                  return((void*)x); \
+                            }
+    #define error_unbarrier_exit(x) \
+                            { pthread_barrier_wait(&bar_thread_inits); \
                                   running =0; \
                                   return((void*)x); \
                             }
