@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
+#include <semaphore.h>
 #include <assert.h>
 
 #include "processing.h"
@@ -11,6 +12,7 @@
 
 extern int running;
 extern pthread_barrier_t bar_thread_inits;
+extern sem_t sem_processing;
 
 int _init_processing();
 void _deallocate_processing();
@@ -25,6 +27,7 @@ void _deallocate_processing();
 buffer_t raw_buffers[NUM_BUF];
 static int raw_index = 0;
 
+
 void* processing(void* v) {
     video_t video;
     memcpy(&video, (video_t*)v, sizeof(video_t));
@@ -35,8 +38,17 @@ void* processing(void* v) {
 
     pthread_barrier_wait(&bar_thread_inits); //GO!!
 
+    int s_ret = -1;
     struct v4l2_buffer b;
     while(running) {
+
+        s_ret = sem_wait(&sem_processing);
+        if (s_ret == -1) {
+            perror("sem_wait sem_processing failed");
+            _deallocate_processing();
+            error_exit(-2);
+        }
+
         if (dequeue_V42L_frame(frame_receive_Q, &b) == -1) {
             printf("[Frame Processing: dequeue error\n");
             _deallocate_processing();

@@ -27,9 +27,11 @@ pthread_t thread_framegrab;
 extern memlog_t* FRAME_LOG;
 
 //processing thread
+sem_t sem_processing;
 pthread_t thread_processing;
 
 //writeou thread
+sem_t sem_writeout;
 pthread_t thread_writeout;
 
 int running = 1;
@@ -58,6 +60,17 @@ if (sem_init(&sem_framegrab, 0, 0) == -1) {
     exit(-1);
 }
 
+if (sem_init(&sem_processing, 0, 0) == -1) {
+    perror("Couldn't init semaphore sem_processing");
+    exit(-1);
+}
+
+if (sem_init(&sem_writeout, 0, 0) == -1) {
+    perror("Couldn't init semaphore sem_writeout");
+    exit(-1);
+}
+
+//Main enter realtime
 if (set_main_realtime() == -1) {
     exit(-1);
 }
@@ -98,7 +111,7 @@ if (pthread_create(&thread_processing, &rt_sched_attr, processing, (void*)&video
 }
 
 //Writeout thread
-schedule_priority(&rt_sched_attr, MID_PRI);
+schedule_priority(&rt_sched_attr, LOW_PRI);
 
 if (pthread_create(&thread_writeout, &rt_sched_attr, writeout, (void*)&video) == -1) {
     perror("Couldn't create writeout thread");
@@ -124,8 +137,9 @@ printf("timer installed\n");
 
 struct itimerspec it;
 it.it_interval.tv_sec = 0;
-it.it_interval.tv_nsec = 60000000; //60ms 
-//it.it_interval.tv_nsec = 200000000; //200ms 
+it.it_interval.tv_nsec = 10000000; //10ms
+//it.it_interval.tv_nsec = 60000000; //60ms
+//it.it_interval.tv_nsec = 200000000; //200ms
 it.it_value.tv_sec = 1; //delay 1 second to start
 it.it_value.tv_nsec = 0;
 
@@ -141,14 +155,27 @@ pthread_join(thread_framegrab, NULL);
 pthread_join(thread_processing, NULL);
 pthread_join(thread_writeout, NULL);
 
-//memlog_dump(FRAME_LOG);
+memlog_dump(FRAME_LOG);
 
 printf("clock_gettime takes an average of %ld nsec to run\n", clock_get_latency);
 
 }
 
+static int sequence = 0;
 void sequencer(int v) {
-    sem_post(&sem_framegrab);
+    if (sequence % 3 == 0) { // 3 * 10 = 30ms , 33Hz
+        sem_post(&sem_framegrab);
+    }
+
+    if (sequence % 3 == 0) { // 3 * 10 = 30ms, 33Hz (must keep up with input)
+        sem_post(&sem_processing);
+    }
+
+    if (sequence % 10 == 0) { // 10 * 10 = 100ms, 10Hz
+        sem_post(&sem_writeout);
+    }
+
+    sequence++; if (sequence == 90) { sequence = 0; }
 }
 
 void ctrl_c(int s) {
