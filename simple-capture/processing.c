@@ -3,6 +3,7 @@
 #include <pthread.h>
 
 #include "processing.h"
+#include "transformation.h"
 #include "setup.h"
 #include "buffer.h"
 #include "queue.h"
@@ -21,7 +22,10 @@ void* processing(void* v) {
             pthread_exit((void*)-1);
         }
 
-        printf("[Frame Processing: got frame index %d\n", b.index);
+        printf("[Processing: got frame index %d\n", b.index);
+
+        do_transformations(&buffers[b.index]);
+
         //Requeue internal buffer - TODO - do I need to clear it?
         if (enqueue_buf(&b, video.camera_fd) == -1) {
             perror("VIDIOC_QBUF");

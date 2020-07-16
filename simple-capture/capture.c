@@ -217,35 +217,8 @@ while(running) {
     //dump_buffer_raw(&buffers[current_b.index]);
 
 #ifdef CAPTURE_STANDALONE
-    #ifdef PPM_CAPTURE
-        #ifdef SHARPEN_ON
-            yuv422toG8(&buffers[current_b.index], &sharpen_buffer, 0);
-        #else
-            yuv422torgb888(&buffers[current_b.index], &wo_buffer, 0);
-        #endif
-    #endif
 
-    #ifdef PGM_CAPTURE
-
-        #ifdef SHARPEN_ON
-            y_channel_sharpen(&buffers[current_b.index], &wo_buffer, 0);
-            //yuv422toG8(&buffers[current_b.index], &sharpen_buffer, 0);
-        #else
-            yuv422toG8(&buffers[current_b.index], &wo_buffer, 0);
-
-        #endif
-
-    #endif
-
-        #ifdef SHARPEN_ON
-        //sharpen(&sharpen_buffer, &wo_buffer, 0);
-        #endif
-
-    #ifdef PROFILE_FRAMES
-    #else
-        //Write out buffer to disk
-        dump_rgb_raw_buffer(&wo_buffer);
-    #endif
+    do_transformations(&buffers[current_b.index]);
 
     //Requeue buffer - TODO - do I need to clear it?
     if (enqueue_buf(&current_b, video.camera_fd) == -1) {

@@ -1,5 +1,38 @@
 #include <assert.h>
 #include "transformation.h"
+#include "setup.h"
+#include "dumptools.h"
+
+
+void do_transformations(buffer_t* b) {
+
+#ifdef PPM_CAPTURE
+    #ifdef SHARPEN_ON
+        yuv422toG8(b, &sharpen_buffer, 0);
+    #else
+        yuv422torgb888(b, &wo_buffer, 0);
+    #endif
+#endif
+
+#ifdef PGM_CAPTURE
+    #ifdef SHARPEN_ON
+        y_channel_sharpen(b, &wo_buffer, 0);
+        //yuv422toG8(&buffers[current_b.index], &sharpen_buffer, 0);
+    #else
+        yuv422toG8(b, &wo_buffer, 0);
+    #endif
+#endif
+
+    #ifdef SHARPEN_ON //Uncomment for PPM sharpen
+    //sharpen(&sharpen_buffer, &wo_buffer, 0);
+    #endif
+
+#ifdef PROFILE_FRAMES
+#else
+    //Write out buffer to disk
+    dump_rgb_raw_buffer(&wo_buffer);
+#endif
+}
 
 
 // yuv2rgb - (c) from siewert starter code
