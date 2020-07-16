@@ -10,6 +10,7 @@
 #include "realtime.h"
 #include "capture.h"
 #include "timetools.h"
+#include "queue.h"
 #include "memlog.h"
 
 void ctrl_c(int s);
@@ -36,6 +37,11 @@ sigaction(SIGINT, &s0, NULL);
 struct sigaction s1;
 s1.sa_handler = sequencer;
 sigaction(SIGUSR2, &s1, NULL);
+
+//init queues
+if (init_queues() == -1) {
+    exit(-1);
+}
 
 //Setup semaphores
 if (sem_init(&sem_framegrab, 0, 0) == -1) {

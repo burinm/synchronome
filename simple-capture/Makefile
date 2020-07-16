@@ -17,7 +17,7 @@ clean-frames:
 	-rm -f *.yuv *.ppm *.pgm
 	-rm -f timestamps.txt
 
-sequencer: ${OBJS} sequencer.o capture.o realtime.o memlog.o queue.o
+sequencer: ${OBJS} sequencer.o capture.o processing.o realtime.o memlog.o queue.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ -lrt -lpthread
 
 capture: ${OBJS} capture_standalone.o

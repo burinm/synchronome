@@ -7,12 +7,14 @@
 #ifndef __QUEUE_H__
 #define __QUEUE_H__
 
+#include <mqueue.h>
+#include <linux/videodev2.h>
 #include "buffer.h"
 
 #define MAX_QUEUE_SIZE 10
 #define MAX_PAYLOAD_SZ 128
 
-#define HIGHEST_PRI  (sysconf(_SC_MQ_PRIO_MAX) - 1) 
+#define HIGHEST_Q_PRI  (sysconf(_SC_MQ_PRIO_MAX) - 1)
 #define HI_PRI     30
 #define NO_TIMEOUT  NULL
 
@@ -22,15 +24,23 @@
     .mq_msgsize = MAX_PAYLOAD_SZ, \
     .mq_curmsgs = 0}
 
-#define MQ_PAYLOAD_SIZE (sizeof(buffer_t*))
+#define MQ_BUFFER_PAYLOAD_SIZE (sizeof(buffer_t*))
+#define MQ_FRAME_PAYLOAD_SIZE (sizeof(struct v4l2_buffer*))
 
 #define FRAME_RECEIVE_Q "/frame_recieve_q"
 extern mqd_t frame_receive_Q;
+
+#define PROCESSING_Q "/processing_q"
+extern mqd_t processing_Q;
 
 int init_queues();
 void destroy_queues();
 int enqueue_P(mqd_t Q, buffer_t *p);
 buffer_t* dequeue_P(mqd_t Q);
+
+int enqueue_V42L_frame(mqd_t Q, struct v4l2_buffer *p);
+struct v4l2_buffer* dequeue_V42L_frame(mqd_t Q);
+
 
 
 #endif
