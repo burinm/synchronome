@@ -76,10 +76,14 @@ assert(buffers[b.index].size == raw_buffers[raw_index].size);
         }
         printf("[Processing: reenqueued frame %d\n", b.index);
 
-        if (enqueue_P(writeout_Q, &raw_buffers[raw_index]) == -1) {
-            _deallocate_processing();
-            error_exit(-1);
+#if 1 //too slow!??
+        if (raw_index %3 == 0) { //TODO - testing, just write out every 3rd frame
+            if (enqueue_P(writeout_Q, &raw_buffers[raw_index]) == -1) {
+                _deallocate_processing();
+                error_exit(-1);
+            }
         }
+#endif
 
         //For now, ghetto circular buffer for testing
         raw_index++;

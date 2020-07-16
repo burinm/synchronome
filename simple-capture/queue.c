@@ -25,6 +25,7 @@ int init_queues() {
     //Frame Q
     struct mq_attr mq_attr_frame = MQ_DEFAULTS;
     mq_attr_frame.mq_msgsize = MQ_FRAME_PAYLOAD_SIZE;
+    mq_attr_frame.mq_maxmsg = NUM_BUF;
     frame_receive_Q = mq_open(FRAME_RECEIVE_Q, O_CREAT | O_RDWR | O_NONBLOCK, S_IRUSR | S_IWUSR, &mq_attr_frame);
 
     if (frame_receive_Q == (mqd_t)-1) {
@@ -32,6 +33,7 @@ int init_queues() {
         return -1; 
     }
 
+#if 0
     //Processing Q
     struct mq_attr mq_attr_processing = MQ_DEFAULTS;
     mq_attr_processing.mq_msgsize = MQ_BUFFER_PAYLOAD_SIZE;
@@ -42,6 +44,7 @@ int init_queues() {
         perror("Couldn't create/open processing queue\n");
         return -1;
     }
+#endif
 
     //Writeout Q
     struct mq_attr mq_attr_writeout = MQ_DEFAULTS;
@@ -75,6 +78,7 @@ int init_queues() {
             fflush(stdout);
     }
 
+#if 0
     //flush processing queue
     printf("flushing processing queue\n");
     char d[MQ_BUFFER_PAYLOAD_SIZE];
@@ -92,6 +96,7 @@ int init_queues() {
             printf(".");
             fflush(stdout);
     }
+#endif
 
     //flush writeout queue
     printf("flushing writeout queue\n");
@@ -120,8 +125,14 @@ void destroy_queues() {
 }
 
 //plain buffers
+static int enqueue_P_count = 0;
 int enqueue_P(mqd_t Q, buffer_t *p) {
     char b[MQ_BUFFER_PAYLOAD_SIZE];
+
+    if (enqueue_P_count == NUM_WO_BUF) {
+        printf("enqueue_P full!\n");
+        return -1;
+    }
 
     if (p) {
         memcpy(b, (unsigned char*)p, MQ_BUFFER_PAYLOAD_SIZE);
@@ -131,6 +142,7 @@ int enqueue_P(mqd_t Q, buffer_t *p) {
                 HI_PRI, MQ_BUFFER_PAYLOAD_SIZE);
 
         if (mq_send(Q, b, MQ_BUFFER_PAYLOAD_SIZE, HI_PRI) == 0) {
+            enqueue_P_count++;
             return 0;
         }
         perror("Couldn't enqueue message!\n");
@@ -152,6 +164,8 @@ int dequeue_P(mqd_t Q, buffer_t *p) {
             return -1;
         }
     } while (bytes_received < 1);
+
+    enqueue_P_count--;
 
     memcpy(p, (buffer_t *)b, MQ_BUFFER_PAYLOAD_SIZE);
 

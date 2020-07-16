@@ -146,7 +146,7 @@ int enqueue_buf(struct v4l2_buffer* b, int camera_fd) {
 
 int dequeue_buf(struct v4l2_buffer* b, int camera_fd) {
     if (enqueue_count == 0) {
-        printf("Out of frame buffers!\n");
+        printf("No available queued frame buffers!\n");
         return -1;
     }
     int ret = ioctl(camera_fd, VIDIOC_DQBUF, b);

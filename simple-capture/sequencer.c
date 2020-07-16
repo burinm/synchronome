@@ -175,7 +175,7 @@ void sequencer(int v) {
         sem_post(&sem_processing);
     }
 
-    if (sequence % 10 == 0) { // 10 * 10 = 100ms, 10Hz
+    if (sequence % 6 == 0) { // 6 * 10 = 60ms, 16.7Hz
         sem_post(&sem_writeout);
     }
 
