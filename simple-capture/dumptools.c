@@ -103,7 +103,7 @@ int _open_for_write(int index, char* suffix) {
     snprintf(filename, FILE_NAME_SIZE, "frame.%06u.%s", index, suffix);
 
     console("writing:%s\n", filename);
-    fd = open(filename, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+    fd = open(filename, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IROTH);
     if (fd == -1) {
         console("Couldn't create file %s", filename);
         perror(NULL);

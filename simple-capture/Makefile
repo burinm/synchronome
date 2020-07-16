@@ -11,7 +11,7 @@ all:	capture sequencer
 
 clean: clean-frames
 	-rm -f *.o *.d
-	-rm -f capture sharpen test_starter
+	-rm -f sequencer capture sharpen test_starter
 
 clean-frames:
 	-rm -f *.yuv *.ppm *.pgm
