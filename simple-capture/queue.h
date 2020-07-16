@@ -24,7 +24,7 @@
     .mq_msgsize = MAX_PAYLOAD_SZ, \
     .mq_curmsgs = 0}
 
-#define MQ_BUFFER_PAYLOAD_SIZE (sizeof(buffer_t*))
+#define MQ_BUFFER_PAYLOAD_SIZE (sizeof(buffer_t))
 #define MQ_FRAME_PAYLOAD_SIZE (sizeof(struct v4l2_buffer))
 
 #define FRAME_RECEIVE_Q "/frame_recieve_q"
@@ -33,10 +33,13 @@ extern mqd_t frame_receive_Q;
 #define PROCESSING_Q "/processing_q"
 extern mqd_t processing_Q;
 
+#define WRITEOUT_Q "/writeout_q"
+extern mqd_t writeout_Q;
+
 int init_queues();
 void destroy_queues();
 int enqueue_P(mqd_t Q, buffer_t *p);
-buffer_t* dequeue_P(mqd_t Q);
+int dequeue_P(mqd_t Q, buffer_t *b);
 
 int enqueue_V42L_frame(mqd_t Q, struct v4l2_buffer *p);
 int dequeue_V42L_frame(mqd_t Q, struct v4l2_buffer *p);

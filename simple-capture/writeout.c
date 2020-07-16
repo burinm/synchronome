@@ -5,6 +5,7 @@
 #include <assert.h>
 
 #include "writeout.h"
+#include "queue.h"
 #include "setup.h"
 #include "memlog.h"
 
@@ -50,7 +51,15 @@ void* writeout(void* v) {
             _deallocate_writeout();
             error_exit(-2);
         }
-        printf("[writeout]\n");
+
+        buffer_t b;
+        if (dequeue_P(writeout_Q, &b) == -1) {
+            printf("[Writeout: dequeue error]\n");
+            _deallocate_writeout();
+            error_exit(-1);
+        }
+        printf("[writeout] %p\n", (unsigned char*)b.start);
+
     }
 
 printf("[Writeout: normal exit]\n");

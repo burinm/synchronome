@@ -66,11 +66,7 @@ void* processing(void* v) {
         printf("[Processing: got frame buffer #%d start=%p size=%d\n", b.index, buffers[b.index].start, buffers[b.index].size);
 
 assert(buffers[b.index].size == raw_buffers[raw_index].size);
-        //For now, ghetto circular buffer for testing
-        memcpy((unsigned char*)raw_buffers[raw_index++].start, (unsigned char*)buffers[b.index].start, buffers[b.index].size);
-        if (raw_index == NUM_BUF) {
-            raw_index = 0;
-        }
+        memcpy((unsigned char*)raw_buffers[raw_index].start, (unsigned char*)buffers[b.index].start, buffers[b.index].size);
         printf("[Processing: frame copied\n");
 
         //Requeue internal buffer - TODO - do I need to clear it?
@@ -79,6 +75,18 @@ assert(buffers[b.index].size == raw_buffers[raw_index].size);
             error_exit(-1);
         }
         printf("[Processing: reenqueued frame %d\n", b.index);
+
+        if (enqueue_P(writeout_Q, &raw_buffers[raw_index]) == -1) {
+            _deallocate_processing();
+            error_exit(-1);
+        }
+
+        //For now, ghetto circular buffer for testing
+        raw_index++;
+        if (raw_index == NUM_BUF) {
+            raw_index = 0;
+        }
+
 
         //do_transformations(&buffers[b.index]);
     }
