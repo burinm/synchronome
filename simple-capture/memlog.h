@@ -51,7 +51,7 @@ void MEMLOG_LOG(memlog_t* l, uint32_t event);
 memlog_t* memlog_init();
 void memlog_free(memlog_t* m);
 
-void memlog_dump(memlog_t* l);
+void memlog_dump(char* f, memlog_t* l);
 void memlog_gnuplot_dump(memlog_t* l);
 char* memlog_event_desc(uint32_t e);
 

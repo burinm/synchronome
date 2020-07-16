@@ -240,7 +240,7 @@ while(running) {
     console("jitter max = % .ld us\n", (jitter_max - jitter_frame) / 1000);
     console("jitter min = % .ld us\n", (jitter_min - jitter_frame) / 1000);
 #endif
-    memlog_dump(FRAME_LOG);
+    memlog_dump("frame.log", FRAME_LOG);
 
 return 0;
 }

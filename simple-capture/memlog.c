@@ -2,7 +2,12 @@
 */
 #include <stdlib.h> //calloc, free
 #include <stdio.h>
+#include <stdarg.h> //vdprintf
 #include <assert.h>
+#include <sys/stat.h> //open
+#include <fcntl.h> //open
+#include <unistd.h> //close
+
 #include "memlog.h"
 #include "timetools.h"
 
@@ -32,11 +37,17 @@ inline void MEMLOG_LOG(memlog_t* l, uint32_t event) {
 }
 
 
-void memlog_dump(memlog_t* l) {
+void memlog_dump(char* f, memlog_t* l) {
     struct timespec t_prev = l->log[0].time; //TODO, problem if first entry is MEMLOG_E_NONE
     struct timespec diff;
     struct timespec t;
     int not_increasing = 0;
+
+    int fd;
+    if ((fd = open(f, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IROTH | S_IWOTH)) == -1) {
+        perror("log error");
+        return;
+    }
 
     for (int i=0; i < MEMLOG_MAX; i++) {
         if (l->log[i].event_id > MEMLOG_E_NONE) {
@@ -49,13 +60,14 @@ void memlog_dump(memlog_t* l) {
             
             not_increasing = timespec_subtract(&diff, &l->log[i].time, &t_prev);
 
-            printf("%lld.%.9ld [%s]", (long long)l->log[i].time.tv_sec, l->log[i].time.tv_nsec,
+            dprintf(fd, "%lld.%.9ld [%s]", (long long)l->log[i].time.tv_sec, l->log[i].time.tv_nsec,
                                       memlog_event_desc(l->log[i].event_id));
-            printf("%s", not_increasing == 1 ? " *not in order\n" : "");
-            printf(" diff = %lld.%.9ld\n", (long long)diff.tv_sec, diff.tv_nsec);
+            dprintf(fd, "%s", not_increasing == 1 ? " *not in order\n" : "");
+            dprintf(fd, " diff = %lld.%.9ld\n", (long long)diff.tv_sec, diff.tv_nsec);
             t_prev = t;
         }
     }
+    close(fd);
 }
 
 void memlog_gnuplot_dump(memlog_t* l) {

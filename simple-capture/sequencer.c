@@ -157,9 +157,9 @@ pthread_join(thread_framegrab, NULL);
 pthread_join(thread_processing, NULL);
 pthread_join(thread_writeout, NULL);
 
-memlog_dump(FRAME_LOG);
-memlog_dump(PROCESSING_LOG);
-memlog_dump(WRITEOUT_LOG);
+memlog_dump("frame.log", FRAME_LOG);
+memlog_dump("processing.log", PROCESSING_LOG);
+memlog_dump("writeout.log", WRITEOUT_LOG);
 
 printf("clock_gettime takes an average of %ld nsec to run\n", clock_get_latency);
 
