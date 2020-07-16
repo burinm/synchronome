@@ -11,6 +11,7 @@
 #include "capture.h"
 #include "timetools.h"
 #include "queue.h"
+#include "processing.h"
 #include "memlog.h"
 
 void ctrl_c(int s);
@@ -18,10 +19,14 @@ void sequencer(int v);
 
 pthread_barrier_t bar_thread_inits;
 
+//framegrabbing thread
 sem_t sem_framegrab;
 pthread_t thread_framegrab;
 //extern void* frame(void* v);
 extern memlog_t* FRAME_LOG;
+
+//processing thread
+pthread_t thread_processing;
 
 int running = 1;
 int printf_on = 1;
@@ -71,10 +76,20 @@ pthread_barrier_init(&bar_thread_inits, NULL, 2);
 printf("Creating frame grabber thread\n");
 pthread_attr_t rt_sched_attr;  // For realtime H/M/L threads
 schedule_realtime(&rt_sched_attr);
+
+//Frame grabbing thread
 schedule_priority(&rt_sched_attr, HIGH_PRI);
 
 if (pthread_create(&thread_framegrab, &rt_sched_attr, frame, (void*)&video) == -1) {
     perror("Couldn't create frame grabber thread");
+    exit(-1);
+}
+
+//Processing thread
+schedule_priority(&rt_sched_attr, MID_PRI);
+
+if (pthread_create(&thread_processing, &rt_sched_attr, processing, (void*)&video) == -1) {
+    perror("Couldn't create processing thread");
     exit(-1);
 }
 

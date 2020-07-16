@@ -25,7 +25,7 @@
     .mq_curmsgs = 0}
 
 #define MQ_BUFFER_PAYLOAD_SIZE (sizeof(buffer_t*))
-#define MQ_FRAME_PAYLOAD_SIZE (sizeof(struct v4l2_buffer*))
+#define MQ_FRAME_PAYLOAD_SIZE (sizeof(struct v4l2_buffer))
 
 #define FRAME_RECEIVE_Q "/frame_recieve_q"
 extern mqd_t frame_receive_Q;
@@ -39,7 +39,7 @@ int enqueue_P(mqd_t Q, buffer_t *p);
 buffer_t* dequeue_P(mqd_t Q);
 
 int enqueue_V42L_frame(mqd_t Q, struct v4l2_buffer *p);
-struct v4l2_buffer* dequeue_V42L_frame(mqd_t Q);
+int dequeue_V42L_frame(mqd_t Q, struct v4l2_buffer *p);
 
 
 

@@ -9,6 +9,7 @@
 #else
     #include <pthread.h>
     #include <semaphore.h>
+    #include "queue.h"
 #endif
 
 #include "capture.h"
@@ -215,36 +216,36 @@ while(running) {
     console("buf index %d dequeued!\n", current_b.index);
     //dump_buffer_raw(&buffers[current_b.index]);
 
-#ifdef PPM_CAPTURE
-    #ifdef SHARPEN_ON
-        yuv422toG8(&buffers[current_b.index], &sharpen_buffer, 0);
+#ifdef CAPTURE_STANDALONE
+    #ifdef PPM_CAPTURE
+        #ifdef SHARPEN_ON
+            yuv422toG8(&buffers[current_b.index], &sharpen_buffer, 0);
+        #else
+            yuv422torgb888(&buffers[current_b.index], &wo_buffer, 0);
+        #endif
+    #endif
+
+    #ifdef PGM_CAPTURE
+
+        #ifdef SHARPEN_ON
+            y_channel_sharpen(&buffers[current_b.index], &wo_buffer, 0);
+            //yuv422toG8(&buffers[current_b.index], &sharpen_buffer, 0);
+        #else
+            yuv422toG8(&buffers[current_b.index], &wo_buffer, 0);
+
+        #endif
+
+    #endif
+
+        #ifdef SHARPEN_ON
+        //sharpen(&sharpen_buffer, &wo_buffer, 0);
+        #endif
+
+    #ifdef PROFILE_FRAMES
     #else
-        yuv422torgb888(&buffers[current_b.index], &wo_buffer, 0);
+        //Write out buffer to disk
+        dump_rgb_raw_buffer(&wo_buffer);
     #endif
-#endif
-
-#ifdef PGM_CAPTURE
-
-    #ifdef SHARPEN_ON
-        y_channel_sharpen(&buffers[current_b.index], &wo_buffer, 0);
-        //yuv422toG8(&buffers[current_b.index], &sharpen_buffer, 0);
-    #else
-        yuv422toG8(&buffers[current_b.index], &wo_buffer, 0);
-
-    #endif
-
-#endif
-
-    #ifdef SHARPEN_ON
-    //sharpen(&sharpen_buffer, &wo_buffer, 0);
-    #endif
-
-#ifdef PROFILE_FRAMES
-#else
-    //Write out buffer to disk
-    dump_rgb_raw_buffer(&wo_buffer);
-#endif
-
 
     //Requeue buffer - TODO - do I need to clear it?
     if (enqueue_buf(&current_b, video.camera_fd) == -1) {
@@ -253,6 +254,13 @@ while(running) {
         error_cleanup(ERROR_FULL_INIT, &video);
         error_exit(-1);
     }
+#else
+    if (enqueue_V42L_frame(frame_receive_Q, &current_b) == -1) {
+        error_cleanup(ERROR_FULL_INIT, &video);
+        error_exit(-1);
+    }
+#endif
+
 }
 
 #ifdef PROFILE_FRAMES

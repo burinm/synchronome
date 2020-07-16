@@ -111,7 +111,7 @@ buffer_t* dequeue_P(mqd_t Q) {
         bytes_received = mq_receive(Q, b, MQ_BUFFER_PAYLOAD_SIZE, &prio);
         if (bytes_received == -1 && errno != EAGAIN) {
             perror("Couldn't get message!\n");
-            running = 0;
+            return NULL;
             break;
         }
     } while (bytes_received < 1);
@@ -128,8 +128,9 @@ int enqueue_V42L_frame(mqd_t Q, struct v4l2_buffer *p) {
     char b[MQ_FRAME_PAYLOAD_SIZE];
 
     if (p) {
-        memcpy(b, &p, MQ_FRAME_PAYLOAD_SIZE);
-        printf("sending[]: priority = %d, length = %d buff_ptr %p\n",
+        memcpy(b, p, MQ_FRAME_PAYLOAD_SIZE);
+        printf("sending[index %d type %u memory %u]: priority = %d, length = %d buff_ptr %p\n",
+                p->index, p->type, p->memory,
                 HI_PRI, MQ_FRAME_PAYLOAD_SIZE, p);
         if (mq_send(Q, b, MQ_FRAME_PAYLOAD_SIZE, HI_PRI) == 0) {
             return 0;
@@ -141,7 +142,7 @@ int enqueue_V42L_frame(mqd_t Q, struct v4l2_buffer *p) {
 return -1;
 }
 
-struct v4l2_buffer* dequeue_V42L_frame(mqd_t Q) {
+int dequeue_V42L_frame(mqd_t Q, struct v4l2_buffer *p) {
     unsigned int prio = 0;
     int bytes_received = 0;
     char b[MQ_FRAME_PAYLOAD_SIZE];
@@ -150,16 +151,16 @@ struct v4l2_buffer* dequeue_V42L_frame(mqd_t Q) {
         bytes_received = mq_receive(Q, b, MQ_FRAME_PAYLOAD_SIZE, &prio);
         if (bytes_received == -1 && errno != EAGAIN) {
             perror("Couldn't get message!\n");
-            running = 0;
-            break;
+            return -1;
         }
     } while (bytes_received < 1);
 
-    printf("receive[]: priority = %d, length = %d buff_ptr %p\n",
-            prio, bytes_received, b);
-    struct v4l2_buffer* p;
-    memcpy(&p, b, MQ_FRAME_PAYLOAD_SIZE);
-    return p;
+    memcpy(p, (struct v4l2_buffer*)b, MQ_FRAME_PAYLOAD_SIZE);
+
+    printf("receive[index %d type %u memory %u]: priority = %d, length = %d buff_ptr %p (%d bytes)\n",
+            p->index, p->type, p->memory,
+            HI_PRI, MQ_FRAME_PAYLOAD_SIZE, p, bytes_received);
+return 0;
 }
 
 
