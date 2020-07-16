@@ -20,7 +20,7 @@ int camera_init_internal_buffers(video_t *v);
 int allocate_other_buffers();
 void deallocate_other_buffers();
 
-
+void* frame(void* v);
 
 
 #endif

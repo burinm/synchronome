@@ -8,6 +8,7 @@
 #include <errno.h>
 
 #include "realtime.h"
+#include "capture.h"
 #include "timetools.h"
 #include "memlog.h"
 
@@ -18,7 +19,7 @@ pthread_barrier_t bar_thread_inits;
 
 sem_t sem_framegrab;
 pthread_t thread_framegrab;
-extern void* frame(void* v);
+//extern void* frame(void* v);
 extern memlog_t* FRAME_LOG;
 
 int running = 1;
@@ -49,6 +50,15 @@ if (set_main_realtime() == -1) {
 //Startup tests
 long int clock_get_latency = test_clock_gettime_latency();
 
+//Camera init
+video_t video;
+memset(&video, 0, sizeof(video_t));
+video.camera_fd = -1;
+
+if (open_camera(CAMERA_DEV, &video) == -1) {
+    exit(-1);
+}
+
 //Start
 pthread_barrier_init(&bar_thread_inits, NULL, 2);
 
@@ -57,7 +67,7 @@ pthread_attr_t rt_sched_attr;  // For realtime H/M/L threads
 schedule_realtime(&rt_sched_attr);
 schedule_priority(&rt_sched_attr, HIGH_PRI);
 
-if (pthread_create(&thread_framegrab, &rt_sched_attr, frame, NULL) == -1) {
+if (pthread_create(&thread_framegrab, &rt_sched_attr, frame, (void*)&video) == -1) {
     perror("Couldn't create frame grabber thread");
     exit(-1);
 }

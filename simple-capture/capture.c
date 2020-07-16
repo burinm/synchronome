@@ -28,51 +28,46 @@
     #include "sharpen.h"
 #endif
 
+memlog_t* FRAME_LOG;
 
 #ifdef CAPTURE_STANDALONE
 /* catch signal */
 #include <signal.h>
 void ctrl_c(int addr);
-#endif
-
-memlog_t* FRAME_LOG;
-
-#ifdef CAPTURE_STANDALONE
 int printf_on = 1;
 int running = 1;
 #define error_exit(x)   exit(x)
 
 int main() {
+
+    //install ctrl_c signal handler
+    struct sigaction action;
+    action.sa_handler = ctrl_c;
+    sigaction(SIGINT, &action, NULL);
+
+    video_t video;
+    memset(&video, 0, sizeof(video_t));
+    video.camera_fd = -1;
+
+    if (open_camera(CAMERA_DEV, &video) == -1) {
+        error_exit(0);
+    }
+
+return (int)frame((void*)&video);
+}
 #else
+    extern pthread_barrier_t bar_thread_inits;
+    extern sem_t sem_framegrab;
+    extern int running;
+    #define error_exit(x)   pthread_exit((void*)x)
+#endif
 
-extern pthread_barrier_t bar_thread_inits;
-extern sem_t sem_framegrab;
-extern int running;
-#define error_exit(x)   pthread_exit((void*)x)
 void* frame(void* v) {
-#endif
-
-#ifdef CAPTURE_STANDALONE
-//install ctrl_c signal handler 
-struct sigaction action;
-action.sa_handler = ctrl_c;
-sigaction(SIGINT, &action, NULL);
-#endif
+    video_t video;
+    memcpy(&video, (video_t*)v, sizeof(video_t));
 
 //Logging on
 FRAME_LOG = memlog_init();
-
-
-//console("wo %d, sh %d\n", wo_buffer.size, sharpen_buffer.size);
-
-video_t video;
-memset(&video, 0, sizeof(video_t));
-video.camera_fd = -1;
-
-if (open_camera(CAMERA_DEV, &video) == -1) {
-    error_exit(0);
-}
-
 
 if (camera_check_init(&video) == -1) {
     if (close_camera(video.camera_fd) == -1) {
@@ -123,23 +118,20 @@ if (try_refocus(video.camera_fd) == -1) {
     long int jitter_max = INT_MIN;
     long int jitter_min = INT_MAX;
     int jitter_frame = 60000000;
+    struct timespec timestamp;
+    struct timespec timestamp_last;
+    struct timespec diff;
+    long int average_ms = 0;
+    int average_count = 0;
+    int jitter_delay_count = 0;
+
+    memset(&timestamp_last, 0, sizeof(struct timespec));
 #else
     printf_on = 1;
 #endif
 
 int ret = -1;
 struct v4l2_buffer current_b;
-
-#ifdef PROFILE_FRAMES
-struct timespec timestamp;
-struct timespec timestamp_last;
-struct timespec diff;
-long int average_ms = 0;
-int average_count = 0;
-int jitter_delay_count = 0;
-
-memset(&timestamp_last, 0, sizeof(struct timespec));
-#endif
 
 #ifdef CAPTURE_STANDALONE
 #else
