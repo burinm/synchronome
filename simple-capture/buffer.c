@@ -91,7 +91,7 @@ int mmap_buffers(video_t *v) {
 
         if (buffers[i].start == MAP_FAILED) {
             console("Couldn't map buffer!\n");
-            deallocate_buffers(v);
+            camera_deallocate_internal_buffers(v);
             return -1;
         }
 
@@ -130,7 +130,7 @@ return 0;
 }
 #endif
 
-void deallocate_buffers(video_t *v) {
+void camera_deallocate_internal_buffers(video_t *v) {
      _munmap_buffers(v->num_buffers);
      _free_buffers(v);
 }
@@ -192,5 +192,11 @@ int allocate_frame_buffer(buffer_t *b) {
         return 0;
     } else {
         return -1;
+    }
+}
+
+void deallocate_frame_buffer(buffer_t *b) {
+    if (b->start) {
+       free(b->start);
     }
 }

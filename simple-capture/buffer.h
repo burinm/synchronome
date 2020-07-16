@@ -18,7 +18,7 @@ extern buffer_t wo_buffer; //Temporary buffer for file output (write out)
 
 
 int request_buffers(video_t *v);
-void deallocate_buffers(video_t *v);
+void camera_deallocate_internal_buffers(video_t *v);
 
 int mmap_buffers(video_t *v);
 
@@ -40,6 +40,6 @@ int dequeue_buf(struct v4l2_buffer* b, int camera_fd);
 #endif
 
 int allocate_frame_buffer(buffer_t *b);
-//TODO - deallocate frame buffer
+void deallocate_frame_buffer(buffer_t *b);
 
 #endif
