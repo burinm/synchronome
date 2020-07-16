@@ -6,10 +6,13 @@
 
 #include "writeout.h"
 #include "setup.h"
+#include "memlog.h"
 
 extern int running;
 extern pthread_barrier_t bar_thread_inits;
 extern sem_t sem_writeout;
+
+memlog_t* WRITEOUT_LOG;
 
 int _init_writeout();
 void _deallocate_writeout();
@@ -27,6 +30,8 @@ void* writeout(void* v) {
     video_t video;
     memcpy(&video, (video_t*)v, sizeof(video_t));
 
+    WRITEOUT_LOG = memlog_init();
+
     if (_init_writeout() == -1) {
         error_unbarrier_exit(-1);
     }
@@ -37,6 +42,9 @@ void* writeout(void* v) {
     while(running) {
 
         s_ret = sem_wait(&sem_writeout);
+
+        MEMLOG_LOG(WRITEOUT_LOG, MEMLOG_E_S1_RUN);
+
         if (s_ret == -1) {
             perror("sem_wait sem_writeout failed");
             _deallocate_writeout();

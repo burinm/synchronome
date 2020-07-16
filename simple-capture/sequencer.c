@@ -29,10 +29,12 @@ extern memlog_t* FRAME_LOG;
 //processing thread
 sem_t sem_processing;
 pthread_t thread_processing;
+extern memlog_t* PROCESSING_LOG;
 
-//writeou thread
+//writeout thread
 sem_t sem_writeout;
 pthread_t thread_writeout;
+extern memlog_t* WRITEOUT_LOG;
 
 int running = 1;
 int printf_on = 1;
@@ -156,6 +158,8 @@ pthread_join(thread_processing, NULL);
 pthread_join(thread_writeout, NULL);
 
 memlog_dump(FRAME_LOG);
+memlog_dump(PROCESSING_LOG);
+memlog_dump(WRITEOUT_LOG);
 
 printf("clock_gettime takes an average of %ld nsec to run\n", clock_get_latency);
 

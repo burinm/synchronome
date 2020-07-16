@@ -9,10 +9,13 @@
 #include "setup.h"
 #include "buffer.h"
 #include "queue.h"
+#include "memlog.h"
 
 extern int running;
 extern pthread_barrier_t bar_thread_inits;
 extern sem_t sem_processing;
+
+memlog_t* PROCESSING_LOG;
 
 int _init_processing();
 void _deallocate_processing();
@@ -32,6 +35,8 @@ void* processing(void* v) {
     video_t video;
     memcpy(&video, (video_t*)v, sizeof(video_t));
 
+    PROCESSING_LOG = memlog_init();
+
     if (_init_processing() == -1) {
         error_unbarrier_exit(-1);
     }
@@ -43,6 +48,9 @@ void* processing(void* v) {
     while(running) {
 
         s_ret = sem_wait(&sem_processing);
+
+        MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S1_RUN);
+
         if (s_ret == -1) {
             perror("sem_wait sem_processing failed");
             _deallocate_processing();
