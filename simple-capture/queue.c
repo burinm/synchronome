@@ -21,7 +21,7 @@ int init_queues() {
 
     struct mq_attr mq_attr_frame = MQ_DEFAULTS;
     mq_attr_frame.mq_msgsize = MQ_FRAME_PAYLOAD_SIZE;
-    frame_receive_Q = mq_open(FRAME_RECEIVE_Q, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR, &mq_attr_frame);
+    frame_receive_Q = mq_open(FRAME_RECEIVE_Q, O_CREAT | O_RDWR | O_NONBLOCK, S_IRUSR | S_IWUSR, &mq_attr_frame);
 
     if (frame_receive_Q == (mqd_t)-1) {
         perror("Couldn't create/open frame queue\n");
@@ -47,7 +47,7 @@ int init_queues() {
             clock_gettime(CLOCK_REALTIME, &_t);
             _t.tv_sec += 1;
             int s =  mq_timedreceive(frame_receive_Q, b, MQ_FRAME_PAYLOAD_SIZE, &prio, &_t);
-            if (s == 0 || errno == ETIMEDOUT) {
+            if (s == 0 || errno == ETIMEDOUT || errno == EAGAIN) {
                 break;
             }
             if (s == -1) {

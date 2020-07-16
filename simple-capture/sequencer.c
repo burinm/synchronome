@@ -71,7 +71,7 @@ if (open_camera(CAMERA_DEV, &video) == -1) {
 }
 
 //Start
-pthread_barrier_init(&bar_thread_inits, NULL, 2);
+pthread_barrier_init(&bar_thread_inits, NULL, 3);
 
 printf("Creating frame grabber thread\n");
 pthread_attr_t rt_sched_attr;  // For realtime H/M/L threads

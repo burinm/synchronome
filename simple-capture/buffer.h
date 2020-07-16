@@ -25,6 +25,8 @@ int mmap_buffers(video_t *v);
 int enqueue_buf(struct v4l2_buffer* b, int camera_fd);
 int dequeue_buf(struct v4l2_buffer* b, int camera_fd);
 
+#define NATIVE_CAMERA_FORMAT_SIZE   2
+
 /* regular buffer management */
 #ifdef PPM_CAPTURE
     #define BYTES_PER_PIXEL 3
@@ -34,12 +36,13 @@ int dequeue_buf(struct v4l2_buffer* b, int camera_fd);
     #define BYTES_PER_PIXEL 1
 #endif
 
-#define FRAME_SIZE  (X_RES * Y_RES * BYTES_PER_PIXEL)
+#define FRAME_SIZE  (X_RES * Y_RES)
 #if FRAME_SIZE == 0
     #error "Frame size is zero!"
 #endif
 
+int allocate_buffer(buffer_t *b, int blocks);
 int allocate_frame_buffer(buffer_t *b);
-void deallocate_frame_buffer(buffer_t *b);
+void deallocate_buffer(buffer_t *b);
 
 #endif

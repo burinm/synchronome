@@ -27,6 +27,15 @@ extern int printf_on;
 #define console(format, ...) if (printf_on) { printf((format), ##__VA_ARGS__); }
 #define console_error(format, ...) printf((format), ##__VA_ARGS__)
 
+#ifdef CAPTURE_STANDALONE
+    #define error_exit(x)   exit(x)
+#else
+    #define error_exit(x)   { pthread_barrier_wait(&bar_thread_inits); \
+                                  running =0; \
+                                  return((void*)x); \
+                            }
+#endif
+
 #include <stdint.h>
 
 typedef struct {

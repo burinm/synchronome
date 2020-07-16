@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include "buffer.h"
+#include "sharpen.h"
 
 #define BYTES_YUYV_PIXELS   4
 #define BYTES_RGB_PIXELS    6

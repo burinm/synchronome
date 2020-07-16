@@ -37,7 +37,6 @@ memlog_t* FRAME_LOG;
 void ctrl_c(int addr);
 int printf_on = 1;
 int running = 1;
-#define error_exit(x)   exit(x)
 
 int main() {
 
@@ -60,7 +59,6 @@ return (int)frame((void*)&video);
     extern pthread_barrier_t bar_thread_inits;
     extern sem_t sem_framegrab;
     extern int running;
-    #define error_exit(x)   pthread_exit((void*)x)
 #endif
 
 void* frame(void* v) {
@@ -207,7 +205,6 @@ while(running) {
         ret = dequeue_buf(&current_b, video.camera_fd);
         if (ret == -1) {
             perror("VIDIOC_DQBUF");
-            running = 0;
             error_cleanup(ERROR_FULL_INIT, &video);
             error_exit(-1);
         }
@@ -223,7 +220,6 @@ while(running) {
     //Requeue buffer - TODO - do I need to clear it?
     if (enqueue_buf(&current_b, video.camera_fd) == -1) {
         perror("VIDIOC_QBUF");
-        running = 0;
         error_cleanup(ERROR_FULL_INIT, &video);
         error_exit(-1);
     }
@@ -354,13 +350,13 @@ return -1;
 
 int allocate_other_buffers() {
     //Allocate other buffers
-    if (allocate_frame_buffer(&wo_buffer) == -1) {
+    if (allocate_buffer(&wo_buffer, BYTES_PER_PIXEL) == -1) {
         console("couldn't allocate write out buffer\n");
         return -1;
     }
 
     #ifdef SHARPEN_ON
-    if (allocate_frame_buffer(&sharpen_buffer) == -1) {
+    if (allocate_buffer(&sharpen_buffer, BYTES_PER_PIXEL) == -1) {
         console("couldn't allocate write out buffer\n");
         return -1;
     }
@@ -369,9 +365,9 @@ return 0;
 }
 
 void deallocate_other_buffers() {
-    deallocate_frame_buffer(&wo_buffer);
+    deallocate_buffer(&wo_buffer);
     #ifdef SHARPEN_ON
-    deallocate_frame_buffer(&sharpen_buffer);
+    deallocate_buffer(&sharpen_buffer);
     #endif
 }
 

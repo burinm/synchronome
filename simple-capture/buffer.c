@@ -13,6 +13,9 @@
 buffer_t buffers[NUM_BUF];
 buffer_t wo_buffer;
 
+//Count of enqueued frames
+int enqueue_count = 0;
+
 #if 0 //DMA buffers
 int dma_fds[NUM_BUF];
 void _close_dma_fds();
@@ -136,11 +139,19 @@ void camera_deallocate_internal_buffers(video_t *v) {
 }
 
 int enqueue_buf(struct v4l2_buffer* b, int camera_fd) {
-    return ioctl(camera_fd, VIDIOC_QBUF, b);
+    int ret = ioctl(camera_fd, VIDIOC_QBUF, b);
+    enqueue_count++;
+    return ret;
 }
 
 int dequeue_buf(struct v4l2_buffer* b, int camera_fd) {
-    return ioctl(camera_fd, VIDIOC_DQBUF, b);
+    if (enqueue_count == 0) {
+        printf("Out of frame buffers!\n");
+        return -1;
+    }
+    int ret = ioctl(camera_fd, VIDIOC_DQBUF, b);
+    enqueue_count--;
+    return ret;
 }
 
 
@@ -184,8 +195,8 @@ void _close_dma_fds(int num_buffers) {
 
 
 /* regular buffer management */
-int allocate_frame_buffer(buffer_t *b) {
-    int size = sizeof(unsigned char) * FRAME_SIZE;
+int allocate_buffer(buffer_t *b, int blocks) {
+    int size = sizeof(unsigned char) * FRAME_SIZE * blocks;
     b->start = malloc(size);
     b->size = size;
     if (b->start) {
@@ -194,8 +205,11 @@ int allocate_frame_buffer(buffer_t *b) {
         return -1;
     }
 }
+int allocate_frame_buffer(buffer_t *b) {
+    return allocate_buffer(b, NATIVE_CAMERA_FORMAT_SIZE);
+}
 
-void deallocate_frame_buffer(buffer_t *b) {
+void deallocate_buffer(buffer_t *b) {
     if (b->start) {
        free(b->start);
     }
