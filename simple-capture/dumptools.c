@@ -37,6 +37,11 @@ void dump_buffer_raw(buffer_t *b) {
 
     frame_num++;
 
+    //Don't fill up disk ;)
+    if (frame_num == 1800) {
+        frame_num = 0;
+    }
+
     close(fd);
 }
 
@@ -93,6 +98,10 @@ void dump_rgb_raw_buffer(buffer_t *b) {
     }
 
     frame_num++;
+    //Don't fill up disk ;)
+    if (frame_num == 1800) {
+        frame_num = 0;
+    }
 
     close(fd);
 }

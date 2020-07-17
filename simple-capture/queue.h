@@ -11,6 +11,9 @@
 #include <linux/videodev2.h>
 #include "buffer.h"
 
+#include "writeout.h" //NUM_WO_BUF
+#include "buffer.h"   //NUM_BUF
+
 #define MAX_QUEUE_SIZE 10
 #define MAX_PAYLOAD_SZ 128
 
@@ -28,11 +31,15 @@
 #define MQ_FRAME_PAYLOAD_SIZE (sizeof(struct v4l2_buffer))
 
 #define FRAME_RECEIVE_Q "/frame_recieve_q"
+#define FRAME_RECEIVE_Q_SIZE    NUM_BUF
 extern mqd_t frame_receive_Q;
 
+#if 0
 #define PROCESSING_Q "/processing_q"
 extern mqd_t processing_Q;
+#endif
 
+#define WRITEOUT_Q_SIZE         NUM_WO_BUF
 #define WRITEOUT_Q "/writeout_q"
 extern mqd_t writeout_Q;
 

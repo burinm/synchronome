@@ -7,6 +7,7 @@
 #include "writeout.h"
 #include "queue.h"
 #include "setup.h"
+#include "transformation.h"
 #include "memlog.h"
 
 extern int running;
@@ -59,6 +60,7 @@ void* writeout(void* v) {
             error_exit(-1);
         }
         printf("[writeout] %p\n", (unsigned char*)b.start);
+        do_transformations(&b);
 
     }
 

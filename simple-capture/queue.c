@@ -11,8 +11,6 @@
 #include <string.h>
 #include <errno.h>
 #include "queue.h"
-#include "writeout.h" //NUM_WO_BUF
-#include "buffer.h"   //NUM_BUF
 
 extern int running;
 mqd_t frame_receive_Q;
@@ -25,7 +23,7 @@ int init_queues() {
     //Frame Q
     struct mq_attr mq_attr_frame = MQ_DEFAULTS;
     mq_attr_frame.mq_msgsize = MQ_FRAME_PAYLOAD_SIZE;
-    mq_attr_frame.mq_maxmsg = NUM_BUF;
+    mq_attr_frame.mq_maxmsg = FRAME_RECEIVE_Q_SIZE;
     frame_receive_Q = mq_open(FRAME_RECEIVE_Q, O_CREAT | O_RDWR | O_NONBLOCK, S_IRUSR | S_IWUSR, &mq_attr_frame);
 
     if (frame_receive_Q == (mqd_t)-1) {
@@ -49,7 +47,7 @@ int init_queues() {
     //Writeout Q
     struct mq_attr mq_attr_writeout = MQ_DEFAULTS;
     mq_attr_writeout.mq_msgsize = MQ_BUFFER_PAYLOAD_SIZE;
-    mq_attr_writeout.mq_maxmsg = NUM_WO_BUF;
+    mq_attr_writeout.mq_maxmsg = WRITEOUT_Q_SIZE;
     writeout_Q = mq_open(WRITEOUT_Q, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR, &mq_attr_writeout);
 
     if (writeout_Q == (mqd_t)-1) {
@@ -121,7 +119,8 @@ return 0;
 
 void destroy_queues() {
     mq_unlink(FRAME_RECEIVE_Q);
-    mq_unlink(PROCESSING_Q);
+    //mq_unlink(PROCESSING_Q);
+    mq_unlink(WRITEOUT_Q);
 }
 
 //plain buffers

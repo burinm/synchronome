@@ -5,7 +5,6 @@
 #include <assert.h>
 
 #include "processing.h"
-#include "transformation.h"
 #include "setup.h"
 #include "buffer.h"
 #include "queue.h"
@@ -90,9 +89,6 @@ assert(buffers[b.index].size == raw_buffers[raw_index].size);
         if (raw_index == NUM_BUF) {
             raw_index = 0;
         }
-
-
-        //do_transformations(&buffers[b.index]);
     }
 
 printf("[Processing: normal exit]\n");
