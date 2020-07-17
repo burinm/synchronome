@@ -5,6 +5,7 @@
 #include <assert.h>
 
 #include "processing.h"
+#include "writeout.h"
 #include "setup.h"
 #include "buffer.h"
 #include "queue.h"
@@ -25,10 +26,6 @@ int _init_processing();
     asap
 */
 
-buffer_t raw_buffers[NUM_BUF];
-static int raw_index = 0;
-
-
 void* processing(void* v) {
     video_t video;
     memcpy(&video, (video_t*)v, sizeof(video_t));
@@ -39,10 +36,14 @@ void* processing(void* v) {
         error_unbarrier_exit(-1);
     }
 
-    pthread_barrier_wait(&bar_thread_inits); //GO!!
+    int frame_test_mod = 0;
+    int wo_buffer_index = 0;
 
     int s_ret = -1;
     struct v4l2_buffer b;
+
+    pthread_barrier_wait(&bar_thread_inits); //GO!!
+
     while(running) {
 
         MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_DONE);
@@ -60,48 +61,47 @@ void* processing(void* v) {
             error_exit(-1);
         }
 
-        printf("[Processing: got frame buffer #%d start=%p size=%d\n", b.index, buffers[b.index].start, buffers[b.index].size);
+        printf("[Processing: got frame buffer #%d start=%p size=%d\n",
+                b.index, buffers[b.index].start, buffers[b.index].size);
 
-assert(buffers[b.index].size == raw_buffers[raw_index].size);
-        memcpy((unsigned char*)raw_buffers[raw_index].start, (unsigned char*)buffers[b.index].start, buffers[b.index].size);
-        printf("[Processing: frame copied\n");
+        assert(buffers[b.index].size == wo_buffers[wo_buffer_index].size);
+
+        //TODO - testing, just write out every 16th frame
+        if (frame_test_mod %16 == 0) {
+            memcpy((unsigned char*)wo_buffers[wo_buffer_index].start,
+                    (unsigned char*)buffers[b.index].start,
+                    buffers[b.index].size);
+        }
 
         //Requeue internal buffer - TODO - do I need to clear it?
         if (enqueue_buf(&b, video.camera_fd) == -1) {
             error_exit(-1);
         }
-        printf("[Processing: reenqueued frame %d\n", b.index);
+        printf("[Processing: index %d] re-enqueued\n", b.index);
 
-#if 1 //too slow!??
-        if (raw_index %3 == 0) { //TODO - testing, just write out every 3th frame
-            if (enqueue_P(writeout_Q, &raw_buffers[raw_index]) == -1) {
+        //Writeout
+        //TODO - testing, just write out every 3th frame
+        if (frame_test_mod %16 == 0) {
+            if (enqueue_P(writeout_Q, &wo_buffers[wo_buffer_index]) == -1) {
                 error_exit(-1);
             }
+            printf("sending_wo [ start=%p size=%d]\n",
+                    wo_buffers[wo_buffer_index].start, wo_buffers[wo_buffer_index].size);
         }
-#endif
+        frame_test_mod++;
 
-        //For now, ghetto circular buffer for testing
-        raw_index++;
-        if (raw_index == NUM_BUF) {
-            raw_index = 0;
+        //ghetto circular buffer
+        wo_buffer_index++;
+        if (wo_buffer_index == NUM_WO_BUF) {
+            wo_buffer_index = 0;
         }
     }
-
 return 0;
 }
 
 int _init_processing() {
-    for (int i=0; i < NUM_BUF; i++) {
-        if (allocate_frame_buffer(&raw_buffers[i]) == -1)  {
-            deallocate_processing();
-            return -1;
-        }
-    }
 return 0;
 }
 
 void deallocate_processing() {
-    for (int i=0; i < NUM_BUF; i++) {
-        deallocate_buffer(&raw_buffers[i]);
-    }
 }

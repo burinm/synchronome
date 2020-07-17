@@ -58,7 +58,8 @@ void* writeout(void* v) {
             printf("[Writeout: dequeue error]\n");
             error_exit(-1);
         }
-        printf("[writeout] %p\n", (unsigned char*)b.start);
+            printf("receive_wo [ start=%p size=%d]\n", b.start, b.size);
+
         do_transformations(&b);
 
     }
@@ -67,8 +68,8 @@ return 0;
 }
 
 int _init_writeout() {
-    for (int i=0; i < NUM_BUF; i++) {
-        if (allocate_buffer(&wo_buffers[i], BYTES_PER_PIXEL) == -1)  {
+    for (int i=0; i < NUM_WO_BUF; i++) {
+        if (allocate_frame_buffer(&wo_buffers[i]) == -1)  {
             deallocate_writeout();
             return -1;
         }
@@ -77,7 +78,7 @@ return 0;
 }
 
 void deallocate_writeout() {
-    for (int i=0; i < NUM_BUF; i++) {
+    for (int i=0; i < NUM_WO_BUF; i++) {
         deallocate_buffer(&wo_buffers[i]);
     }
 }

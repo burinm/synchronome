@@ -3,8 +3,6 @@
 
 #include "buffer.h"
 
-extern buffer_t wo_buffer;
-
 #define FILE_NAME_SIZE 32
 
 //https://gcc.gnu.org/onlinedocs/cpp/Stringizing.html (lame!)

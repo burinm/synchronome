@@ -12,7 +12,6 @@
 #include "setup.h"
 
 char header_buf[PGM_HEADER_MAX_LEN];
-buffer_t wo_buffer;
 
 int _open_for_write(int index, char* suffix);
 
