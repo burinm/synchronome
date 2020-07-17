@@ -138,9 +138,8 @@ int s_ret;
 pthread_barrier_wait(&bar_thread_inits); //GO!!
 #endif
 
-
 while(running) {
-    //MEMLOG_LOG(FRAME_LOG, MEMLOG_E_S1_PERIOD);
+    MEMLOG_LOG(FRAME_LOG, MEMLOG_E_S1_DONE);
 #ifdef CAPTURE_STANDALONE
 #else
     s_ret = sem_wait(&sem_framegrab);
@@ -210,7 +209,7 @@ while(running) {
         }
     } while(ret == EAGAIN);
 
-    console("buf index %d dequeued!\n", current_b.index);
+    //console("buf index %d dequeued!\n", current_b.index);
     //dump_buffer_raw(&buffers[current_b.index]);
 
 #ifdef CAPTURE_STANDALONE

@@ -46,9 +46,10 @@ void* processing(void* v) {
     struct v4l2_buffer b;
     while(running) {
 
+        MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_DONE);
         s_ret = sem_wait(&sem_processing);
 
-        MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S1_RUN);
+        MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_RUN);
 
         if (s_ret == -1) {
             perror("sem_wait sem_processing failed");
