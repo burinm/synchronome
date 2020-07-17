@@ -62,7 +62,7 @@ int init_queues() {
     printf("flushing frame queue\n");
     char b[MQ_FRAME_PAYLOAD_SIZE];
     while(1) {
-            clock_gettime(CLOCK_REALTIME, &_t);
+            clock_gettime(CLOCK_MONOTONIC, &_t);
             _t.tv_sec += 1;
             int s =  mq_timedreceive(frame_receive_Q, b, MQ_FRAME_PAYLOAD_SIZE, &prio, &_t);
             if (s == 0 || errno == ETIMEDOUT || errno == EAGAIN) {
@@ -81,7 +81,7 @@ int init_queues() {
     printf("flushing processing queue\n");
     char d[MQ_BUFFER_PAYLOAD_SIZE];
     while(1) {
-            clock_gettime(CLOCK_REALTIME, &_t);
+            clock_gettime(CLOCK_MONOTONIC, &_t);
             _t.tv_sec += 1;
             int s =  mq_timedreceive(processing_Q, d, MQ_BUFFER_PAYLOAD_SIZE, &prio, &_t);
             if (s == 0 || errno == ETIMEDOUT) {
@@ -100,7 +100,7 @@ int init_queues() {
     printf("flushing writeout queue\n");
     char c[MQ_BUFFER_PAYLOAD_SIZE];
     while(1) {
-            clock_gettime(CLOCK_REALTIME, &_t);
+            clock_gettime(CLOCK_MONOTONIC, &_t);
             _t.tv_sec += 1;
             int s =  mq_timedreceive(writeout_Q, c, MQ_BUFFER_PAYLOAD_SIZE, &prio, &_t);
             if (s == 0 || errno == ETIMEDOUT) {
@@ -158,7 +158,7 @@ int dequeue_P(mqd_t Q, buffer_t *p) {
 
     //2 second timeout (for ctrl_c)
     struct timespec _t;
-    clock_gettime(CLOCK_REALTIME, &_t);
+    clock_gettime(CLOCK_MONOTONIC, &_t);
     _t.tv_sec += 2;
 
     do{
@@ -206,7 +206,7 @@ int dequeue_V42L_frame(mqd_t Q, struct v4l2_buffer *p) {
 
     //2 second timeout (for ctrl_c)
     struct timespec _t;
-    clock_gettime(CLOCK_REALTIME, &_t);
+    clock_gettime(CLOCK_MONOTONIC, &_t);
     _t.tv_sec += 2;
 
     do{
