@@ -9,7 +9,7 @@
 #define ERROR_LEVEL_1   1
 #define ERROR_LEVEL_0   0
 
-void error_cleanup(int state, video_t *v);
+void video_error_cleanup(int state, video_t *v);
 
 int camera_setup_check(video_t *v);
 //int camera_buffers_init(video_t *v);

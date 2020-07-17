@@ -17,7 +17,6 @@ extern sem_t sem_processing;
 memlog_t* PROCESSING_LOG;
 
 int _init_processing();
-void _deallocate_processing();
 
 /* This buffer can't fall behind (it will be used to select images),
     so it is the same count as the internal camera buffers.
@@ -53,13 +52,11 @@ void* processing(void* v) {
 
         if (s_ret == -1) {
             perror("sem_wait sem_processing failed");
-            _deallocate_processing();
             error_exit(-2);
         }
 
         if (dequeue_V42L_frame(frame_receive_Q, &b) == -1) {
             printf("[Frame Processing: dequeue error\n");
-            _deallocate_processing();
             error_exit(-1);
         }
 
@@ -71,7 +68,6 @@ assert(buffers[b.index].size == raw_buffers[raw_index].size);
 
         //Requeue internal buffer - TODO - do I need to clear it?
         if (enqueue_buf(&b, video.camera_fd) == -1) {
-            _deallocate_processing();
             error_exit(-1);
         }
         printf("[Processing: reenqueued frame %d\n", b.index);
@@ -79,7 +75,6 @@ assert(buffers[b.index].size == raw_buffers[raw_index].size);
 #if 1 //too slow!??
         if (raw_index %3 == 0) { //TODO - testing, just write out every 3th frame
             if (enqueue_P(writeout_Q, &raw_buffers[raw_index]) == -1) {
-                _deallocate_processing();
                 error_exit(-1);
             }
         }
@@ -92,21 +87,20 @@ assert(buffers[b.index].size == raw_buffers[raw_index].size);
         }
     }
 
-printf("[Processing: normal exit]\n");
 return 0;
 }
 
 int _init_processing() {
     for (int i=0; i < NUM_BUF; i++) {
         if (allocate_frame_buffer(&raw_buffers[i]) == -1)  {
-            _deallocate_processing();
+            deallocate_processing();
             return -1;
         }
     }
 return 0;
 }
 
-void _deallocate_processing() {
+void deallocate_processing() {
     for (int i=0; i < NUM_BUF; i++) {
         deallocate_buffer(&raw_buffers[i]);
     }

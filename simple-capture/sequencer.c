@@ -153,9 +153,26 @@ if (timer_settime(timer1, 0, &it, NULL) == -1 ) {
 }
 
 printf("Ready.\n");
-pthread_join(thread_framegrab, NULL);
-pthread_join(thread_processing, NULL);
-pthread_join(thread_writeout, NULL);
+void* framegrab_ret;
+void* processing_ret;
+void* writout_ret;
+
+pthread_join(thread_framegrab, &framegrab_ret);
+pthread_join(thread_processing, &processing_ret);
+pthread_join(thread_writeout, &writout_ret);
+
+printf("[Frame      exit: % d]\n", (unsigned int)framegrab_ret);
+printf("[Processing exit: % d]\n", (unsigned int)processing_ret);
+printf("[Writeout   exit: % d]\n", (unsigned int)writout_ret);
+
+printf("<free> video(frame) resources\n");
+video_error_cleanup(ERROR_FULL_INIT, &video);
+
+printf("<free> processing resources\n");
+deallocate_processing();
+
+printf("<free> writeout resources\n");
+deallocate_writeout();
 
 memlog_dump("frame.log", FRAME_LOG);
 memlog_dump("processing.log", PROCESSING_LOG);

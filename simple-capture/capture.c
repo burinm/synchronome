@@ -75,30 +75,30 @@ if (camera_check_init(&video) == -1) {
     } else {
         console("closed camera device\n");
     }
-    error_cleanup(ERROR_LEVEL_0, &video);
+    video_error_cleanup(ERROR_LEVEL_0, &video);
     error_unbarrier_exit(0);
 }
 
 if (camera_init_internal_buffers(&video) == -1) {
-    error_cleanup(ERROR_LEVEL_2, &video);
+    video_error_cleanup(ERROR_LEVEL_2, &video);
     error_unbarrier_exit(-1);
 }
 
 if (allocate_other_buffers() == -1) {
-    error_cleanup(ERROR_LEVEL_3, &video);
+    video_error_cleanup(ERROR_LEVEL_3, &video);
     error_unbarrier_exit(-1);
 }
 
 //Start streaming
 if (start_streaming(&video) == -1) {
     perror("Couldn't start stream");
-    error_cleanup(ERROR_LEVEL_3, &video);
+    video_error_cleanup(ERROR_LEVEL_3, &video);
     error_unbarrier_exit(-1);
 }
 
 if (try_refocus(video.camera_fd) == -1) {
     console("Refocus failed!\n");
-    error_cleanup(ERROR_LEVEL_3, &video);
+    video_error_cleanup(ERROR_LEVEL_3, &video);
     error_unbarrier_exit(-1);
 }
 
@@ -156,10 +156,9 @@ while(running) {
     if (s_ret == -1) {
         perror("sem_wait sem_framegrab failed");
         if (errno == EINTR) { //Aha, if this is in a different thread, the signal doesn't touch it
-            error_cleanup(ERROR_FULL_INIT, &video);
             error_exit(-2);
         }
-        error_cleanup(ERROR_FULL_INIT, &video);
+        video_error_cleanup(ERROR_FULL_INIT, &video);
         error_exit(-1);
     }
 #endif
@@ -204,7 +203,6 @@ while(running) {
         ret = dequeue_buf(&current_b, video.camera_fd);
         if (ret == -1) {
             perror("VIDIOC_DQBUF");
-            error_cleanup(ERROR_FULL_INIT, &video);
             error_exit(-1);
         }
     } while(ret == EAGAIN);
@@ -219,12 +217,10 @@ while(running) {
     //Requeue buffer - TODO - do I need to clear it?
     if (enqueue_buf(&current_b, video.camera_fd) == -1) {
         perror("VIDIOC_QBUF");
-        error_cleanup(ERROR_FULL_INIT, &video);
         error_exit(-1);
     }
 #else
     if (enqueue_V42L_frame(frame_receive_Q, &current_b) == -1) {
-        error_cleanup(ERROR_FULL_INIT, &video);
         error_exit(-1);
     }
 #endif
@@ -244,7 +240,7 @@ while(running) {
 return 0;
 }
 
-void error_cleanup(int state, video_t *v) {
+void video_error_cleanup(int state, video_t *v) {
     switch(state) {
         case ERROR_FULL_INIT:
             if (stop_streaming(v) == -1) {

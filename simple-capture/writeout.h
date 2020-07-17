@@ -7,5 +7,6 @@
 extern buffer_t wo_buffers[NUM_WO_BUF];
 
 void* writeout(void* v);
+void deallocate_writeout();
 
 #endif

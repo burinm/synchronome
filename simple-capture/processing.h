@@ -2,6 +2,7 @@
 #define __PROCESSING_H__
 
 void* processing(void* v);
+void deallocate_processing();
 
 
 #endif

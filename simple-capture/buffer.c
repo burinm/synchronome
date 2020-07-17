@@ -165,9 +165,10 @@ void _free_buffers(video_t *v) {
     rb.memory = v->memory;
 
     if (ioctl(v->camera_fd, VIDIOC_REQBUFS, &rb) == -1) {
-        perror("Couldn't free buffers");
+        perror("VIDIOC_REQBUFS (count=0) Couldn't free internal buffers");
+    } else {
+        console("freed internal buffers\n");
     }
-    console("freed internal buffers\n");
 }
 
 void _munmap_buffers(int num_buffers) {

@@ -17,7 +17,6 @@ extern sem_t sem_writeout;
 memlog_t* WRITEOUT_LOG;
 
 int _init_writeout();
-void _deallocate_writeout();
 
 /* This buffer can't fall behind (it will be used to select images),
     so it is the same count as the internal camera buffers.
@@ -51,14 +50,12 @@ void* writeout(void* v) {
 
         if (s_ret == -1) {
             perror("sem_wait sem_writeout failed");
-            _deallocate_writeout();
             error_exit(-2);
         }
 
         buffer_t b;
         if (dequeue_P(writeout_Q, &b) == -1) {
             printf("[Writeout: dequeue error]\n");
-            _deallocate_writeout();
             error_exit(-1);
         }
         printf("[writeout] %p\n", (unsigned char*)b.start);
@@ -66,21 +63,20 @@ void* writeout(void* v) {
 
     }
 
-printf("[Writeout: normal exit]\n");
 return 0;
 }
 
 int _init_writeout() {
     for (int i=0; i < NUM_BUF; i++) {
         if (allocate_buffer(&wo_buffers[i], BYTES_PER_PIXEL) == -1)  {
-            _deallocate_writeout();
+            deallocate_writeout();
             return -1;
         }
     }
 return 0;
 }
 
-void _deallocate_writeout() {
+void deallocate_writeout() {
     for (int i=0; i < NUM_BUF; i++) {
         deallocate_buffer(&wo_buffers[i]);
     }
