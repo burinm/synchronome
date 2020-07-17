@@ -38,14 +38,16 @@ void* writeout(void* v) {
         error_unbarrier_exit(-1);
     }
 
+    int s_ret = -1;
+
     pthread_barrier_wait(&bar_thread_inits); //GO!!
 
-    int s_ret = -1;
     while(running) {
 
+        MEMLOG_LOG(WRITEOUT_LOG, MEMLOG_E_S3_DONE);
         s_ret = sem_wait(&sem_writeout);
 
-        MEMLOG_LOG(WRITEOUT_LOG, MEMLOG_E_S1_RUN);
+        MEMLOG_LOG(WRITEOUT_LOG, MEMLOG_E_S3_RUN);
 
         if (s_ret == -1) {
             perror("sem_wait sem_writeout failed");
