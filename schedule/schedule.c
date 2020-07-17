@@ -14,6 +14,7 @@
 
 #include "../feasibility/tests.h"
 extern s_test_case test_cases[];
+s_test_case *test_suite;
 
 typedef struct _service {
     //Static service info
@@ -36,12 +37,50 @@ int num_services = 0;
 
 int main(int argc, char* argv[]) {
 
-if (argc != 3) {
+if (argc < 2) {
     printf("usage: schedule <test#> <RM/EDF/LLF>\n");
     exit(1);
 }
 
 int protocol = PROTO_NONE;
+
+int service = 0;
+int custom_test_flag = 0;
+s_test_case custom_test_case;
+uint32_t *periods;
+uint32_t *wcets;
+
+if (strcmp(argv[1], "-c") == 0) {
+    if (argc < 4 || (argc - 3) %2 !=0) {
+        printf("-c requires even amount of arguments. T x n, wcet x n\n"); 
+        exit(1);
+    }
+
+    custom_test_flag = 1;
+    
+    int pairs = (argc -3) / 2;
+    printf("%d Services in custom test\n", pairs);
+    periods = (uint32_t*)malloc(sizeof(uint32_t) * pairs); 
+    wcets = (uint32_t*)malloc(sizeof(uint32_t) * pairs); 
+
+    custom_test_case.periods = periods;
+    custom_test_case.wcets = wcets;
+
+    for (int i=0; i<pairs; i++) {
+        periods[i] = atoi(argv[i + 3]);     
+        wcets[i] = atoi(argv[pairs + i + 3]);     
+    }
+
+    num_services = pairs;
+} else {
+    service = atoi(argv[1]);
+
+    if (service > NUM_TEST_CASES -1) {
+        printf("Test case #%d isn't implemented\n", service);
+        exit(0);
+    }
+
+}
 
 if (strcmp(argv[2], "RM") == 0) {
     protocol = PROTO_RM;
@@ -55,28 +94,24 @@ if (strcmp(argv[2], "LLF") == 0) {
     protocol = PROTO_LLF;
 }
 
-
 if (protocol == PROTO_NONE) {
     printf("error -no such protocol\n");
     exit(-1);
 }
 
-
-int service = atoi(argv[1]);
-
-if (service > NUM_TEST_CASES -1) {
-    printf("Test case #%d isn't implemented\n", service);
-    exit(0);
+if (custom_test_flag == 0) {
+    num_services = test_cases[service].num_services;
+    test_suite = test_cases;
+} else {
+    test_suite = &custom_test_case; 
 }
-
-num_services = test_cases[service].num_services;
 
 Service* services = malloc(sizeof(Service) * num_services);
 assert(services);
 
 for (int s=0; s < num_services; s++) {
-    services[s].Tperiod =  test_cases[service].periods[s];
-    services[s].Cruntime = test_cases[service].wcets[s];
+    services[s].Tperiod =  test_suite[service].periods[s];
+    services[s].Cruntime = test_suite[service].wcets[s];
     services[s].Deadline = services[s].Tperiod;
     services[s].Runtime = 0;
 }
@@ -291,7 +326,11 @@ assert(cpu_usage);
 
     printf("\nmisses = %d\n", misses);
 
-    printf("Test case #%d: ", service);
+    if (custom_test_flag == 0) {
+        printf("Test case #%d: ", service);
+    } else {
+        printf("Custom test case: ");
+    }
     for (int s=0; s < num_services; s++) {
         printf("T%d ", services[s].Tperiod);
     }

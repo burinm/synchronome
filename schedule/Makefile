@@ -1,6 +1,7 @@
 PROGRAM=schedule
 
 all: $(PROGRAM)
+CFLAGS += -g
 
 $(PROGRAM): schedule.o ../feasibility/tests.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
