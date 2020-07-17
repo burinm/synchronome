@@ -1,3 +1,12 @@
+/* flash_wcet - try and find the worst latency for writing an image to flash
+    (c) burin 2020
+
+    For fun, but no profit, try running this on a remote
+    machine while testing:
+
+    watch rsync -avh 10.0.0.17:~/ecen5623/simple-capture/wcet/*.ppm .
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -8,8 +17,7 @@
 
 int printf_on = 0;
 
-//#define TEST_ITERS (1800 * 10)
-#define TEST_ITERS 100 
+#define TEST_ITERS (1800 * 10)
 #define NUM_IMAGES  10
 
 #define BBP_PPM 3
