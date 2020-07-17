@@ -8,7 +8,8 @@
 
 int printf_on = 0;
 
-#define TEST_ITERS (1800 * 10)
+//#define TEST_ITERS (1800 * 10)
+#define TEST_ITERS 100 
 #define NUM_IMAGES  10
 
 #define BBP_PPM 3
@@ -29,6 +30,9 @@ for (int j=0; j < NUM_IMAGES; j++) {
 
 int random_index = 0;
 
+struct timespec start_time;
+struct timespec end_time;
+
 struct timespec timestamp;
 struct timespec last_timestamp;
 last_timestamp.tv_sec = 0;
@@ -36,11 +40,14 @@ last_timestamp.tv_sec = 0;
 struct timespec diff_time;
 
 int max_ms = 0;
+int total_count = 0;
 
 struct timespec write_frequency;
 write_frequency.tv_sec = 0;
 write_frequency.tv_nsec = 100000000; //100ms, 10Hz
 
+
+clock_gettime(CLOCK_MONOTONIC, &start_time);
 
 for (int i=0; i < TEST_ITERS; i++) {
 
@@ -49,10 +56,10 @@ for (int i=0; i < TEST_ITERS; i++) {
     if (last_timestamp.tv_sec != 0) {
         timespec_subtract(&diff_time, &timestamp, &last_timestamp);
 
-        int total_ms = diff_time.tv_sec * 1000 + diff_time.tv_nsec/1000000;
+        int diff_ms = diff_time.tv_sec * 1000 + diff_time.tv_nsec/1000000;
 
-        if (total_ms > max_ms) {
-            max_ms = total_ms;
+        if (diff_ms > max_ms) {
+            max_ms = diff_ms;
             printf("New max found: %dms\n", max_ms);
         }
         
@@ -68,14 +75,17 @@ for (int i=0; i < TEST_ITERS; i++) {
     if (random_index == NUM_IMAGES) {
         random_index = 0;
     }
+
+    total_count++;
 }
 
+clock_gettime(CLOCK_MONOTONIC, &end_time);
 
-
-
-
-
-
-
+if (timespec_subtract(&diff_time, &end_time, &start_time) == 1) {
+    printf("negative!\n");
+} else {
+    printf("Total elapsed time: %llds\n", (long long)diff_time.tv_sec);
+    printf("average write time per (%d bytes) image: %fs\n", random_images[0].size, (float)diff_time.tv_sec/total_count);
+}
 
 }
