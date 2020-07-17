@@ -39,6 +39,9 @@ extern memlog_t* WRITEOUT_LOG;
 int running = 1;
 int printf_on = 1;
 
+struct timespec start_time;
+struct timespec finish_time;
+
 int main() {
 
 //Ctrl C
@@ -152,6 +155,7 @@ if (timer_settime(timer1, 0, &it, NULL) == -1 ) {
     exit(-1);
 }
 
+clock_gettime(CLOCK_MONOTONIC, &start_time);
 printf("Ready.\n");
 void* framegrab_ret;
 void* processing_ret;
@@ -160,6 +164,8 @@ void* writout_ret;
 pthread_join(thread_framegrab, &framegrab_ret);
 pthread_join(thread_processing, &processing_ret);
 pthread_join(thread_writeout, &writout_ret);
+
+clock_gettime(CLOCK_MONOTONIC, &finish_time);
 
 printf("[Frame      exit: % d]\n", (unsigned int)framegrab_ret);
 printf("[Processing exit: % d]\n", (unsigned int)processing_ret);
@@ -179,6 +185,12 @@ memlog_dump("processing.log", PROCESSING_LOG);
 memlog_dump("writeout.log", WRITEOUT_LOG);
 
 printf("clock_gettime takes an average of %ld nsec to run\n", clock_get_latency);
+
+struct timespec diff_time;
+timespec_subtract(&diff_time, &finish_time, &start_time);
+
+printf("total time elapsed: %lld.%.9ld\n",
+    (long long)diff_time.tv_sec, diff_time.tv_nsec);
 
 }
 
