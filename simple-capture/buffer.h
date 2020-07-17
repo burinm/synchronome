@@ -1,6 +1,7 @@
 #ifndef __BUFFER_H__
 #define __BUFFER_H__
 
+#include <stddef.h>
 #include "setup.h"
 
 #include <linux/videodev2.h>
