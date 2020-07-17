@@ -18,7 +18,7 @@ clean-frames:
 	-rm -f timestamps.txt
 	-rm -f *.log
 
-sequencer: ${OBJS} sequencer.o capture.o processing.o writeout.o realtime.o memlog.o queue.o
+sequencer: ${OBJS} sequencer.o capture.o processing.o motion.o writeout.o realtime.o memlog.o queue.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ -lrt -lpthread
 
 capture: ${OBJS} capture_standalone.o
