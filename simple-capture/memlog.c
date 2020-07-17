@@ -87,16 +87,16 @@ char* memlog_event_desc(uint32_t e) {
             return "NONE";
             break;
 
-        case MEMLOG_E_S1_PERIOD:
-            return "MEMLOG_E_S1_PERIOD";
+        case MEMLOG_E_S1_DONE:
+            return "MEMLOG_E_S1_DONE";
             break;
 
-        case MEMLOG_E_S2_PERIOD:
-            return "MEMLOG_E_S2_PERIOD";
+        case MEMLOG_E_S2_DONE:
+            return "MEMLOG_E_S2_DONE";
             break;
 
-        case MEMLOG_E_S3_PERIOD:
-            return "MEMLOG_E_S3_PERIOD";
+        case MEMLOG_E_S3_DONE:
+            return "MEMLOG_E_S3_DONE";
             break;
 
         case MEMLOG_E_S1_RUN:

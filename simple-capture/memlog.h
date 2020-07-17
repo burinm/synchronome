@@ -30,9 +30,9 @@ typedef struct _memlog_g {
 #define MEMLOG_E_S3_RUN             0x3
 #define MEMLOG_E_SEQUENCER          0x4
 
-#define MEMLOG_E_S1_PERIOD       0x11 
-#define MEMLOG_E_S2_PERIOD       0x12
-#define MEMLOG_E_S3_PERIOD       0x13
+#define MEMLOG_E_S1_DONE       0x11
+#define MEMLOG_E_S2_DONE       0x12
+#define MEMLOG_E_S3_DONE       0x13
 
 
 #define MEMLOG_E_FIB_TEST           0xff
