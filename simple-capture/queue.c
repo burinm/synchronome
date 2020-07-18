@@ -139,9 +139,10 @@ int enqueue_P(mqd_t Q, buffer_t *p) {
     if (p) {
         memcpy(b, (unsigned char*)p, MQ_BUFFER_PAYLOAD_SIZE);
 
-        printf("sending_P[start %p size %d]: priority = %d, length = %d\n",
+        printf("sending_P[start %p size %d]: priority = %d, length = %d (#%d)\n",
                 (unsigned char*)p->start, p->size,
-                HI_PRI, MQ_BUFFER_PAYLOAD_SIZE);
+                HI_PRI, MQ_BUFFER_PAYLOAD_SIZE,
+                enqueue_P_count);
 
         //2 second timeout (for ctrl_c)
         struct timespec _t;
@@ -181,9 +182,10 @@ int dequeue_P(mqd_t Q, buffer_t *p) {
 
     memcpy(p, (buffer_t *)b, MQ_BUFFER_PAYLOAD_SIZE);
 
-    printf("receive_P[start %p size %d ]: priority = %d, length = %d\n",
+    printf("receive_P[start %p size %d ]: priority = %d, length = %d (#%d)\n",
             p->start, p->size,
-            prio, bytes_received);
+            prio, bytes_received,
+            enqueue_P_count);
 
 return 0;
 }

@@ -82,11 +82,13 @@ void* processing(void* v) {
         //Writeout
         //TODO - testing, just write out every 3th frame
         if (frame_test_mod %3 == 0) {
+
+            printf("sending_wo [ start=%p size=%d]\n",
+                    wo_buffers[wo_buffer_index].start, wo_buffers[wo_buffer_index].size);
+
             if (enqueue_P(writeout_Q, &wo_buffers[wo_buffer_index]) == -1) {
                 error_exit(-1);
             }
-            printf("sending_wo [ start=%p size=%d]\n",
-                    wo_buffers[wo_buffer_index].start, wo_buffers[wo_buffer_index].size);
         }
         frame_test_mod++;
 
