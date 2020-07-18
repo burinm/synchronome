@@ -1,0 +1,10 @@
+$ uname -a
+Linux chronis 4.19.118-v7+ #1311 SMP Mon Apr 27 14:21:24 BST 2020 armv7l GNU/Linux
+
+--Make linux not run on cores 2,3
+cat /boot/cmdline.txt 
+console=serial0,115200 isolcpus=2,3 console=tty1 root=PARTUUID=d4112258-02 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait
+
+Easy peasy!
+$ cat /sys/devices/system/cpu/isolated
+2-3
