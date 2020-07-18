@@ -13,6 +13,7 @@ clean: clean-frames
 	-rm -f *.o *.d
 	-rm -f sequencer capture sharpen test_starter
 	sudo rm -f /dev/mqueue/frame_recieve_q  /dev/mqueue/writeout_q /dev/mqueue/processing_q
+	rm -f sequencer.pid
 
 clean-frames:
 	-rm -f *.yuv *.ppm *.pgm

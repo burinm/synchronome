@@ -8,6 +8,9 @@
 #include <pthread.h>
 #include <errno.h>
 
+#include <sys/types.h> //getpid
+#include <unistd.h>    //getpid
+
 #include "realtime.h"
 #include "capture.h"
 #include "timetools.h"
@@ -52,6 +55,16 @@ int main() {
 struct sigaction s0;
 s0.sa_handler = ctrl_c;
 sigaction(SIGINT, &s0, NULL);
+
+{
+    pid_t my_pid;
+    my_pid = getpid();
+    int fd;
+    if ((fd = open("sequencer.pid", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IROTH | S_IWOTH)) > 0) {
+        dprintf(fd, "%d\n", (int)my_pid);
+    }
+    close(fd);
+}
 
 
 //Catch SIGUSR1 and takedown everything - log dump
@@ -173,9 +186,11 @@ if (timer_settime(timer1, 0, &it, NULL) == -1 ) {
 
 clock_gettime(CLOCK_MONOTONIC, &start_time);
 printf("Ready.\n");
-void* framegrab_ret;
-void* processing_ret;
-void* writout_ret;
+
+//Set to 99 to make sure someone sets these on return
+void* framegrab_ret = (void*)99;
+void* processing_ret = (void*)99;
+void* writout_ret = (void*)99;
 
 while(sem_wait(&sem_teardown)) {
     if (errno == EINTR) {
@@ -201,37 +216,28 @@ int thread_framegrab_ok_stop = 0;
 int thread_processing_ok_stop = 0;
 int thread_writeout_ok_stop = 0;
 
-clock_gettime(CLOCK_MONOTONIC, &stop_timeout);
+clock_gettime(CLOCK_REALTIME, &stop_timeout);
 stop_timeout.tv_sec +=5;
 stop_timeout.tv_nsec = 0;
 
-if (pthread_timedjoin_np(thread_framegrab, &framegrab_ret, &stop_timeout) == -1) {
-    printf("[Frame     **bork**]\n");
+if (pthread_timedjoin_np(thread_framegrab, &framegrab_ret, &stop_timeout) == 0) {
     thread_framegrab_ok_stop = 1;
-} else {
-    printf("[Frame      exit: % d]\n", (unsigned int)framegrab_ret);
 }
 
-clock_gettime(CLOCK_MONOTONIC, &stop_timeout);
+clock_gettime(CLOCK_REALTIME, &stop_timeout);
 stop_timeout.tv_sec +=5;
 stop_timeout.tv_nsec = 0;
 
-if (pthread_timedjoin_np(thread_processing, &processing_ret, &stop_timeout) == -1) {
-    printf("[Processing  **bork**]");
+if (pthread_timedjoin_np(thread_processing, &processing_ret, &stop_timeout) == 0) {
     thread_processing_ok_stop = 1;
-} else {
-    printf("[Processing exit: % d]\n", (unsigned int)processing_ret);
 }
 
-clock_gettime(CLOCK_MONOTONIC, &stop_timeout);
+clock_gettime(CLOCK_REALTIME, &stop_timeout);
 stop_timeout.tv_sec +=5;
 stop_timeout.tv_nsec = 0;
 
-if (pthread_timedjoin_np(thread_writeout, &writout_ret, &stop_timeout) == -1) {
-    printf("[Writeout   **bork**]");
+if (pthread_timedjoin_np(thread_writeout, &writout_ret, &stop_timeout) == 0) {
     thread_writeout_ok_stop = 1;
-} else {
-    printf("[Writeout   exit: % d]\n", (unsigned int)writout_ret);
 }
 
 #if 0
@@ -240,6 +246,28 @@ pthread_join(thread_processing, &processing_ret);
 pthread_join(thread_writeout, &writout_ret);
 #endif
 
+/* Re-order report of threads terminating for ease of reading */
+printf("-------------------[EXIT]------------------\n");
+
+if (thread_framegrab_ok_stop) {
+    printf("[Frame      exit: % d]\n", (unsigned int)framegrab_ret);
+} else {
+    printf("[Frame     **bork**]\n");
+}
+
+if (thread_processing_ok_stop) {
+    printf("[Processing exit: % d]\n", (unsigned int)processing_ret);
+} else {
+    printf("[Processing  **bork**]\n");
+}
+
+if (thread_writeout_ok_stop) {
+    printf("[Writeout   exit: % d]\n", (unsigned int)writout_ret);
+} else {
+    printf("[Writeout   **bork**]\n");
+}
+
+//Free resources reports
 if (thread_framegrab_ok_stop) {
     printf("<free> video(frame) resources\n");
     video_error_cleanup(ERROR_FULL_INIT, &video);
@@ -258,6 +286,7 @@ if (thread_writeout_ok_stop) {
 memlog_dump("frame.log", FRAME_LOG);
 memlog_dump("processing.log", PROCESSING_LOG);
 memlog_dump("writeout.log", WRITEOUT_LOG);
+printf("[logs written]\n");
 
 printf("clock_gettime takes an average of %ld nsec to run\n", clock_get_latency);
 
@@ -306,5 +335,5 @@ void dump_logs(int s) {
     memlog_dump("frame.log", FRAME_LOG);
     memlog_dump("processing.log", PROCESSING_LOG);
     memlog_dump("writeout.log", WRITEOUT_LOG);
-    printf("<BORK>logs written\n");
+    printf("[logs written]\n");
 }
