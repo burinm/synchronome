@@ -67,7 +67,7 @@ void* processing(void* v) {
         assert(buffers[b.index].size == wo_buffers[wo_buffer_index].size);
 
         //TODO - testing, just write out every 16th frame
-        if (frame_test_mod %16 == 0) {
+        if (frame_test_mod %3 == 0) {
             memcpy((unsigned char*)wo_buffers[wo_buffer_index].start,
                     (unsigned char*)buffers[b.index].start,
                     buffers[b.index].size);
@@ -81,7 +81,7 @@ void* processing(void* v) {
 
         //Writeout
         //TODO - testing, just write out every 3th frame
-        if (frame_test_mod %16 == 0) {
+        if (frame_test_mod %3 == 0) {
             if (enqueue_P(writeout_Q, &wo_buffers[wo_buffer_index]) == -1) {
                 error_exit(-1);
             }

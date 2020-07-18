@@ -99,39 +99,11 @@ int mmap_buffers(video_t *v) {
         }
 
         console("buffer #%d start=0x%p mmap=0x%u\n", i, buffers[i].start,  b.m.offset);
-
     }
 
 return 0;
 }
 
-#if 0
-int export_dma_buffers(video_t *v) {
-    for (int i=0; i < v->num_buffers; i++) {
-        //Code taken/modified from here:
-        // https://www.kernel.org/doc/html/v4.19/media/uapi/v4l/vidioc-expbuf.html#vidioc-expbuf
-        struct v4l2_exportbuffer e;
-        memset(&e, 0, sizeof(struct v4l2_exportbuffer));
-        e.type = v->type;
-        e.index = i;
-
-        if (ioctl(v->camera_fd, VIDIOC_EXPBUF, &e) == -1) {
-            console("Couldn't get DMA fd, index %d:", i);
-            perror(NULL);
-            _close_dma_fds(v->num_buffers);
-            return -1;
-        }
-
-        if (e.fd < 1) {
-            console("DMA fd error: %d\n", e.fd);
-            return -1;
-        }
-
-        dma_fds[i] = e.fd;
-    }
-return 0;
-}
-#endif
 
 void camera_deallocate_internal_buffers(video_t *v) {
      _munmap_buffers(v->num_buffers);
@@ -146,7 +118,7 @@ int enqueue_buf(struct v4l2_buffer* b, int camera_fd) {
 
 int dequeue_buf(struct v4l2_buffer* b, int camera_fd) {
     if (enqueue_count == 0) {
-        printf("No available queued frame buffers!\n");
+        printf("dequeue_buf - (saftey) No available queued frame buffers!\n");
         return -1;
     }
     int ret = ioctl(camera_fd, VIDIOC_DQBUF, b);
@@ -155,8 +127,29 @@ int dequeue_buf(struct v4l2_buffer* b, int camera_fd) {
 }
 
 
+/* regular buffer management */
+int allocate_buffer(buffer_t *b, int blocks) {
+    int size = sizeof(unsigned char) * FRAME_SIZE * blocks;
+    b->start = malloc(size);
+    b->size = size;
+    if (b->start) {
+        return 0;
+    } else {
+        return -1;
+    }
+}
 
+int allocate_frame_buffer(buffer_t *b) {
+    return allocate_buffer(b, NATIVE_CAMERA_FORMAT_SIZE);
+}
 
+void deallocate_buffer(buffer_t *b) {
+    if (b->start) {
+       free(b->start);
+    }
+}
+
+//Private functions
 void _free_buffers(video_t *v) {
     //Try to free buffers. (count = 0) Implicit VIDIOC_STREAMOFF
     struct v4l2_requestbuffers rb;
@@ -194,24 +187,30 @@ void _close_dma_fds(int num_buffers) {
 }
 #endif
 
+#if 0
+int export_dma_buffers(video_t *v) {
+    for (int i=0; i < v->num_buffers; i++) {
+        //Code taken/modified from here:
+        // https://www.kernel.org/doc/html/v4.19/media/uapi/v4l/vidioc-expbuf.html#vidioc-expbuf
+        struct v4l2_exportbuffer e;
+        memset(&e, 0, sizeof(struct v4l2_exportbuffer));
+        e.type = v->type;
+        e.index = i;
 
-/* regular buffer management */
-int allocate_buffer(buffer_t *b, int blocks) {
-    int size = sizeof(unsigned char) * FRAME_SIZE * blocks;
-    b->start = malloc(size);
-    b->size = size;
-    if (b->start) {
-        return 0;
-    } else {
-        return -1;
-    }
-}
-int allocate_frame_buffer(buffer_t *b) {
-    return allocate_buffer(b, NATIVE_CAMERA_FORMAT_SIZE);
-}
+        if (ioctl(v->camera_fd, VIDIOC_EXPBUF, &e) == -1) {
+            console("Couldn't get DMA fd, index %d:", i);
+            perror(NULL);
+            _close_dma_fds(v->num_buffers);
+            return -1;
+        }
 
-void deallocate_buffer(buffer_t *b) {
-    if (b->start) {
-       free(b->start);
+        if (e.fd < 1) {
+            console("DMA fd error: %d\n", e.fd);
+            return -1;
+        }
+
+        dma_fds[i] = e.fd;
     }
+return 0;
 }
+#endif

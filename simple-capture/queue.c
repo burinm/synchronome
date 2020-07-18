@@ -125,13 +125,16 @@ void destroy_queues() {
 
 //plain buffers
 static int enqueue_P_count = 0;
+
 int enqueue_P(mqd_t Q, buffer_t *p) {
     char b[MQ_BUFFER_PAYLOAD_SIZE];
 
     if (enqueue_P_count == NUM_WO_BUF) {
-        printf("enqueue_P full!\n");
+        printf("enqueue_P - (safety) enqueue_P full!\n");
         return -1;
     }
+
+    enqueue_P_count++;
 
     if (p) {
         memcpy(b, (unsigned char*)p, MQ_BUFFER_PAYLOAD_SIZE);
@@ -140,11 +143,15 @@ int enqueue_P(mqd_t Q, buffer_t *p) {
                 (unsigned char*)p->start, p->size,
                 HI_PRI, MQ_BUFFER_PAYLOAD_SIZE);
 
-        if (mq_send(Q, b, MQ_BUFFER_PAYLOAD_SIZE, HI_PRI) == 0) {
-            enqueue_P_count++;
+        //2 second timeout (for ctrl_c)
+        struct timespec _t;
+        clock_gettime(CLOCK_REALTIME, &_t);
+        _t.tv_sec += 2;
+
+        if (mq_timedsend(Q, b, MQ_BUFFER_PAYLOAD_SIZE, HI_PRI, &_t) == 0) {
             return 0;
         }
-        perror("Couldn't enqueue message!\n");
+        perror("enqueue_P - Couldn't enqueue message!");
     } else {
         printf("ignored NUll ptr\n");
     }
@@ -156,6 +163,8 @@ int dequeue_P(mqd_t Q, buffer_t *p) {
     int bytes_received = 0;
     char b[MQ_BUFFER_PAYLOAD_SIZE];
 
+    enqueue_P_count--;
+
     //2 second timeout (for ctrl_c)
     struct timespec _t;
     clock_gettime(CLOCK_REALTIME, &_t);
@@ -164,12 +173,11 @@ int dequeue_P(mqd_t Q, buffer_t *p) {
     do{
         bytes_received = mq_timedreceive(Q, b, MQ_BUFFER_PAYLOAD_SIZE, &prio, &_t);
         if (bytes_received == -1 && errno != EAGAIN) {
-            perror("Couldn't get message!\n");
+            perror("dequeue_P - Couldn't get message!");
             return -1;
         }
     } while (bytes_received < 1);
 
-    enqueue_P_count--;
 
     memcpy(p, (buffer_t *)b, MQ_BUFFER_PAYLOAD_SIZE);
 
@@ -186,13 +194,13 @@ int enqueue_V42L_frame(mqd_t Q, struct v4l2_buffer *p) {
 
     if (p) {
         memcpy(b, (unsigned char*)p, MQ_FRAME_PAYLOAD_SIZE);
-        printf("sending[index %d type %u memory %u]: priority = %d, length = %d buff_ptr %p\n",
+        printf("sending[index %d type %u memory %u]: priority = %d, length = %d\n",
                 p->index, p->type, p->memory,
-                HI_PRI, MQ_FRAME_PAYLOAD_SIZE, p);
+                HI_PRI, MQ_FRAME_PAYLOAD_SIZE);
         if (mq_send(Q, b, MQ_FRAME_PAYLOAD_SIZE, HI_PRI) == 0) {
             return 0;
         }
-        perror("Couldn't enqueue message!\n");
+        perror("enqueue_V42L_frame - Couldn't enqueue message!");
     } else {
         printf("ignored NUll ptr\n");
     }
@@ -212,16 +220,16 @@ int dequeue_V42L_frame(mqd_t Q, struct v4l2_buffer *p) {
     do{
         bytes_received = mq_timedreceive(Q, b, MQ_FRAME_PAYLOAD_SIZE, &prio, &_t);
         if (bytes_received == -1 && errno != EAGAIN) {
-            perror("Couldn't get message!\n");
+            perror("dequeue_V42L_frame - Couldn't get message!");
             return -1;
         }
     } while (bytes_received < 1);
 
     memcpy(p, (struct v4l2_buffer*)b, MQ_FRAME_PAYLOAD_SIZE);
 
-    printf("receive[index %d type %u memory %u]: priority = %d, length = %d buff_ptr %p (%d bytes)\n",
+    printf("receive[index %d type %u memory %u]: priority = %d, length = %d\n",
             p->index, p->type, p->memory,
-            prio, bytes_received, p, bytes_received);
+            prio, bytes_received);
 return 0;
 }
 
