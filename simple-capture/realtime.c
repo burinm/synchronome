@@ -17,7 +17,7 @@ int set_main_realtime() { //TODO - for now, this is sharing processor 1
 
     cpu_set_t threadcpu;
     CPU_ZERO(&threadcpu);
-    int coreid = PROCESSOR_ONE;
+    int coreid = SYNCHONOME_CPU;
     CPU_SET(coreid, &threadcpu);
 
     if (sched_setaffinity(getpid(), sizeof(cpu_set_t), &threadcpu) == -1) {
@@ -59,7 +59,7 @@ int schedule_realtime(pthread_attr_t *attr) {
     //For now, AMP design, procesor 1
     cpu_set_t threadcpu;
     CPU_ZERO(&threadcpu);
-    int coreid = PROCESSOR_ONE;
+    int coreid = SYNCHONOME_CPU;
     CPU_SET(coreid, &threadcpu);
 
     if (pthread_attr_setaffinity_np(attr, sizeof(cpu_set_t), &threadcpu) != 0) {

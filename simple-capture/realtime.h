@@ -4,6 +4,8 @@
 #include <time.h>
 #include <pthread.h>
 
+#define SYNCHONOME_CPU  PROCESSOR_TWO
+
 #define RT_MAX_PRIO     (sched_get_priority_max(SCHED_FIFO))
 #define RT_MIN_PRIO     (sched_get_priority_min(SCHED_FIFO))
 

@@ -1,3 +1,4 @@
+#define _GNU_SOURCE //pthread_timedjoin_np
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -16,8 +17,11 @@
 #include "memlog.h"
 
 void ctrl_c(int s);
+void dump_logs(int s);
 void sequencer(int v);
 
+//Main semaphore for teardown
+sem_t sem_teardown;
 pthread_barrier_t bar_thread_inits;
 
 //framegrabbing thread
@@ -49,10 +53,16 @@ struct sigaction s0;
 s0.sa_handler = ctrl_c;
 sigaction(SIGINT, &s0, NULL);
 
-//Catch SIGUSR2 and run seqencer
+
+//Catch SIGUSR1 and takedown everything - log dump
 struct sigaction s1;
-s1.sa_handler = sequencer;
-sigaction(SIGUSR2, &s1, NULL);
+s1.sa_handler = dump_logs;
+sigaction(SIGUSR1, &s1, NULL);
+
+//Catch SIGUSR2 and run seqencer
+struct sigaction s2;
+s2.sa_handler = sequencer;
+sigaction(SIGUSR2, &s2, NULL);
 
 //init queues
 if (init_queues() == -1) {
@@ -72,6 +82,12 @@ if (sem_init(&sem_processing, 0, 0) == -1) {
 
 if (sem_init(&sem_writeout, 0, 0) == -1) {
     perror("Couldn't init semaphore sem_writeout");
+    exit(-1);
+}
+
+//Teardown
+if (sem_init(&sem_teardown, 0, 0) == -1) {
+    perror("Couldn't init semaphore sem_teardown");
     exit(-1);
 }
 
@@ -161,24 +177,83 @@ void* framegrab_ret;
 void* processing_ret;
 void* writout_ret;
 
-pthread_join(thread_framegrab, &framegrab_ret);
-pthread_join(thread_processing, &processing_ret);
-pthread_join(thread_writeout, &writout_ret);
+while(sem_wait(&sem_teardown)) {
+    if (errno == EINTR) {
+        continue;
+    } else {
+        break;
+    }
+}
 
 clock_gettime(CLOCK_MONOTONIC, &finish_time);
 
-printf("[Frame      exit: % d]\n", (unsigned int)framegrab_ret);
-printf("[Processing exit: % d]\n", (unsigned int)processing_ret);
-printf("[Writeout   exit: % d]\n", (unsigned int)writout_ret);
+it.it_interval.tv_sec = 0;
+it.it_interval.tv_nsec = 10000000; //10ms
+if (timer_settime(timer1, 0, &it, NULL) == -1 ) {
+    perror("couldn't disarm timer");
+    exit(-1);
+}
+timer_delete(timer1);
 
-printf("<free> video(frame) resources\n");
-video_error_cleanup(ERROR_FULL_INIT, &video);
+//Give all threads 5 seconds to stop
+struct timespec stop_timeout;
+int thread_framegrab_ok_stop = 0;
+int thread_processing_ok_stop = 0;
+int thread_writeout_ok_stop = 0;
 
-printf("<free> processing resources\n");
-deallocate_processing();
+clock_gettime(CLOCK_MONOTONIC, &stop_timeout);
+stop_timeout.tv_sec +=5;
+stop_timeout.tv_nsec = 0;
 
-printf("<free> writeout resources\n");
-deallocate_writeout();
+if (pthread_timedjoin_np(thread_framegrab, &framegrab_ret, &stop_timeout) == -1) {
+    printf("[Frame     **bork**]\n");
+    thread_framegrab_ok_stop = 1;
+} else {
+    printf("[Frame      exit: % d]\n", (unsigned int)framegrab_ret);
+}
+
+clock_gettime(CLOCK_MONOTONIC, &stop_timeout);
+stop_timeout.tv_sec +=5;
+stop_timeout.tv_nsec = 0;
+
+if (pthread_timedjoin_np(thread_processing, &processing_ret, &stop_timeout) == -1) {
+    printf("[Processing  **bork**]");
+    thread_processing_ok_stop = 1;
+} else {
+    printf("[Processing exit: % d]\n", (unsigned int)processing_ret);
+}
+
+clock_gettime(CLOCK_MONOTONIC, &stop_timeout);
+stop_timeout.tv_sec +=5;
+stop_timeout.tv_nsec = 0;
+
+if (pthread_timedjoin_np(thread_writeout, &writout_ret, &stop_timeout) == -1) {
+    printf("[Writeout   **bork**]");
+    thread_writeout_ok_stop = 1;
+} else {
+    printf("[Writeout   exit: % d]\n", (unsigned int)writout_ret);
+}
+
+#if 0
+pthread_join(thread_framegrab, &framegrab_ret);
+pthread_join(thread_processing, &processing_ret);
+pthread_join(thread_writeout, &writout_ret);
+#endif
+
+if (thread_framegrab_ok_stop) {
+    printf("<free> video(frame) resources\n");
+    video_error_cleanup(ERROR_FULL_INIT, &video);
+}
+
+if (thread_processing_ok_stop) {
+    printf("<free> processing resources\n");
+    deallocate_processing();
+}
+
+if (thread_writeout_ok_stop) {
+    printf("<free> writeout resources\n");
+    deallocate_writeout();
+}
 
 memlog_dump("frame.log", FRAME_LOG);
 memlog_dump("processing.log", PROCESSING_LOG);
@@ -197,13 +272,13 @@ printf("total time elapsed: %lld.%.9ld\n",
 static int sequence = 0;
 void sequencer(int v) {
     if (running) {
-        //if (sequence % 6 == 0) { // 6 * 10 = 60ms, 16.7Hz
-        if (sequence % 4 == 0) { // 4 * 10 = 40ms, 25Hz
+        if (sequence % 6 == 0) { // 6 * 10 = 60ms, 16.7Hz
+        //if (sequence % 4 == 0) { // 4 * 10 = 40ms, 25Hz
             sem_post(&sem_framegrab);
         }
 
-        //if (sequence % 6 == 0) { // 6 * 10 = 60ms, 16.7Hz (must keep up with input)
-        if (sequence % 4 == 0) { // 4 * 10 = 40ms, 25Hz (must keep up with input)
+        if (sequence % 6 == 0) { // 6 * 10 = 60ms, 16.7Hz (must keep up with input)
+        //if (sequence % 4 == 0) { // 4 * 10 = 40ms, 25Hz (must keep up with input)
             sem_post(&sem_processing);
         }
 
@@ -216,9 +291,20 @@ void sequencer(int v) {
             sem_post(&sem_framegrab);
             sem_post(&sem_processing);
             sem_post(&sem_writeout);
+            sem_post(&sem_teardown);
     }
+
 }
 
 void ctrl_c(int s) {
     running = 0;
+}
+
+void dump_logs(int s) {
+    running = 0;
+    printf("<BORK>");
+    memlog_dump("frame.log", FRAME_LOG);
+    memlog_dump("processing.log", PROCESSING_LOG);
+    memlog_dump("writeout.log", WRITEOUT_LOG);
+    printf("<BORK>logs written\n");
 }
