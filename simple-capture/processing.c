@@ -57,11 +57,11 @@ void* processing(void* v) {
         }
 
         if (dequeue_V42L_frame(frame_receive_Q, &b) == -1) {
-            printf("[Frame Processing: dequeue error\n");
+            printf("*Frame Processing: dequeue error\n");
             error_exit(-1);
         }
 
-        printf("[Processing: got frame buffer #%d start=%p size=%d\n",
+        printf("Processing: [index %d start=%p size=%d] (in)\n",
                 b.index, buffers[b.index].start, buffers[b.index].size);
 
         assert(buffers[b.index].size == wo_buffers[wo_buffer_index].size);
@@ -77,13 +77,13 @@ void* processing(void* v) {
         if (enqueue_buf(&b, video.camera_fd) == -1) {
             error_exit(-1);
         }
-        printf("[Processing: index %d] re-enqueued\n", b.index);
+        printf("Processing: [index %d] (VIDIOC_QBUF)\n", b.index);
 
         //Writeout
         //TODO - testing, just write out every 3th frame
         if (frame_test_mod %3 == 0) {
 
-            printf("sending_wo [ start=%p size=%d]\n",
+            printf("Processing: [start=%p size=%d] (out)\n",
                     wo_buffers[wo_buffer_index].start, wo_buffers[wo_buffer_index].size);
 
             if (enqueue_P(writeout_Q, &wo_buffers[wo_buffer_index]) == -1) {

@@ -139,9 +139,8 @@ int enqueue_P(mqd_t Q, buffer_t *p) {
     if (p) {
         memcpy(b, (unsigned char*)p, MQ_BUFFER_PAYLOAD_SIZE);
 
-        printf("sending_P[start %p size %d]: priority = %d, length = %d (#%d)\n",
+        printf(" sending_P  [start %p size %d] (#%d)\n",
                 (unsigned char*)p->start, p->size,
-                HI_PRI, MQ_BUFFER_PAYLOAD_SIZE,
                 enqueue_P_count);
 
         //2 second timeout (for ctrl_c)
@@ -182,9 +181,8 @@ int dequeue_P(mqd_t Q, buffer_t *p) {
 
     memcpy(p, (buffer_t *)b, MQ_BUFFER_PAYLOAD_SIZE);
 
-    printf("receive_P[start %p size %d ]: priority = %d, length = %d (#%d)\n",
+    printf(" receive_P  [start %p size %d] (#%d)\n",
             p->start, p->size,
-            prio, bytes_received,
             enqueue_P_count);
 
 return 0;
@@ -196,9 +194,8 @@ int enqueue_V42L_frame(mqd_t Q, struct v4l2_buffer *p) {
 
     if (p) {
         memcpy(b, (unsigned char*)p, MQ_FRAME_PAYLOAD_SIZE);
-        printf("sending[index %d type %u memory %u]: priority = %d, length = %d\n",
-                p->index, p->type, p->memory,
-                HI_PRI, MQ_FRAME_PAYLOAD_SIZE);
+        printf("   sending  [index %d type %u memory %u]\n",
+                p->index, p->type, p->memory);
         if (mq_send(Q, b, MQ_FRAME_PAYLOAD_SIZE, HI_PRI) == 0) {
             return 0;
         }
@@ -229,9 +226,8 @@ int dequeue_V42L_frame(mqd_t Q, struct v4l2_buffer *p) {
 
     memcpy(p, (struct v4l2_buffer*)b, MQ_FRAME_PAYLOAD_SIZE);
 
-    printf("receive[index %d type %u memory %u]: priority = %d, length = %d\n",
-            p->index, p->type, p->memory,
-            prio, bytes_received);
+    printf("   receive  [index %d type %u memory %u]\n",
+            p->index, p->type, p->memory);
 return 0;
 }
 

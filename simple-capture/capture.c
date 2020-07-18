@@ -220,6 +220,7 @@ while(running) {
         error_exit(-1);
     }
 #else
+    printf("Capture:    [index %d] (VIDIOC_DQBUF)\n", current_b.index);
     if (enqueue_V42L_frame(frame_receive_Q, &current_b) == -1) {
         error_exit(-1);
     }

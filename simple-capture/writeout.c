@@ -58,7 +58,7 @@ void* writeout(void* v) {
             printf("[Writeout: dequeue error]\n");
             error_exit(-1);
         }
-            printf("receive_wo [ start=%p size=%d]\n", b.start, b.size);
+            printf("Writeout:   [start=%p size=%d] (i/o->)\n", b.start, b.size);
 
         do_transformations(&b);
 
