@@ -192,13 +192,18 @@ void* framegrab_ret = (void*)99;
 void* processing_ret = (void*)99;
 void* writout_ret = (void*)99;
 
-while(sem_wait(&sem_teardown)) {
-    if (errno == EINTR) {
-        continue;
-    } else {
-        break;
-    }
+/* Timer is throwing SIGUSR2s, we don't want main to catch
+    these, because then sem_wait(&sem_teardown) will fall
+    through with EINTR
+*/
+sigset_t main_sig;
+sigemptyset(&main_sig);
+sigaddset(&main_sig, SIGUSR2);
+if (sigprocmask(SIG_SETMASK, &main_sig, NULL) == -1) {
+    printf("Couldn't mask SIGUSR2 signal\n");
 }
+
+sem_wait(&sem_teardown);
 
 clock_gettime(CLOCK_MONOTONIC, &finish_time);
 
