@@ -305,12 +305,12 @@ printf("total time elapsed: %lld.%.9ld\n",
 static int sequence = 0;
 void sequencer(int v) {
     if (running) {
-        if (sequence % 6 == 0) { // 6 * 10 = 60ms, 16.7Hz
+        if (sequence % 12 == 0) { // 6 * 10 = 60ms, 16.7Hz
         //if (sequence % 4 == 0) { // 4 * 10 = 40ms, 25Hz
             sem_post(&sem_framegrab);
         }
 
-        if (sequence % 6 == 0) { // 6 * 10 = 60ms, 16.7Hz (must keep up with input)
+        if (sequence % 12 == 0) { // 6 * 10 = 60ms, 16.7Hz (must keep up with input)
         //if (sequence % 4 == 0) { // 4 * 10 = 40ms, 25Hz (must keep up with input)
             sem_post(&sem_processing);
         }

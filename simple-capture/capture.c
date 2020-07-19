@@ -5,15 +5,20 @@
 #include <errno.h>
 #include <linux/videodev2.h> //sudo apt-get install libv4l-dev
 
+#include "setup.h" //Keep this at top
+
 #ifdef CAPTURE_STANDALONE
+    #ifdef IMAGE_DIFF_PROFILE
+        #include "motion.h"
+    #endif
 #else
     #include <pthread.h>
     #include <semaphore.h>
     #include "queue.h"
 #endif
 
+
 #include "capture.h"
-#include "setup.h"
 #include "buffer.h"
 #include "transformation.h"
 #include "dumptools.h"
@@ -133,6 +138,12 @@ int ret = -1;
 struct v4l2_buffer current_b;
 
 #ifdef CAPTURE_STANDALONE
+
+#ifdef IMAGE_DIFF_PROFILE
+int last_buffer_index = -1;
+int change_pixels = 0;
+#endif
+
 #else
 int s_ret;
 pthread_barrier_wait(&bar_thread_inits); //GO!!
@@ -212,7 +223,18 @@ while(running) {
 
 #ifdef CAPTURE_STANDALONE
 
-    do_transformations(&buffers[current_b.index]);
+    #ifdef IMAGE_DIFF_PROFILE
+        if (last_buffer_index != -1) {
+            change_pixels = is_frame_changed(&buffers[last_buffer_index], &buffers[current_b.index]);
+            printf("frame diff = %d ", change_pixels);
+            printf(" changed = %s\n", is_motion(change_pixels) ? "yes" : "no");
+
+        }
+        last_buffer_index = current_b.index;
+    #else
+        do_transformations(&buffers[current_b.index]);
+    #endif
+
 
     //Requeue buffer - TODO - do I need to clear it?
     if (enqueue_buf(&current_b, video.camera_fd) == -1) {

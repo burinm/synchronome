@@ -23,7 +23,7 @@ clean-frames:
 sequencer: ${OBJS} sequencer.o capture.o processing.o motion.o writeout.o realtime.o memlog.o queue.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ -lrt -lpthread
 
-capture: ${OBJS} capture_standalone.o
+capture: ${OBJS} capture_standalone.o motion.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ -lrt
 
 capture_standalone.o: capture.c

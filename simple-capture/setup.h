@@ -3,6 +3,7 @@
 
 //Test frames without writing to disk
 //#define PROFILE_FRAMES
+//#define IMAGE_DIFF_PROFILE //Do image motion test instead of processing
 #define PROFILE_ITERS   500
 
 #define CAMERA_DEV  "/dev/video0"

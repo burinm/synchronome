@@ -9,6 +9,7 @@
 #include "setup.h"
 #include "buffer.h"
 #include "queue.h"
+#include "motion.h"
 #include "memlog.h"
 
 extern int running;
@@ -42,6 +43,10 @@ void* processing(void* v) {
     int s_ret = -1;
     struct v4l2_buffer b;
 
+    int last_buffer_index = -1;
+    int change_pixels = 0;
+    int did_frame_tick = 0;
+
     pthread_barrier_wait(&bar_thread_inits); //GO!!
 
     while(running) {
@@ -64,10 +69,19 @@ void* processing(void* v) {
         printf("Processing: [index %d start=%p size=%d] (in)\n",
                 b.index, buffers[b.index].start, buffers[b.index].size);
 
+        if (last_buffer_index != -1) {
+                change_pixels = is_frame_changed(&buffers[last_buffer_index], &buffers[b.index]);
+                printf("frame diff = %d ", change_pixels);
+                did_frame_tick = is_motion(change_pixels);
+                printf("%s\n", did_frame_tick ? "yes" : "no");
+        }
+        last_buffer_index = b.index;
+
         assert(buffers[b.index].size == wo_buffers[wo_buffer_index].size);
 
         //TODO - testing, just write out every 16th frame
-        if (frame_test_mod %16== 0) {
+        //if (frame_test_mod %16== 0) {
+        if (did_frame_tick) {
             memcpy((unsigned char*)wo_buffers[wo_buffer_index].start,
                     (unsigned char*)buffers[b.index].start,
                     buffers[b.index].size);
@@ -79,9 +93,11 @@ void* processing(void* v) {
         }
         printf("Processing: [index %d] (VIDIOC_QBUF)\n", b.index);
 
+
         //Writeout
         //TODO - testing, just write out every 3th frame
-        if (frame_test_mod %16 == 0) {
+        //if (frame_test_mod %16 == 0) {
+        if (did_frame_tick) {
 
             printf("Processing: [start=%p size=%d] (out)\n",
                     wo_buffers[wo_buffer_index].start, wo_buffers[wo_buffer_index].size);
