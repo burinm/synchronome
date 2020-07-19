@@ -24,10 +24,10 @@ int init_queues() {
     struct mq_attr mq_attr_frame = MQ_DEFAULTS;
     mq_attr_frame.mq_msgsize = MQ_FRAME_PAYLOAD_SIZE;
     mq_attr_frame.mq_maxmsg = FRAME_RECEIVE_Q_SIZE;
-    frame_receive_Q = mq_open(FRAME_RECEIVE_Q, O_CREAT | O_RDWR | O_NONBLOCK, S_IRUSR | S_IWUSR, &mq_attr_frame);
+    frame_receive_Q = mq_open(FRAME_RECEIVE_Q, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR, &mq_attr_frame);
 
     if (frame_receive_Q == (mqd_t)-1) {
-        perror("Couldn't create/open frame queue\n");
+        perror("Couldn't create/open frame queue");
         return -1; 
     }
 
@@ -39,7 +39,7 @@ int init_queues() {
     processing_Q = mq_open(PROCESSING_Q, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR, &mq_attr_processing);
 
     if (processing_Q == (mqd_t)-1) {
-        perror("Couldn't create/open processing queue\n");
+        perror("Couldn't create/open processing queue");
         return -1;
     }
 #endif
@@ -51,7 +51,7 @@ int init_queues() {
     writeout_Q = mq_open(WRITEOUT_Q, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR, &mq_attr_writeout);
 
     if (writeout_Q == (mqd_t)-1) {
-        perror("Couldn't create/open writeout queue\n");
+        perror("Couldn't create/open writeout queue");
         return -1;
     }
 
