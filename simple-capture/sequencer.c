@@ -51,11 +51,6 @@ struct timespec finish_time;
 
 int main() {
 
-//Ctrl C
-struct sigaction s0;
-s0.sa_handler = ctrl_c;
-sigaction(SIGINT, &s0, NULL);
-
 {
     pid_t my_pid;
     my_pid = getpid();
@@ -66,16 +61,20 @@ sigaction(SIGINT, &s0, NULL);
     close(fd);
 }
 
+//Ctrl C
+struct sigaction s0;
+s0.sa_handler = ctrl_c;
+sigaction(SIGINT, &s0, NULL);
 
-//Catch SIGUSR1 and takedown everything - log dump
+//Catch RT_SIGDEBUG and takedown everything - log dump
 struct sigaction s1;
 s1.sa_handler = dump_logs;
-sigaction(SIGUSR1, &s1, NULL);
+sigaction(RT_SIGDEBUG, &s1, NULL);
 
-//Catch SIGUSR2 and run seqencer
+//Catch RT_SIGSEQUENCER and run seqencer
 struct sigaction s2;
 s2.sa_handler = sequencer;
-sigaction(SIGUSR2, &s2, NULL);
+sigaction(RT_SIGSEQUENCER, &s2, NULL);
 
 //init queues
 if (init_queues() == -1) {
@@ -159,7 +158,7 @@ timer_t timer1; // note not defined with a struct
 //Install timer
 struct sigevent sv;
 sv.sigev_notify = SIGEV_SIGNAL;
-sv.sigev_signo = SIGUSR2;
+sv.sigev_signo = RT_SIGSEQUENCER;
 
 //if (timer_create(CLOCK_MONOTONIC, NULL, &timer1) == -1 ) {
 if (timer_create(CLOCK_MONOTONIC, &sv, &timer1) == -1 ) {
@@ -198,9 +197,9 @@ void* writout_ret = (void*)99;
 */
 sigset_t main_sig;
 sigemptyset(&main_sig);
-sigaddset(&main_sig, SIGUSR2);
+sigaddset(&main_sig, RT_SIGSEQUENCER);
 if (sigprocmask(SIG_SETMASK, &main_sig, NULL) == -1) {
-    printf("Couldn't mask SIGUSR2 signal\n");
+    printf("Couldn't mask RT_SIGSEQUENCER signal\n");
 }
 
 sem_wait(&sem_teardown);
@@ -331,6 +330,7 @@ void sequencer(int v) {
 }
 
 void ctrl_c(int s) {
+    printf("ctrl-c\n");
     running = 0;
 }
 

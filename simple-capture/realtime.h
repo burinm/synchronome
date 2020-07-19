@@ -9,6 +9,10 @@
 #define RT_MAX_PRIO     (sched_get_priority_max(SCHED_FIFO))
 #define RT_MIN_PRIO     (sched_get_priority_min(SCHED_FIFO))
 
+#define RT_SIGDEBUG         SIGRTMIN
+#define RT_SIGSEQUENCER     (SIGRTMIN + 1)
+
+
 #define NUM_PROCESSORS      4 //Raspberry Pi 3b+
 #define PROCESSOR_ZERO  0
 #define PROCESSOR_ONE   1
