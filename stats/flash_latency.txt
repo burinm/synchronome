@@ -1,0 +1,23 @@
+$ ./flash_wcet 
+New max found: 101ms
+New max found: 106ms
+New max found: 107ms
+New max found: 875ms
+New max found: 14982ms
+New max found: 15800ms
+New max found: 17628ms
+New max found: 20829ms
+New max found: 24868ms
+Total elapsed time: 5944s
+average write time per (921600 bytes) image: 0.330222s
+
+---for NFS share--
+New max found: 187ms
+New max found: 189ms
+New max found: 190ms
+New max found: 225ms
+New max found: 228ms
+New max found: 229ms
+New max found: 235ms
+Total elapsed time: 3412s
+average write time per (921600 bytes) image: 0.189556s
