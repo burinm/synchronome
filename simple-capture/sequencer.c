@@ -23,6 +23,10 @@ void ctrl_c(int s);
 void dump_logs(int s);
 void sequencer(int v);
 
+//Interval timer for sequencer loop, global so sequencer can shut it down
+timer_t timer1; // note not defined with a struct
+struct itimerspec timer1_it;
+
 //Main semaphore for teardown
 sem_t sem_teardown;
 pthread_barrier_t bar_thread_inits;
@@ -151,37 +155,33 @@ if (pthread_create(&thread_writeout, &rt_sched_attr, writeout, (void*)&video) ==
     exit(-1);
 }
 
-//Interval timer for sequencer loop
-timer_t timer1; // note not defined with a struct
-
-
 //Install timer
+
 struct sigevent sv;
 sv.sigev_notify = SIGEV_SIGNAL;
 sv.sigev_signo = RT_SIGSEQUENCER;
 
-//if (timer_create(CLOCK_MONOTONIC, NULL, &timer1) == -1 ) {
 if (timer_create(CLOCK_MONOTONIC, &sv, &timer1) == -1 ) {
     perror("Couldn't create timer");
     exit(-1);
 }
 
-printf("timer installed\n");
+printf("timer initialized\n");
 
-struct itimerspec it;
-it.it_interval.tv_sec = 0;
-it.it_interval.tv_nsec = 10000000; //10ms
+timer1_it.it_interval.tv_sec = 0;
+timer1_it.it_interval.tv_nsec = 10000000; //10ms
 //it.it_interval.tv_nsec = 60000000; //60ms
 //it.it_interval.tv_nsec = 200000000; //200ms
-it.it_value.tv_sec = 1; //delay 1 second to start
-it.it_value.tv_nsec = 0;
+timer1_it.it_value.tv_sec = timer1_it.it_interval.tv_sec;
+timer1_it.it_value.tv_nsec = timer1_it.it_interval.tv_nsec;
 
 pthread_barrier_wait(&bar_thread_inits); //GO!!
 
-if (timer_settime(timer1, 0, &it, NULL) == -1 ) {
+if (timer_settime(timer1, 0, &timer1_it, NULL) == -1 ) {
     perror("couldn't set timer");
     exit(-1);
 }
+printf("timer installed\n");
 
 clock_gettime(CLOCK_MONOTONIC, &start_time);
 printf("Ready.\n");
@@ -191,7 +191,7 @@ void* framegrab_ret = (void*)99;
 void* processing_ret = (void*)99;
 void* writout_ret = (void*)99;
 
-/* Timer is throwing SIGUSR2s, we don't want main to catch
+/* Timer is throwing RT_SIGSEQUENCER, we don't want main to catch
     these, because then sem_wait(&sem_teardown) will fall
     through with EINTR
 */
@@ -206,12 +206,13 @@ sem_wait(&sem_teardown);
 
 clock_gettime(CLOCK_MONOTONIC, &finish_time);
 
-it.it_interval.tv_sec = 0;
-it.it_interval.tv_nsec = 10000000; //10ms
-if (timer_settime(timer1, 0, &it, NULL) == -1 ) {
+timer1_it.it_interval.tv_sec = 0;
+timer1_it.it_interval.tv_nsec = 0; 
+if (timer_settime(timer1, 0, &timer1_it, NULL) == -1 ) {
     perror("couldn't disarm timer");
     exit(-1);
 }
+printf("timer disarmed\n");
 timer_delete(timer1);
 
 //Give all threads 5 seconds to stop
@@ -305,13 +306,11 @@ printf("total time elapsed: %lld.%.9ld\n",
 static int sequence = 0;
 void sequencer(int v) {
     if (running) {
-        if (sequence % 12 == 0) { // 6 * 10 = 60ms, 16.7Hz
-        //if (sequence % 4 == 0) { // 4 * 10 = 40ms, 25Hz
+        if (sequence % 3 == 0) { // 4 * 10 = 40ms, 25Hz
             sem_post(&sem_framegrab);
         }
 
-        if (sequence % 12 == 0) { // 6 * 10 = 60ms, 16.7Hz (must keep up with input)
-        //if (sequence % 4 == 0) { // 4 * 10 = 40ms, 25Hz (must keep up with input)
+        if (sequence % 3 == 0) { // 4 * 10 = 40ms, 25Hz (must keep up with input)
             sem_post(&sem_processing);
         }
 
@@ -320,7 +319,15 @@ void sequencer(int v) {
         }
 
         sequence++; if (sequence == 90) { sequence = 0; }
-    } else { //unblock everyone
+    } else {
+            //disarm timer
+            timer1_it.it_interval.tv_sec = 0;
+            timer1_it.it_interval.tv_nsec = 0;
+            if (timer_settime(timer1, 0, &timer1_it, NULL) == -1 ) {
+                perror("couldn't disarm timer");
+                exit(-1);
+            }
+            //unblock everyone
             sem_post(&sem_framegrab);
             sem_post(&sem_processing);
             sem_post(&sem_writeout);
