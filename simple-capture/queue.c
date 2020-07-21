@@ -65,10 +65,10 @@ int init_queues() {
             clock_gettime(CLOCK_REALTIME, &_t);
             _t.tv_sec += 1;
             int s =  mq_timedreceive(frame_receive_Q, b, MQ_FRAME_PAYLOAD_SIZE, &prio, &_t);
-            if (s == 0 || errno == ETIMEDOUT || errno == EAGAIN) {
-                break;
-            }
             if (s == -1) {
+                if (errno == ETIMEDOUT) {
+                    break;
+                }
                 perror(NULL);
                 return -1;
             }
@@ -84,10 +84,10 @@ int init_queues() {
             clock_gettime(CLOCK_REALTIME, &_t);
             _t.tv_sec += 1;
             int s =  mq_timedreceive(processing_Q, d, MQ_BUFFER_PAYLOAD_SIZE, &prio, &_t);
-            if (s == 0 || errno == ETIMEDOUT) {
-                break;
-            }
             if (s == -1) {
+                if (errno == ETIMEDOUT) {
+                    break;
+                }
                 perror(NULL);
                 return -1;
             }
@@ -103,10 +103,10 @@ int init_queues() {
             clock_gettime(CLOCK_REALTIME, &_t);
             _t.tv_sec += 1;
             int s =  mq_timedreceive(writeout_Q, c, MQ_BUFFER_PAYLOAD_SIZE, &prio, &_t);
-            if (s == 0 || errno == ETIMEDOUT) {
-                break;
-            }
             if (s == -1) {
+                if (errno == ETIMEDOUT) {
+                    break;
+                }
                 perror(NULL);
                 return -1;
             }
