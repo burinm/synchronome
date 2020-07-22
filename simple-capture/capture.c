@@ -141,7 +141,7 @@ struct v4l2_buffer current_b;
 
 #ifdef IMAGE_DIFF_PROFILE
 int last_buffer_index = -1;
-int change_pixels = 0;
+uint32_t changed_pixels = 0;
 #endif
 
 #else
@@ -196,17 +196,13 @@ while(running) {
         }
     }
 
-    //if (diff.tv_nsec > 100000000) {
-      //  console_error("!\n");
-    //}
-
     if (average_count == PROFILE_ITERS) {
         running = 0;
     }
 #endif
 
 
-    memset(&current_b, 0, sizeof(struct v4l2_buffer)); 
+    //memset(&current_b, 0, sizeof(struct v4l2_buffer)); //TODO, is this needed
     current_b.type = video.type;
     current_b.memory = video.memory;
     
@@ -225,9 +221,10 @@ while(running) {
 
     #ifdef IMAGE_DIFF_PROFILE
         if (last_buffer_index != -1) {
-            change_pixels = is_frame_changed(&buffers[last_buffer_index], &buffers[current_b.index]);
-            printf("frame diff = %d ", change_pixels);
-            printf(" changed = %s\n", is_motion(change_pixels) ? "yes" : "no");
+            changed_pixels = frame_changes(&buffers[last_buffer_index], &buffers[current_b.index]);
+            MEMLOG_LOG24(FRAME_LOG, MEMLOG_E_ADATA_24, changed_pixels);
+            //printf("pixels:%d seconds\n", changed_pixels);
+            //printf(" changed = %s\n", is_motion(changed_pixels) ? "yes" : "no");
 
         }
         last_buffer_index = current_b.index;
@@ -257,7 +254,9 @@ while(running) {
 
     console("jitter max = % .ld us\n", (jitter_max - jitter_frame) / 1000);
     console("jitter min = % .ld us\n", (jitter_min - jitter_frame) / 1000);
+    memlog_dump("frame.log", FRAME_LOG);
 #endif
+
     memlog_dump("frame.log", FRAME_LOG);
 
 return 0;
