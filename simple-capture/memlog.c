@@ -74,16 +74,16 @@ void memlog_dump(char* f, memlog_t* l) {
             
             not_increasing = timespec_subtract(&diff, &l->log[i].time, &t_prev);
 
-            dprintf(fd, "%lld.%.9ld [%s]", (long long)l->log[i].time.tv_sec,
+            dprintf(fd, "%lld.%.9ld %-30s", (long long)l->log[i].time.tv_sec,
                                   l->log[i].time.tv_nsec,
                                   memlog_event_desc(MEMLOG_ID(l->log[i].event_id)));
 
-            dprintf(fd, "%s", not_increasing == 1 ? " *not in order\n" : "");
-            dprintf(fd, "\tdiff = %lld.%.9ld", (long long)diff.tv_sec, diff.tv_nsec);
+            dprintf(fd, "diff = %lld.%.9ld", (long long)diff.tv_sec, diff.tv_nsec);
 
             if (MEMLOG_ID(l->log[i].event_id) >= MEMLOG_E_ADATA_24) {
                 dprintf(fd, " data:%u\n", MEMLOG_DATA24(l->log[i].event_id));
             } else {
+                dprintf(fd, "%s", not_increasing == 1 ? " *not in order" : "");
                 dprintf(fd, "\n");
             }
 
@@ -110,18 +110,6 @@ char* memlog_event_desc(uint32_t e) {
             return "NONE";
             break;
 
-        case MEMLOG_E_S1_DONE:
-            return "MEMLOG_E_S1_DONE";
-            break;
-
-        case MEMLOG_E_S2_DONE:
-            return "MEMLOG_E_S2_DONE";
-            break;
-
-        case MEMLOG_E_S3_DONE:
-            return "MEMLOG_E_S3_DONE";
-            break;
-
         case MEMLOG_E_S1_RUN:
             return "MEMLOG_E_S1_RUN";
             break;
@@ -137,6 +125,30 @@ char* memlog_event_desc(uint32_t e) {
         case MEMLOG_E_SEQUENCER:
             return "SEQUENCER_MARK";
             break;
+
+
+
+        case MEMLOG_E_S1_DONE:
+            return "MEMLOG_E_S1_DONE";
+            break;
+
+        case MEMLOG_E_S2_DONE:
+            return "MEMLOG_E_S2_DONE";
+            break;
+
+        case MEMLOG_E_S3_DONE:
+            return "MEMLOG_E_S3_DONE";
+            break;
+
+
+        case MEMLOG_E_WCET_START:
+            return "MEMLOG_E_WCET_START";
+            break;
+
+        case MEMLOG_E_WCET_DONE:
+            return "MEMLOG_E_WCET_DONE";
+            break;
+
 
         case MEMLOG_E_ADATA_24:
             return "MEMLOG_E_ADATA";
