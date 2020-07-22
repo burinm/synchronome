@@ -7,12 +7,18 @@
 #include <linux/videodev2.h>
 
 //Internal camera buffers
-#define NUM_BUF   10
+#define NUM_BUF  3
 
 typedef struct {
     void* start;
     size_t size;
+    struct timespec time;
 } buffer_t;
+
+#define COPY_BUFFER(dst, src)   assert ((dst).size == (src).size); \
+                                memcpy( (unsigned char*)dst.start, \
+                                        (unsigned char*)src.start, \
+                                        (dst).size)
 
 extern buffer_t buffers[NUM_BUF]; //Holds pointers to mmaped buffers
 extern buffer_t wo_buffer; //Temporary buffer for file output (write out)

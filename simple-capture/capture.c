@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <linux/videodev2.h> //sudo apt-get install libv4l-dev
+#include <assert.h>
 
 #include "setup.h" //Keep this at top
 
@@ -21,6 +22,7 @@
 #include "capture.h"
 #include "buffer.h"
 #include "transformation.h"
+#include "processing.h"
 #include "dumptools.h"
 #include "memlog.h"
 
@@ -36,12 +38,16 @@
 
 memlog_t* FRAME_LOG;
 
+
 #ifdef CAPTURE_STANDALONE
 /* catch signal */
 #include <signal.h>
 void ctrl_c(int addr);
 int printf_on = 1;
 int running = 1;
+
+buffer_t scan_buffer[SCAN_BUF_SIZE];
+int scan_buffer_index = 0;
 
 int main() {
 
@@ -57,6 +63,14 @@ int main() {
     if (open_camera(CAMERA_DEV, &video) == -1) {
         error_exit(0);
     }
+
+    //init_processing(); TODO - refactor to one area
+    for (int i=0; i<SCAN_BUF_SIZE; i++) {
+        if (allocate_frame_buffer(&scan_buffer[i]) == -1) {
+            return -1;
+        }
+    }
+
 
 return (int)frame((void*)&video);
 }
@@ -158,9 +172,6 @@ while(running) {
 
     MEMLOG_LOG(FRAME_LOG, MEMLOG_E_S1_RUN);
 
-#ifdef PROFILE_FRAMES
-    clock_gettime(CLOCK_MONOTONIC, &timestamp);
-#endif
 
 #ifdef CAPTURE_STANDALONE
 #else
@@ -173,6 +184,26 @@ while(running) {
         error_exit(-1);
     }
 #endif
+
+
+
+    //memset(&current_b, 0, sizeof(struct v4l2_buffer)); //TODO, is this needed
+    current_b.type = video.type;
+    current_b.memory = video.memory;
+
+    do { //TODO - safety breakout here
+        ret = dequeue_buf(&current_b, video.camera_fd);
+        if (ret == -1) {
+            perror("VIDIOC_DQBUF");
+            error_exit(-1);
+        }
+    } while(ret == EAGAIN);
+
+    //Got frame, timestamp it
+    clock_gettime(CLOCK_MONOTONIC, &timestamp);
+
+    //console("buf index %d dequeued!\n", current_b.index);
+    //dump_buffer_raw(&buffers[current_b.index]);
 
 #ifdef PROFILE_FRAMES
     if (timestamp_last.tv_sec != 0) {
@@ -201,22 +232,6 @@ while(running) {
     }
 #endif
 
-
-    //memset(&current_b, 0, sizeof(struct v4l2_buffer)); //TODO, is this needed
-    current_b.type = video.type;
-    current_b.memory = video.memory;
-    
-    do { //TODO - safety breakout here
-        ret = dequeue_buf(&current_b, video.camera_fd);
-        if (ret == -1) {
-            perror("VIDIOC_DQBUF");
-            error_exit(-1);
-        }
-    } while(ret == EAGAIN);
-
-    //console("buf index %d dequeued!\n", current_b.index);
-    //dump_buffer_raw(&buffers[current_b.index]);
-
 #ifdef CAPTURE_STANDALONE
 
     #ifdef IMAGE_DIFF_PROFILE
@@ -229,7 +244,26 @@ while(running) {
         }
         last_buffer_index = current_b.index;
     #else
-        do_transformations(&buffers[current_b.index]);
+        //do_transformations(&buffers[current_b.index]);
+assert(scan_buffer[scan_buffer_index].size == buffers[current_b.index].size);
+
+        COPY_BUFFER(scan_buffer[scan_buffer_index], buffers[current_b.index]);
+#if 0
+        memcpy((unsigned char*)scan_buffer[scan_buffer_index].start,
+               (unsigned char*)buffers[current_b.index].start,
+               scan_buffer[scan_buffer_index].size);
+#endif
+
+        memcpy(&scan_buffer[scan_buffer_index].time,
+               &timestamp,
+               sizeof(struct timespec));
+
+        scan_buffer_index++;
+        //ghetto circular buffer
+        if (scan_buffer_index == SCAN_BUF_SIZE) {
+            scan_buffer_index = 0;
+        }
+
     #endif
 
 
@@ -246,6 +280,13 @@ while(running) {
 #endif
 
 }
+
+#ifdef CAPTURE_STANDALONE
+    //deallocate_processing(); TODO - refactor to one area
+    for (int i=0; i<SCAN_BUF_SIZE; i++) {
+        deallocate_buffer(&scan_buffer[i]);
+    }
+#endif
 
 #ifdef PROFILE_FRAMES
     printf_on = 1;

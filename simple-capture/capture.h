@@ -2,6 +2,12 @@
 #define __CAPTURE_H__
 
 #include "setup.h"
+#include "buffer.h"
+
+#define SCAN_BUF_SIZE 30
+
+extern buffer_t scan_buffer[SCAN_BUF_SIZE];
+extern int scan_buffer_index;
 
 #define ERROR_FULL_INIT 4
 #define ERROR_LEVEL_3   3
