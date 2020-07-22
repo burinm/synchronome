@@ -7,22 +7,29 @@ import sys
 import re
 
 if len(sys.argv) < 2:
-    print("usage: timediff <timing_file.txt> [SERVICE..n]"); 
+    print("usage: timediff [file/-] [SERVICE 0..n]");
     sys.exit(0)
-
 
 data_file = None
+use_stdin = False
+
+if sys.argv[1] == '-':
+    use_stdin = True
 
 try:
-    data_file = open(sys.argv[1], "r")
+    if use_stdin == True:
+        data_file = sys.stdin
+    else:
+        data_file = open(sys.argv[1], "r")
 except:
-    print("Couldn't open", sys.argv[1]); 
+    print("Couldn't open", sys.argv[1])
     sys.exit(0)
 
-services = [] 
+services = []
 for s in sys.argv[2:]:
     services.append(s)
-    
+
+
 timestamp = None
 first_timestamp = None
 last_timestamp = None
