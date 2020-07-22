@@ -206,6 +206,7 @@ sem_wait(&sem_teardown);
 
 clock_gettime(CLOCK_MONOTONIC, &finish_time);
 
+#if 0 //now done in sequencer
 timer1_it.it_interval.tv_sec = 0;
 timer1_it.it_interval.tv_nsec = 0; 
 if (timer_settime(timer1, 0, &timer1_it, NULL) == -1 ) {
@@ -214,6 +215,7 @@ if (timer_settime(timer1, 0, &timer1_it, NULL) == -1 ) {
 }
 printf("timer disarmed\n");
 timer_delete(timer1);
+#endif
 
 //Give all threads 5 seconds to stop
 struct timespec stop_timeout;
@@ -305,20 +307,28 @@ printf("total time elapsed: %lld.%.9ld\n",
 
 static int sequence = 0;
 void sequencer(int v) {
+
+    //Start best effort services
+    sem_post(&sem_writeout);
+
     if (running) {
-        if (sequence % 3 == 0) { // 4 * 10 = 40ms, 25Hz
+        //if (sequence % 4 == 0) { // 4 * 10 = 40ms, 25Hz
+        if (sequence % 3 == 0) { // 3 * 10 = 30ms, 33.3Hz
             sem_post(&sem_framegrab);
         }
 
-        if (sequence % 3 == 0) { // 4 * 10 = 40ms, 25Hz (must keep up with input)
+        //if (sequence % 10 == 0) { // 100 * 10 = 1000ms, 1Hz
+        if (sequence % 10 == 0) { // 10 * 10 = 100ms, 10Hz
             sem_post(&sem_processing);
         }
 
+#if 0
         if (sequence % 10 == 0) { // 10 * 10 = 100ms, 10Hz
             sem_post(&sem_writeout);
         }
+#endif
 
-        sequence++; if (sequence == 90) { sequence = 0; }
+        sequence++; if (sequence == 300) { sequence = 0; }
     } else {
             //disarm timer
             timer1_it.it_interval.tv_sec = 0;

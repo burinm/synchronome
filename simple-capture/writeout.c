@@ -41,11 +41,10 @@ void* writeout(void* v) {
 
     pthread_barrier_wait(&bar_thread_inits); //GO!!
 
+    //Best effort!
+    s_ret = sem_wait(&sem_writeout);
+
     while(running) {
-
-        MEMLOG_LOG(WRITEOUT_LOG, MEMLOG_E_S3_DONE);
-        s_ret = sem_wait(&sem_writeout);
-
         MEMLOG_LOG(WRITEOUT_LOG, MEMLOG_E_S3_RUN);
 
         if (s_ret == -1) {

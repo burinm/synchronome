@@ -127,6 +127,9 @@ if (try_refocus(video.camera_fd) == -1) {
     console("\n");
 #endif
 
+//For frame timestamp and profiling
+struct timespec timestamp;
+
 /* for profiling, turn off all console output */
 #ifdef PROFILE_FRAMES
     printf("\n[Profiling ON - iters = %d, ", PROFILE_ITERS);
@@ -136,7 +139,6 @@ if (try_refocus(video.camera_fd) == -1) {
     long int jitter_max = INT_MIN;
     long int jitter_min = INT_MAX;
     int jitter_frame = 60000000;
-    struct timespec timestamp;
     struct timespec timestamp_last;
     struct timespec diff;
     long int average_ms = 0;
@@ -187,7 +189,7 @@ while(running) {
 
 
 
-    //memset(&current_b, 0, sizeof(struct v4l2_buffer)); //TODO, is this needed
+    memset(&current_b, 0, sizeof(struct v4l2_buffer));
     current_b.type = video.type;
     current_b.memory = video.memory;
 
@@ -201,6 +203,8 @@ while(running) {
 
     //Got frame, timestamp it
     clock_gettime(CLOCK_MONOTONIC, &timestamp);
+
+    MEMLOG_LOG(FRAME_LOG, MEMLOG_E_WCET_START);
 
     //console("buf index %d dequeued!\n", current_b.index);
     //dump_buffer_raw(&buffers[current_b.index]);
@@ -254,9 +258,11 @@ assert(scan_buffer[scan_buffer_index].size == buffers[current_b.index].size);
                scan_buffer[scan_buffer_index].size);
 #endif
 
+#if 1
         memcpy(&scan_buffer[scan_buffer_index].time,
                &timestamp,
                sizeof(struct timespec));
+#endif
 
         scan_buffer_index++;
         //ghetto circular buffer
