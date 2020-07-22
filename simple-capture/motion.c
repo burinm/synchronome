@@ -9,12 +9,12 @@ int motion_state = MOTION_STATE_START;
 int good_frames_in_a_row = 0;
 //int different_frame_found = 0;
 
-int is_motion(int changed) {
+int next_motion_state(int changed) {
 
     print_motion_state();
 
     switch(motion_state) {
-        case MOTION_STATE_START:
+        case MOTION_STATE_START: //TODO synchronization is in requirements. drift?
             if (changed) {
                 good_frames_in_a_row = 0;
             } else {
@@ -85,7 +85,7 @@ void print_motion_state() {
     printf("(%d)\n", good_frames_in_a_row);
 }
 
-int is_frame_changed(buffer_t *first, buffer_t *second) {
+int frame_changes(buffer_t *first, buffer_t *second) {
 
 assert(first->start && second->start);
 assert(first->size == second->size);
@@ -118,9 +118,7 @@ for (int i=scan_area.h1; i < scan_area.h2; i++, f += X_RES, s+= X_RES) { //every
 #if 1
     for (int i=0; i<first->size /2; i++) {
         int diff = abs(*f - *s);
-        if (diff > 35) { //sensitivity
-        //if (((*f) & 0xf0) != ((*s) & 0xf0)) {
-        //if (*f != *s) {
+        if (diff > MOTION_SENSITIVITY) { //sensitivity
             count++;
         }
         //Just diff Ys, skip U/V
@@ -137,5 +135,17 @@ for (int i=scan_area.h1; i < scan_area.h2; i++, f += X_RES, s+= X_RES) { //every
         f++; s++;
     }
 #endif
-return count > 50; //threshold
+return count;
 }
+
+inline int is_motion(int count) {
+    return next_motion_state(count > MOTION_THRESHOLD);
+}
+#if 0
+inline int is_change() {
+    return frame_changes(count > MOTION_THRESHOLD);
+}
+inline int image_threshold(int count) {
+    return count > MOTION_THRESHOLD;
+}
+#endif

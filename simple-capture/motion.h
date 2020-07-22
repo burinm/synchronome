@@ -3,6 +3,9 @@
 
 #include "buffer.h"
 
+#define MOTION_SENSITIVITY              35
+#define MOTION_THRESHOLD                50
+
 #define MOTION_START_GOOD_FRAMES        8
 #define MOTION_GOOD_FRAMES_THRESHOLD    4
 
@@ -22,8 +25,9 @@ typedef struct {
     int h2;
 } box_t;
 
-int is_frame_changed(buffer_t *first, buffer_t *second);
-int is_motion(int changed);
+int is_motion(int count);
+int next_motion_state(int changed);
+int frame_changes(buffer_t *first, buffer_t *second);
 
 
 
