@@ -44,7 +44,7 @@ void* processing(void* v) {
     struct v4l2_buffer b;
 
     int last_buffer_index = -1;
-    int change_pixels = 0;
+    int changed_pixels = 0;
     int did_frame_tick = 0;
 
     pthread_barrier_wait(&bar_thread_inits); //GO!!
@@ -61,6 +61,9 @@ void* processing(void* v) {
             error_exit(-2);
         }
 
+did_frame_tick = 0;
+while(did_frame_tick == 0) { //hack loop until circular buffer is coded
+
         if (dequeue_V42L_frame(frame_receive_Q, &b) == -1) {
             printf("*Frame Processing: dequeue error\n");
             error_exit(-1);
@@ -70,17 +73,16 @@ void* processing(void* v) {
                 b.index, buffers[b.index].start, buffers[b.index].size);
 
         if (last_buffer_index != -1) {
-                change_pixels = is_frame_changed(&buffers[last_buffer_index], &buffers[b.index]);
-                printf("frame diff = %d ", change_pixels);
-                did_frame_tick = is_motion(change_pixels);
+                changed_pixels = frame_changes(&buffers[last_buffer_index], &buffers[b.index]);
+                printf("frame diff = %d ", changed_pixels);
+                did_frame_tick = is_motion(changed_pixels);
                 printf("%s\n", did_frame_tick ? "yes" : "no");
         }
         last_buffer_index = b.index;
 
         assert(buffers[b.index].size == wo_buffers[wo_buffer_index].size);
 
-        //TODO - testing, just write out every 16th frame
-        //if (frame_test_mod %16== 0) {
+        //Copy frame to writeout buffer
         if (did_frame_tick) {
             memcpy((unsigned char*)wo_buffers[wo_buffer_index].start,
                     (unsigned char*)buffers[b.index].start,
@@ -95,8 +97,6 @@ void* processing(void* v) {
 
 
         //Writeout
-        //TODO - testing, just write out every 3th frame
-        //if (frame_test_mod %16 == 0) {
         if (did_frame_tick) {
 
             printf("Processing: [start=%p size=%d] (out)\n",
@@ -113,7 +113,8 @@ void* processing(void* v) {
         if (wo_buffer_index == NUM_WO_BUF) {
             wo_buffer_index = 0;
         }
-    }
+} //end hack for now
+}
 return 0;
 }
 
