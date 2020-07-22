@@ -27,8 +27,22 @@ void memlog_free(memlog_t* m) {
 }
 
 inline void MEMLOG_LOG(memlog_t* l, uint32_t event) {
-    assert(l->index < MEMLOG_MAX);
+    assert(l->index < MEMLOG_MAX); //TODO remove assert
     l->log[l->index].event_id = event;
+    clock_gettime(CLOCK_MONOTONIC, &l->log[l->index].time);
+    l->index++;
+    if (l->index >= MEMLOG_MAX) {
+        l->index = 0;
+    }
+}
+
+inline void MEMLOG_LOG24(memlog_t* l, uint32_t event, uint32_t data) {
+
+    assert(data < 0x1000000);
+    assert(event >= MEMLOG_E_ADATA_24);
+    assert(l->index < MEMLOG_MAX); //TODO remove assert
+
+    l->log[l->index].event_id = MEMLOG_ENCODE24(event, data);
     clock_gettime(CLOCK_MONOTONIC, &l->log[l->index].time);
     l->index++;
     if (l->index >= MEMLOG_MAX) {
@@ -50,7 +64,7 @@ void memlog_dump(char* f, memlog_t* l) {
     }
 
     for (int i=0; i < MEMLOG_MAX; i++) {
-        if (l->log[i].event_id > MEMLOG_E_NONE) {
+        if (MEMLOG_ID(l->log[i].event_id) > MEMLOG_E_NONE) {
 
             //timespec_subtract is destructive, save previous
             t = l->log[i].time;
@@ -60,10 +74,19 @@ void memlog_dump(char* f, memlog_t* l) {
             
             not_increasing = timespec_subtract(&diff, &l->log[i].time, &t_prev);
 
-            dprintf(fd, "%lld.%.9ld [%s]", (long long)l->log[i].time.tv_sec, l->log[i].time.tv_nsec,
-                                      memlog_event_desc(l->log[i].event_id));
+            dprintf(fd, "%lld.%.9ld [%s]", (long long)l->log[i].time.tv_sec,
+                                  l->log[i].time.tv_nsec,
+                                  memlog_event_desc(MEMLOG_ID(l->log[i].event_id)));
+
             dprintf(fd, "%s", not_increasing == 1 ? " *not in order\n" : "");
-            dprintf(fd, " diff = %lld.%.9ld\n", (long long)diff.tv_sec, diff.tv_nsec);
+            dprintf(fd, "\tdiff = %lld.%.9ld", (long long)diff.tv_sec, diff.tv_nsec);
+
+            if (MEMLOG_ID(l->log[i].event_id) >= MEMLOG_E_ADATA_24) {
+                dprintf(fd, " data:%u\n", MEMLOG_DATA24(l->log[i].event_id));
+            } else {
+                dprintf(fd, "\n");
+            }
+
             t_prev = t;
         }
     }
@@ -113,6 +136,18 @@ char* memlog_event_desc(uint32_t e) {
 
         case MEMLOG_E_SEQUENCER:
             return "SEQUENCER_MARK";
+            break;
+
+        case MEMLOG_E_ADATA_24:
+            return "MEMLOG_E_ADATA";
+            break;
+
+        case MEMLOG_E_BDATA_24:
+            return "MEMLOG_E_BDATA";
+            break;
+
+        case MEMLOG_E_CDATA_24:
+            return "MEMLOG_E_CDATA";
             break;
 
         case MEMLOG_E_FIB_TEST:
