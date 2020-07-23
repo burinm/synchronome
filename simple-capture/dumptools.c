@@ -108,7 +108,7 @@ void dump_rgb_raw_buffer(buffer_t *b) {
 int _open_for_write(int index, char* suffix) {
 
     //TODO - eliminate snprintf
-    snprintf(filename, FILE_NAME_SIZE, "frame.%06u.%s", index, suffix);
+    snprintf(filename, FILE_NAME_SIZE, "./frames/frame.%06u.%s", index, suffix);
 
     console("writing:%s\n", filename);
     fd = open(filename, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IROTH);

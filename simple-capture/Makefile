@@ -16,7 +16,7 @@ clean: clean-frames
 	rm -f sequencer.pid
 
 clean-frames:
-	-rm -f *.yuv *.ppm *.pgm
+	-rm -f ./frames/*[.yuv,.ppm,.pgm]
 	-rm -f timestamps.txt
 	-rm -f *.log
 

@@ -3,7 +3,7 @@
 
 #include "buffer.h"
 
-#define FILE_NAME_SIZE 32
+#define FILE_NAME_SIZE 42
 
 //https://gcc.gnu.org/onlinedocs/cpp/Stringizing.html (lame!)
 #define xstr(s) str(s)

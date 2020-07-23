@@ -65,11 +65,13 @@ int main() {
     }
 
     //init_processing(); TODO - refactor to one area
+#if 1
     for (int i=0; i<SCAN_BUF_SIZE; i++) {
         if (allocate_frame_buffer(&scan_buffer[i]) == -1) {
             return -1;
         }
     }
+#endif
 
 
 return (int)frame((void*)&video);
@@ -248,50 +250,51 @@ while(running) {
         }
         last_buffer_index = current_b.index;
     #else
-        //do_transformations(&buffers[current_b.index]);
-assert(scan_buffer[scan_buffer_index].size == buffers[current_b.index].size);
+        do_transformations(&buffers[current_b.index]);
 
-        COPY_BUFFER(scan_buffer[scan_buffer_index], buffers[current_b.index]);
-#if 0
-        memcpy((unsigned char*)scan_buffer[scan_buffer_index].start,
-               (unsigned char*)buffers[current_b.index].start,
-               scan_buffer[scan_buffer_index].size);
-#endif
-
-#if 1
-        memcpy(&scan_buffer[scan_buffer_index].time,
-               &timestamp,
-               sizeof(struct timespec));
-#endif
-
-        scan_buffer_index++;
-        //ghetto circular buffer
-        if (scan_buffer_index == SCAN_BUF_SIZE) {
-            scan_buffer_index = 0;
-        }
 
     #endif
 
+
+#else
+assert(scan_buffer[scan_buffer_index].size == buffers[current_b.index].size);
+
+    COPY_BUFFER(scan_buffer[scan_buffer_index], buffers[current_b.index]);
+
+    memcpy(&scan_buffer[scan_buffer_index].time,
+           &timestamp,
+           sizeof(struct timespec));
+
+    scan_buffer_index++;
+    //ghetto circular buffer
+    if (scan_buffer_index == SCAN_BUF_SIZE) {
+        scan_buffer_index = 0;
+    }
+
+
+#if 0
+    printf("Capture:    [index %d] (VIDIOC_DQBUF)\n", current_b.index);
+    if (enqueue_V42L_frame(frame_receive_Q, &current_b) == -1) {
+        error_exit(-1);
+    }
+#endif
+#endif
 
     //Requeue buffer - TODO - do I need to clear it?
     if (enqueue_buf(&current_b, video.camera_fd) == -1) {
         perror("VIDIOC_QBUF");
         error_exit(-1);
     }
-#else
-    printf("Capture:    [index %d] (VIDIOC_DQBUF)\n", current_b.index);
-    if (enqueue_V42L_frame(frame_receive_Q, &current_b) == -1) {
-        error_exit(-1);
-    }
-#endif
 
 }
 
 #ifdef CAPTURE_STANDALONE
+#if 1
     //deallocate_processing(); TODO - refactor to one area
     for (int i=0; i<SCAN_BUF_SIZE; i++) {
         deallocate_buffer(&scan_buffer[i]);
     }
+#endif
 #endif
 
 #ifdef PROFILE_FRAMES

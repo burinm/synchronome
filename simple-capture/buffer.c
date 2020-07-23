@@ -58,7 +58,7 @@ return 0;
 
 int mmap_buffers(video_t *v) {
 
-    memset(&buffers, 0, sizeof(buffer_t) * NUM_BUF);
+    //memset(&buffers, 0, sizeof(buffer_t) * NUM_BUF);
 
     //Code taken/modified from here:
     // https://www.kernel.org/doc/html/v4.9/media/uapi/v4l/mmap.html

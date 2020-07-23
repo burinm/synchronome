@@ -308,12 +308,12 @@ printf("total time elapsed: %lld.%.9ld\n",
 static int sequence = 0;
 void sequencer(int v) {
 
-    //Start best effort services
-    sem_post(&sem_writeout);
+        //Best effort services
+        sem_post(&sem_writeout);
 
     if (running) {
-        //if (sequence % 4 == 0) { // 4 * 10 = 40ms, 25Hz
-        if (sequence % 3 == 0) { // 3 * 10 = 30ms, 33.3Hz
+        if (sequence % 4 == 0) { // 4 * 10 = 40ms, 25Hz
+        //if (sequence % 3 == 0) { // 3 * 10 = 30ms, 33.3Hz
             sem_post(&sem_framegrab);
         }
 
@@ -323,7 +323,7 @@ void sequencer(int v) {
         }
 
 #if 0
-        if (sequence % 10 == 0) { // 10 * 10 = 100ms, 10Hz
+        if (sequence % 10 == 0) { // 100 * 10 = 1000ms, 10Hz
             sem_post(&sem_writeout);
         }
 #endif
