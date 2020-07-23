@@ -20,8 +20,10 @@ pthread_t thread_framegrab;
 void* frame(void* v);
 memlog_t* FRAME_LOG;
 
+#define NUM_ITERS   30000 // 5minutes / 10ms = 30000
+
 //#define PERIOD_NS   10000000
-#define PERIOD_NS   6000000 //60ms
+#define PERIOD_NS   10000000 //10ms
 //stats
 long int jitter_max = INT_MIN;
 long int jitter_min = INT_MAX;
@@ -96,7 +98,7 @@ if (timer_settime(timer1, 0, &it, NULL) == -1 ) {
 printf("Ready.\n");
 pthread_join(thread_framegrab, NULL);
 
-memlog_dump(FRAME_LOG);
+memlog_dump("frame.log", FRAME_LOG);
 
 //printf("jitter max = % .ld ns\n", jitter_max - jitter_frame);
 //printf("jitter min = % .ld ns\n", jitter_min - jitter_frame);
@@ -105,8 +107,14 @@ printf("jitter min = % .ld us\n", (jitter_min - jitter_frame) / 1000);
 printf("clock_gettime takes an average of %ld nsec to run\n", clock_get_latency);
 
 }
+
+int seq_count = 0;
 void sequencer(int v) {
     sem_post(&sem_framegrab);
+    seq_count++;
+    if (seq_count == 30000) {
+        running = 0;
+    }
 }
 
 void* frame(void* v) {
@@ -120,7 +128,9 @@ void* frame(void* v) {
     printf("Frame grabber started\n");
     while(running) {
 
+        MEMLOG_LOG(FRAME_LOG, MEMLOG_E_S1_DONE);
         ret = sem_wait(&sem_framegrab);
+        MEMLOG_LOG(FRAME_LOG, MEMLOG_E_WCET_START);
 
         clock_gettime(CLOCK_MONOTONIC, &tick);
 
@@ -143,7 +153,6 @@ void* frame(void* v) {
                 continue;
             }
         }
-        MEMLOG_LOG(FRAME_LOG, MEMLOG_E_S1_RUN);
         //printf("[frame]\n");
         tick_prev = tick;
     }
