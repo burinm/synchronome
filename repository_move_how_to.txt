@@ -1,0 +1,17 @@
+How I moved ecen5623 relevant file to new repository synchronome:
+https://stackoverflow.com/questions/41811986/git-move-directory-to-another-repository-while-keeping-the-history
+
+
+git clone git@github.com:burinm/synchronome.git
+cd ecen5623/
+git rm origin <--safety so I can't messs up enec5623
+git filter-branch --tree-filter "rm -rf apollo exercise1 demos example-sync-updated-2 msg_queue mutex_example rt-clock simplethread"
+
+git clone git@github.com:burinm/synchronome.git <--pre-create in github
+cd synchronome/
+git remote add master ../ecen5623/
+git pull master master 
+git remote show origin
+git push
+
+git log
