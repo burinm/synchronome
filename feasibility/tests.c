@@ -123,6 +123,46 @@ s_test_case test_cases[NUM_TEST_CASES] = {
 (uint32_t []){1, 1, 3}
 },
 
+{
+// 15 
+// U=100
+3,
+(uint32_t []){2, 5, 10},
+(uint32_t []){1, 2, 3}
+},
+
+{
+// 16 - First cut Final project 
+// U=100
+3,
+(uint32_t []){10, 40, 100},
+(uint32_t []){1, 33, 72}
+},
+
+{
+// 17 - first cut Final project 
+// U=100
+3,
+(uint32_t []){10, 40, 100},
+(uint32_t []){1, 33, 72}
+},
+
+{
+// 18 - Final project 2 services
+// U=100
+2,
+(uint32_t []){10, 40},
+(uint32_t []){1, 33}
+},
+
+{
+// 19 - second cut Final project 
+// U=100
+3,
+(uint32_t []){10, 40, 100},
+(uint32_t []){1, 33, 6}
+}
+
 };
 
 void print_test_case(int num_services, s_test_case *test_case, int test_num) {
