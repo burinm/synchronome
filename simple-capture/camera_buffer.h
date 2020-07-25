@@ -7,11 +7,9 @@
 #include <stddef.h>
 #include "setup.h"
 #include "buffer.h"
+#include "resources.h"
 
 #include <linux/videodev2.h>
-
-extern buffer_t frame_buffers[CAMERA_NUM_BUF]; //Holds pointers to mmaped buffers
-
 
 int camera_request_buffers(video_t *v);
 void camera_deallocate_internal_buffers(video_t *v);

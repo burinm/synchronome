@@ -10,9 +10,7 @@
 #include <mqueue.h>
 #include <linux/videodev2.h>
 #include "buffer.h"
-
-#include "writeout.h" //NUM_WO_BUF
-#include "setup.h"   //CAMERA_NUM_BUF
+#include "resources.h"
 
 #define MAX_QUEUE_SIZE 10
 #define MAX_PAYLOAD_SZ 128

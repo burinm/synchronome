@@ -48,9 +48,6 @@ void ctrl_c(int addr);
 int printf_on = 1;
 int running = 1;
 
-buffer_t scan_buffer[SCAN_BUF_SIZE];
-int scan_buffer_index = 0;
-
 int main() {
 
     //install ctrl_c signal handler

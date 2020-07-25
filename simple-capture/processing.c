@@ -5,6 +5,7 @@
 #include <assert.h>
 
 #include "processing.h"
+#include "resources.h"
 #include "writeout.h"
 #include "setup.h"
 #include "buffer.h"
@@ -16,21 +17,11 @@ extern int running;
 extern pthread_barrier_t bar_thread_inits;
 extern sem_t sem_processing;
 
-extern  buffer_t scan_buffer[SCAN_BUF_SIZE];
-extern int scan_buffer_index;
-
 memlog_t* PROCESSING_LOG;
 
 int init_processing();
 
-/* This buffer can't fall behind (it will be used to select images),
-    so it is the same count as the internal camera buffers.
-    Simply copy the internal buffer to raw_buffers, so we
-    can return the frame_descriptors to the camera driver
-    asap
-*/
-
-buffer_t scan_buffer[SCAN_BUF_SIZE];
+extern buffer_t scan_buffer[SCAN_BUF_SIZE];
 int scan_buffer_index = 0;
 
 void* processing(void* v) {

@@ -8,6 +8,7 @@
 #include "queue.h"
 #include "setup.h"
 #include "transformation.h"
+#include "resources.h"
 #include "memlog.h"
 
 extern int running;
@@ -17,15 +18,6 @@ extern sem_t sem_writeout;
 memlog_t* WRITEOUT_LOG;
 
 int _init_writeout();
-
-/* This buffer can't fall behind (it will be used to select images),
-    so it is the same count as the internal camera buffers.
-    Simply copy the internal buffer to raw_buffers, so we
-    can return the frame_descriptors to the camera driver
-    asap
-*/
-
-buffer_t wo_buffers[NUM_WO_BUF];
 
 void* writeout(void* v) {
     video_t video;

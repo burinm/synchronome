@@ -9,10 +9,6 @@
 #define CAMERA_DEV  "/dev/video0"
 #define CAMERA_MAJ_ID   81
 
-//Internal camera buffers
-#define CAMERA_NUM_BUF  3
-
-
 #define X_RES   640
 #define Y_RES   480
 //#define X_RES  1920
