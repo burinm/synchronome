@@ -4,24 +4,18 @@
 #include <unistd.h>
 #include <errno.h>
 #include <linux/videodev2.h> //sudo apt-get install libv4l-dev
+#ifdef CAPTURE_STANDALONE
+#else
+#include <pthread.h>
+#endif
+#include <semaphore.h>
 #include <assert.h>
 
+#include "frame.h"
 #include "setup.h" //Keep this at top
 #include "camera_buffer.h"
 #include "resources.h"
-
-#ifdef CAPTURE_STANDALONE
-    #ifdef IMAGE_DIFF_PROFILE
-        #include "motion.h"
-    #endif
-#else
-    #include <pthread.h>
-    #include <semaphore.h>
-    #include "queue.h"
-#endif
-
-
-#include "capture.h"
+#include "queue.h"
 #include "buffer.h"
 #include "transformation.h"
 #include "processing.h"
@@ -40,37 +34,13 @@
 
 memlog_t* FRAME_LOG;
 
+extern int printf_on;
+extern int running;
 
 #ifdef CAPTURE_STANDALONE
-/* catch signal */
-#include <signal.h>
-void ctrl_c(int addr);
-int printf_on = 1;
-int running = 1;
-
-int main() {
-
-    //install ctrl_c signal handler
-    struct sigaction action;
-    action.sa_handler = ctrl_c;
-    sigaction(SIGINT, &action, NULL);
-
-    video_t video;
-    memset(&video, 0, sizeof(video_t));
-    video.camera_fd = -1;
-
-    if (open_camera(CAMERA_DEV, &video) == -1) {
-        error_exit(0);
-    }
-
-    init_processing();
-
-return (int)frame((void*)&video);
-}
 #else
-    extern pthread_barrier_t bar_thread_inits;
-    extern sem_t sem_framegrab;
-    extern int running;
+extern pthread_barrier_t bar_thread_inits;
+extern sem_t sem_framegrab;
 #endif
 
 void* frame(void* v) {
@@ -427,11 +397,3 @@ void deallocate_other_buffers() {
     deallocate_buffer(&sharpen_buffer);
     #endif
 }
-
-
-#ifdef CAPTURE_STANDALONE
-void ctrl_c(int addr) {
-    console("ctrl-c\n");
-    running = 0;
-}
-#endif

@@ -5,7 +5,7 @@ CC=gcc
 CDEFS=
 CFLAGS= -O0 -g -Wall $(INCLUDE_DIRS) $(CDEFS)
 
-OBJS= camera.o v4l2_capabilities.o buffer.o camera_buffer.o resources.o dumptools.o transformation.o sharpen.o timetools.o memlog.o 
+OBJS= camera.o v4l2_capabilities.o buffer.o camera_buffer.o resources.o motion.o dumptools.o transformation.o sharpen.o timetools.o memlog.o 
 
 all:	capture sequencer
 
@@ -20,13 +20,16 @@ clean-frames:
 	-rm -f timestamps.txt
 	-rm -f *.log
 
-sequencer: ${OBJS} sequencer.o capture.o processing.o motion.o writeout.o realtime.o memlog.o queue.o
+sequencer: ${OBJS} sequencer.o frame.o processing.o writeout.o realtime.o memlog.o queue.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ -lrt -lpthread
 
-capture: ${OBJS} capture_standalone.o motion.o
+capture: ${OBJS} frame_standalone.o capture_standalone.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ -lrt
 
 capture_standalone.o: capture.c
+	$(CC) -DCAPTURE_STANDALONE $(LDFLAGS) $(CFLAGS) -c $^ -o $@
+
+frame_standalone.o: frame.c
 	$(CC) -DCAPTURE_STANDALONE $(LDFLAGS) $(CFLAGS) -c $^ -o $@
 
 #test_starter: capture_starter.o

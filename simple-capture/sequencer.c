@@ -12,7 +12,7 @@
 #include <unistd.h>    //getpid
 
 #include "realtime.h"
-#include "capture.h"
+#include "frame.h"
 #include "timetools.h"
 #include "queue.h"
 #include "processing.h"
