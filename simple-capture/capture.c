@@ -63,15 +63,7 @@ int main() {
         error_exit(0);
     }
 
-    //init_processing(); TODO - refactor to one area
-#if 1
-    for (int i=0; i<SCAN_BUF_SIZE; i++) {
-        if (allocate_frame_buffer(&scan_buffer[i]) == -1) {
-            return -1;
-        }
-    }
-#endif
-
+    init_processing();
 
 return (int)frame((void*)&video);
 }
@@ -188,8 +180,6 @@ while(running) {
         error_exit(-1);
     }
 #endif
-
-
 
     memset(&current_b, 0, sizeof(struct v4l2_buffer));
     current_b.type = video.type;

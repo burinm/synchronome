@@ -5,6 +5,7 @@
 #include <assert.h>
 
 #include "writeout.h"
+#include "resources.h"
 #include "camera.h"
 #include "queue.h"
 #include "setup.h"
@@ -18,15 +19,13 @@ extern sem_t sem_writeout;
 
 memlog_t* WRITEOUT_LOG;
 
-int _init_writeout();
-
 void* writeout(void* v) {
     video_t video;
     memcpy(&video, (video_t*)v, sizeof(video_t));
 
     WRITEOUT_LOG = memlog_init();
 
-    if (_init_writeout() == -1) {
+    if (init_writeout() == -1) {
         error_unbarrier_exit(-1);
     }
 
@@ -58,20 +57,4 @@ void* writeout(void* v) {
     }
 
 return 0;
-}
-
-int _init_writeout() {
-    for (int i=0; i < NUM_WO_BUF; i++) {
-        if (allocate_frame_buffer(&wo_buffers[i]) == -1)  {
-            deallocate_writeout();
-            return -1;
-        }
-    }
-return 0;
-}
-
-void deallocate_writeout() {
-    for (int i=0; i < NUM_WO_BUF; i++) {
-        deallocate_buffer(&wo_buffers[i]);
-    }
 }

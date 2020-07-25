@@ -25,6 +25,14 @@ extern int scan_buffer_index;
 //write out buffers
 extern buffer_t wo_buffers[NUM_WO_BUF];
 
+//Allocations
+int init_processing();
+void deallocate_processing();
+
+int init_writeout();
+void deallocate_writeout();
+
+
 
 
 #endif

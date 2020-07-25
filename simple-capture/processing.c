@@ -20,11 +20,6 @@ extern sem_t sem_processing;
 
 memlog_t* PROCESSING_LOG;
 
-int init_processing();
-
-extern buffer_t scan_buffer[SCAN_BUF_SIZE];
-int scan_buffer_index = 0;
-
 void* processing(void* v) {
     video_t video;
     memcpy(&video, (video_t*)v, sizeof(video_t));
@@ -137,20 +132,4 @@ while(did_frame_tick == 0) { //hack loop until circular buffer is coded
 } //end hack for now
 }
 return 0;
-}
-
-int init_processing() {
-
-    for (int i=0; i<SCAN_BUF_SIZE; i++) {
-        if (allocate_frame_buffer(&scan_buffer[i]) == -1) {
-            return -1;
-        }
-    }
-return 0;
-}
-
-void deallocate_processing() {
-    for (int i=0; i<SCAN_BUF_SIZE; i++) {
-        deallocate_buffer(&scan_buffer[i]);
-    }
 }

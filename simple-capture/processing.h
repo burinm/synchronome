@@ -5,8 +5,5 @@
 #include "setup.h"
 
 void* processing(void* v);
-int init_processing();
-void deallocate_processing();
-
 
 #endif
