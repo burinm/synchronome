@@ -13,6 +13,7 @@
 #include <linux/kdev_t.h> //MAJOR/MINOR
 
 #include "camera.h"
+#include "camera_buffer.h"
 #include "setup.h"
 #include "v4l2_capabilities.h"
 
@@ -365,4 +366,72 @@ int try_refocus(int camera_fd) {
     console("[refocused at %d]\n", c[0].value);
 
 return 0;
+}
+
+//Camera initialization routines
+
+void video_error_cleanup(int state, video_t *v) {
+    switch(state) {
+        case ERROR_FULL_INIT:
+            if (stop_streaming(v) == -1) {
+                perror("Couldn't stop stream");
+            }
+        case ERROR_LEVEL_3:
+            deallocate_single_wo_buffer();
+#ifdef SHARPEN_ON
+            deallocate_sharpen_buffer();
+#endif
+        case ERROR_LEVEL_2:
+            camera_deallocate_internal_buffers(v);
+        case ERROR_LEVEL_1:
+            if (close_camera(v->camera_fd) == -1) {
+                console("problem closing fd=%d\n", v->camera_fd);
+                perror(NULL);
+            } else {
+                console("closed camera device\n");
+            }
+        case ERROR_LEVEL_0:
+            break;
+
+    };
+}
+
+int camera_check_init(video_t *v) {
+    /* This can all be setup/checked with v4l2-ctl also */
+    if (show_camera_capabilities(v->camera_fd) == -1) {
+        goto error;
+    }
+
+    if (enumerate_camera_image_formats(v->camera_fd) == -1) {
+        goto error;
+    }
+
+    if (show_camera_image_format(v->camera_fd) == -1) {
+        goto error;
+    }
+
+    if (camera_set_yuyv(v, X_RES, Y_RES) == -1) {
+        goto error;
+    }
+
+    if (v->width != X_RES) {
+        console("Requested width %d not set (returned %d)\n", X_RES, v->width);
+        goto error;
+    }
+
+    if (v->height != Y_RES) {
+        console("Requested height %d not set (returned %d)\n", Y_RES, v->height);
+        goto error;
+    }
+
+    if (show_camera_image_format(v->camera_fd) == -1) {
+        goto error;
+    }
+    /* End - This can all be setup/checked with v4l2-ctl also */
+
+    //All good
+    return 0;
+
+error:
+return -1;
 }

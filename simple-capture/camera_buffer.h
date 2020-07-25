@@ -13,6 +13,7 @@
 #include <linux/videodev2.h>
 
 int camera_request_buffers(video_t *v);
+int camera_init_internal_buffers(video_t *v);
 void camera_deallocate_internal_buffers(video_t *v);
 
 int camera_mmap_buffers(video_t *v);

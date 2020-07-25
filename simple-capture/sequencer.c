@@ -11,6 +11,7 @@
 #include <sys/types.h> //getpid
 #include <unistd.h>    //getpid
 
+#include "camera.h"
 #include "realtime.h"
 #include "frame.h"
 #include "timetools.h"

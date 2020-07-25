@@ -1,7 +1,6 @@
 #include "resources.h"
 
 
-buffer_t wo_buffer;
 
 //mmap buffers
 buffer_t frame_buffers[CAMERA_NUM_BUF];
@@ -12,6 +11,12 @@ int scan_buffer_index;
 
 //write out buffers
 buffer_t wo_buffers[NUM_WO_BUF];
+
+//single wo buffer
+buffer_t wo_buffer;
+
+//sharpen buffer
+buffer_t sharpen_buffer;
 
 //Allocations processing
 int init_processing() {
@@ -45,4 +50,29 @@ void deallocate_writeout() {
     for (int i=0; i < NUM_WO_BUF; i++) {
         deallocate_buffer(&wo_buffers[i]);
     }
+}
+
+//Allocations other
+int allocate_single_wo_buffer() {
+    if (allocate_buffer(&wo_buffer, BYTES_PER_PIXEL) == -1) {
+        console("couldn't allocate write out buffer\n");
+        return -1;
+    }
+return 0;
+}
+
+int allocate_sharpen_buffer() {
+    if (allocate_buffer(&sharpen_buffer, BYTES_PER_PIXEL) == -1) {
+        console("couldn't allocate write out buffer\n");
+        return -1;
+    }
+return 0;
+}
+
+void deallocate_single_wo_buffer() {
+    deallocate_buffer(&wo_buffer);
+}
+
+void deallocate_sharpen_buffer() {
+    deallocate_buffer(&sharpen_buffer);
 }

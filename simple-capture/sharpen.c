@@ -5,7 +5,6 @@
 #include "sharpen.h"
 #include "transformation.h" //BYTES_YUYV_PIXELS
 
-buffer_t sharpen_buffer;
 float SHARPEN_FLT[SHARPEN_SIZE +1] = SHARPEN_TYPE;
 
 void print_sharpen_filter() {

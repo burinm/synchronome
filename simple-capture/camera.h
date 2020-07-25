@@ -6,6 +6,12 @@
 #define CAMERA_DEV  "/dev/video0"
 #define CAMERA_MAJ_ID   81
 
+#define ERROR_FULL_INIT 4
+#define ERROR_LEVEL_3   3
+#define ERROR_LEVEL_2   2
+#define ERROR_LEVEL_1   1
+#define ERROR_LEVEL_0   0
+
 typedef struct {
     int camera_fd;
     int width;
@@ -31,6 +37,10 @@ int stop_streaming(video_t *v);
 
 //Some controls
 int try_refocus(int camera_fd);
+
+//Initalization routines
+void video_error_cleanup(int state, video_t *v);
+int camera_check_init(video_t *v);
 
 
 #endif

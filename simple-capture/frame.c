@@ -50,6 +50,7 @@ void* frame(void* v) {
 //Logging on
 FRAME_LOG = memlog_init();
 
+
 if (camera_check_init(&video) == -1) {
     if (close_camera(video.camera_fd) == -1) {
         console("problem closing fd=%d\n", video.camera_fd);
@@ -66,10 +67,17 @@ if (camera_init_internal_buffers(&video) == -1) {
     error_unbarrier_exit(-1);
 }
 
-if (allocate_other_buffers() == -1) {
+if (allocate_single_wo_buffer() == -1) {
     video_error_cleanup(ERROR_LEVEL_3, &video);
     error_unbarrier_exit(-1);
 }
+
+#ifdef SHARPEN_ON
+if (allocate_sharpen_buffer() == -1) {
+    video_error_cleanup(ERROR_LEVEL_3, &video);
+    error_unbarrier_exit(-1);
+}
+#endif
 
 //Start streaming
 if (start_streaming(&video) == -1) {
@@ -270,130 +278,4 @@ assert(scan_buffer[scan_buffer_index].size == frame_buffers[current_b.index].siz
     memlog_dump("frame.log", FRAME_LOG);
 
 return 0;
-}
-
-void video_error_cleanup(int state, video_t *v) {
-    switch(state) {
-        case ERROR_FULL_INIT:
-            if (stop_streaming(v) == -1) {
-                perror("Couldn't stop stream");
-            }
-        case ERROR_LEVEL_3:
-            deallocate_other_buffers();
-        case ERROR_LEVEL_2:
-            camera_deallocate_internal_buffers(v);
-        case ERROR_LEVEL_1:
-            if (close_camera(v->camera_fd) == -1) {
-                console("problem closing fd=%d\n", v->camera_fd);
-                perror(NULL);
-            } else {
-                console("closed camera device\n");
-            }
-        case ERROR_LEVEL_0:
-            break;
-
-    };
-}
-
-int camera_init_internal_buffers(video_t *v) {
-    //Request some buffers!
-    if (camera_request_buffers(v) == -1) {
-        perror("Couldn't allocate buffers");
-        return -1;
-    }
-
-    if (camera_mmap_buffers(v) == -1) {
-        perror("Couldn't allocate buffers");
-        return -1;
-    }
-
-    //Enqueue all the buffers
-    for (int i=0; i < v->num_buffers; i++) {
-        struct v4l2_buffer b;
-        memset(&b, 0, sizeof(struct v4l2_buffer));
-        b.index = i;
-        b.type = v->type;
-        b.memory = v->memory;
-
-        if (camera_enqueue_buf(&b, v->camera_fd) == -1) {
-            console("Couldn't enqueue buffer, index %d:", i);
-            perror(NULL);
-            return -1;
-        }
-
-        //Not necessary, I think this is what the API guarantees?
-        if ( (b.flags & V4L2_BUF_FLAG_MAPPED) &&
-             (b.flags & V4L2_BUF_FLAG_QUEUED) &&
-             ((b.flags & V4L2_BUF_FLAG_DONE) == 0)) {
-            continue;
-        }
-
-        console("Could not queue buffer, index %d (flags)\n", i);
-        return -1;
-
-    }
-return 0;
-}
-
-int camera_check_init(video_t *v) {
-    /* This can all be setup/checked with v4l2-ctl also */
-    if (show_camera_capabilities(v->camera_fd) == -1) {
-        goto error;
-    }
-
-    if (enumerate_camera_image_formats(v->camera_fd) == -1) {
-        goto error;
-    }
-
-    if (show_camera_image_format(v->camera_fd) == -1) {
-        goto error;
-    }
-
-    if (camera_set_yuyv(v, X_RES, Y_RES) == -1) {
-        goto error;
-    }
-
-    if (v->width != X_RES) {
-        console("Requested width %d not set (returned %d)\n", X_RES, v->width);
-        goto error;
-    }
-
-    if (v->height != Y_RES) {
-        console("Requested height %d not set (returned %d)\n", Y_RES, v->height);
-        goto error;
-    }
-
-    if (show_camera_image_format(v->camera_fd) == -1) {
-        goto error;
-    }
-    /* End - This can all be setup/checked with v4l2-ctl also */
-
-    //All good
-    return 0;
-
-error:
-return -1;
-}
-
-int allocate_other_buffers() {
-    //Allocate other buffers
-    if (allocate_buffer(&wo_buffer, BYTES_PER_PIXEL) == -1) {
-        console("couldn't allocate write out buffer\n");
-        return -1;
-    }
-
-    #ifdef SHARPEN_ON
-    if (allocate_buffer(&sharpen_buffer, BYTES_PER_PIXEL) == -1) {
-        console("couldn't allocate write out buffer\n");
-        return -1;
-    }
-    #endif
-return 0;
-}
-
-void deallocate_other_buffers() {
-    deallocate_buffer(&wo_buffer);
-    #ifdef SHARPEN_ON
-    deallocate_buffer(&sharpen_buffer);
-    #endif
 }

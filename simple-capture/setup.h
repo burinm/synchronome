@@ -36,6 +36,7 @@
 #endif
 
 
+#include <stdio.h>
 extern int printf_on;
 // https://stackoverflow.com/questions/20639632/how-to-wrap-printf-into-a-function-or-macro
 #define console(format, ...) if (printf_on) { printf((format), ##__VA_ARGS__); }

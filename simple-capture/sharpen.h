@@ -18,8 +18,6 @@
 extern unsigned char sharpen_buffer[SHARPEN_COLS * X_RES];
 */
 
-#define SHARPEN_BUF_SIZE   FRAME_SIZE 
-extern buffer_t sharpen_buffer;
 extern float SHARPEN_FLT[SHARPEN_SIZE +1];
 
 #define _I (-4.0/8.0)

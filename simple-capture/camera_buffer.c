@@ -99,6 +99,47 @@ int camera_mmap_buffers(video_t *v) {
 return 0;
 }
 
+int camera_init_internal_buffers(video_t *v) {
+    //Request some buffers!
+    if (camera_request_buffers(v) == -1) {
+        perror("Couldn't allocate buffers");
+        return -1;
+    }
+
+    if (camera_mmap_buffers(v) == -1) {
+        perror("Couldn't allocate buffers");
+        return -1;
+    }
+
+    //Enqueue all the buffers
+    for (int i=0; i < v->num_buffers; i++) {
+        struct v4l2_buffer b;
+        memset(&b, 0, sizeof(struct v4l2_buffer));
+        b.index = i;
+        b.type = v->type;
+        b.memory = v->memory;
+
+        if (camera_enqueue_buf(&b, v->camera_fd) == -1) {
+            console("Couldn't enqueue buffer, index %d:", i);
+            perror(NULL);
+            return -1;
+        }
+
+        //Not necessary, I think this is what the API guarantees?
+        if ( (b.flags & V4L2_BUF_FLAG_MAPPED) &&
+             (b.flags & V4L2_BUF_FLAG_QUEUED) &&
+             ((b.flags & V4L2_BUF_FLAG_DONE) == 0)) {
+            continue;
+        }
+
+        console("Could not queue buffer, index %d (flags)\n", i);
+        return -1;
+
+    }
+return 0;
+}
+
+
 
 void camera_deallocate_internal_buffers(video_t *v) {
      _munmap_camera_buffers(v->num_buffers);
