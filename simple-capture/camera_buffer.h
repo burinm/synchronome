@@ -1,55 +1,25 @@
-#ifndef __BUFFER_H__
-#define __BUFFER_H__
+/* camera_buffer.h - Management of v4l2 internal camera buffers
+    burin (c) 2020
+*/
+#ifndef __CAMERA_BUFFER_H__
+#define __CAMERA_BUFFER_H__
 
 #include <stddef.h>
 #include "setup.h"
+#include "buffer.h"
 
 #include <linux/videodev2.h>
 
-//Internal camera buffers
-#define NUM_BUF  3
-
-typedef struct {
-    void* start;
-    size_t size;
-    struct timespec time;
-} buffer_t;
-
-#define COPY_BUFFER(dst, src)   assert ((dst).size == (src).size); \
-                                memcpy( (unsigned char*)dst.start, \
-                                        (unsigned char*)src.start, \
-                                        (dst).size)
-
-extern buffer_t buffers[NUM_BUF]; //Holds pointers to mmaped buffers
-extern buffer_t wo_buffer; //Temporary buffer for file output (write out)
+extern buffer_t frame_buffers[CAMERA_NUM_BUF]; //Holds pointers to mmaped buffers
 
 
-int request_buffers(video_t *v);
+int camera_request_buffers(video_t *v);
 void camera_deallocate_internal_buffers(video_t *v);
 
-int mmap_buffers(video_t *v);
+int camera_mmap_buffers(video_t *v);
 
-int enqueue_buf(struct v4l2_buffer* b, int camera_fd);
-int dequeue_buf(struct v4l2_buffer* b, int camera_fd);
+int camera_enqueue_buf(struct v4l2_buffer* b, int camera_fd);
+int camera_dequeue_buf(struct v4l2_buffer* b, int camera_fd);
 
-#define NATIVE_CAMERA_FORMAT_SIZE   2
-
-/* regular buffer management */
-#ifdef PPM_CAPTURE
-    #define BYTES_PER_PIXEL 3
-#endif
-
-#ifdef PGM_CAPTURE
-    #define BYTES_PER_PIXEL 1
-#endif
-
-#define FRAME_SIZE  (X_RES * Y_RES)
-#if FRAME_SIZE == 0
-    #error "Frame size is zero!"
-#endif
-
-int allocate_buffer(buffer_t *b, int blocks);
-int allocate_frame_buffer(buffer_t *b);
-void deallocate_buffer(buffer_t *b);
 
 #endif
