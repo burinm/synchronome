@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>

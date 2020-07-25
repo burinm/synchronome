@@ -12,6 +12,7 @@
 
 #include <linux/kdev_t.h> //MAJOR/MINOR
 
+#include "camera.h"
 #include "setup.h"
 #include "v4l2_capabilities.h"
 

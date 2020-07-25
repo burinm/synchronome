@@ -5,6 +5,7 @@
 #include <assert.h>
 
 #include "writeout.h"
+#include "camera.h"
 #include "queue.h"
 #include "setup.h"
 #include "transformation.h"

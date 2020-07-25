@@ -6,6 +6,7 @@
 
 #include <stddef.h>
 #include "setup.h"
+#include "camera.h"
 #include "buffer.h"
 #include "resources.h"
 

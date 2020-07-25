@@ -5,6 +5,7 @@
 #include <assert.h>
 
 #include "processing.h"
+#include "camera.h"
 #include "resources.h"
 #include "writeout.h"
 #include "setup.h"

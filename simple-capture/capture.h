@@ -3,6 +3,7 @@
 
 #include "setup.h"
 #include "buffer.h"
+#include "camera.h"
 
 #define SCAN_BUF_SIZE 30
 
