@@ -7,6 +7,8 @@
 #include <assert.h>
 
 #include "setup.h" //Keep this at top
+#include "camera_buffer.h"
+#include "resources.h"
 
 #ifdef CAPTURE_STANDALONE
     #ifdef IMAGE_DIFF_PROFILE
@@ -135,6 +137,7 @@ struct timespec timestamp;
 /* for profiling, turn off all console output */
 #ifdef PROFILE_FRAMES
     printf("\n[Profiling ON - iters = %d, ", PROFILE_ITERS);
+    fflush(stdout);
     printf_on = 0;
 
     //stats
@@ -196,7 +199,7 @@ while(running) {
     current_b.memory = video.memory;
 
     do { //TODO - safety breakout here
-        ret = dequeue_buf(&current_b, video.camera_fd);
+        ret = camera_dequeue_buf(&current_b, video.camera_fd);
         if (ret == -1) {
             perror("VIDIOC_DQBUF");
             error_exit(-1);
@@ -242,7 +245,7 @@ while(running) {
 
     #ifdef IMAGE_DIFF_PROFILE
         if (last_buffer_index != -1) {
-            changed_pixels = frame_changes(&buffers[last_buffer_index], &buffers[current_b.index]);
+            changed_pixels = frame_changes(&frame_buffers[last_buffer_index], &frame_buffers[current_b.index]);
             MEMLOG_LOG24(FRAME_LOG, MEMLOG_E_ADATA_24, changed_pixels);
             //printf("pixels:%d seconds\n", changed_pixels);
             //printf(" changed = %s\n", is_motion(changed_pixels) ? "yes" : "no");
@@ -250,16 +253,16 @@ while(running) {
         }
         last_buffer_index = current_b.index;
     #else
-        do_transformations(&buffers[current_b.index]);
+        do_transformations(&frame_buffers[current_b.index]);
 
 
     #endif
 
 
 #else
-assert(scan_buffer[scan_buffer_index].size == buffers[current_b.index].size);
+assert(scan_buffer[scan_buffer_index].size == frame_buffers[current_b.index].size);
 
-    COPY_BUFFER(scan_buffer[scan_buffer_index], buffers[current_b.index]);
+    COPY_BUFFER(scan_buffer[scan_buffer_index], frame_buffers[current_b.index]);
 
     memcpy(&scan_buffer[scan_buffer_index].time,
            &timestamp,
@@ -274,14 +277,14 @@ assert(scan_buffer[scan_buffer_index].size == buffers[current_b.index].size);
 
 #if 0
     printf("Capture:    [index %d] (VIDIOC_DQBUF)\n", current_b.index);
-    if (enqueue_V42L_frame(frame_receive_Q, &current_b) == -1) {
+    if (camera_enqueue_V42L_frame(frame_receive_Q, &current_b) == -1) {
         error_exit(-1);
     }
 #endif
 #endif
 
     //Requeue buffer - TODO - do I need to clear it?
-    if (enqueue_buf(&current_b, video.camera_fd) == -1) {
+    if (camera_enqueue_buf(&current_b, video.camera_fd) == -1) {
         perror("VIDIOC_QBUF");
         error_exit(-1);
     }
@@ -337,12 +340,12 @@ void video_error_cleanup(int state, video_t *v) {
 
 int camera_init_internal_buffers(video_t *v) {
     //Request some buffers!
-    if (request_buffers(v) == -1) {
+    if (camera_request_buffers(v) == -1) {
         perror("Couldn't allocate buffers");
         return -1;
     }
 
-    if (mmap_buffers(v) == -1) {
+    if (camera_mmap_buffers(v) == -1) {
         perror("Couldn't allocate buffers");
         return -1;
     }
@@ -355,7 +358,7 @@ int camera_init_internal_buffers(video_t *v) {
         b.type = v->type;
         b.memory = v->memory;
 
-        if (enqueue_buf(&b, v->camera_fd) == -1) {
+        if (camera_enqueue_buf(&b, v->camera_fd) == -1) {
             console("Couldn't enqueue buffer, index %d:", i);
             perror(NULL);
             return -1;

@@ -2,6 +2,7 @@
 #define __DUMPTOOLS_H__
 
 #include "buffer.h"
+#include "setup.h"
 
 #define FILE_NAME_SIZE 42
 

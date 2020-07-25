@@ -2,12 +2,16 @@
 #define __SETUP_H__
 
 //Test frames without writing to disk
-#define PROFILE_FRAMES
-#define IMAGE_DIFF_PROFILE //Do image motion test instead of processing
+//#define PROFILE_FRAMES
+//#define IMAGE_DIFF_PROFILE //Do image motion test instead of processing
 #define PROFILE_ITERS   500
 
 #define CAMERA_DEV  "/dev/video0"
 #define CAMERA_MAJ_ID   81
+
+//Internal camera buffers
+#define CAMERA_NUM_BUF  3
+
 
 #define X_RES   640
 #define Y_RES   480
@@ -22,6 +26,22 @@
 //#define SHARPEN_ON
 //#define SHARPEN_TYPE SHARPEN_WIKIPEDIA_EXAMPLE
 #define SHARPEN_TYPE SHARPEN_PROFESSOR_EXAMPLE
+
+#define NATIVE_CAMERA_FORMAT_SIZE   2
+
+#ifdef PPM_CAPTURE
+    #define BYTES_PER_PIXEL 3
+#endif
+
+#ifdef PGM_CAPTURE
+    #define BYTES_PER_PIXEL 1
+#endif
+
+#define FRAME_SIZE  (X_RES * Y_RES)
+#if FRAME_SIZE == 0
+    #error "Frame size is zero!"
+#endif
+
 
 extern int printf_on;
 // https://stackoverflow.com/questions/20639632/how-to-wrap-printf-into-a-function-or-macro

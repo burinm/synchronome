@@ -5,7 +5,7 @@ CC=gcc
 CDEFS=
 CFLAGS= -O0 -g -Wall $(INCLUDE_DIRS) $(CDEFS)
 
-OBJS= setup.o v4l2_capabilities.o buffer.o dumptools.o transformation.o sharpen.o timetools.o memlog.o 
+OBJS= setup.o v4l2_capabilities.o buffer.o camera_buffer.o resources.o dumptools.o transformation.o sharpen.o timetools.o memlog.o 
 
 all:	capture sequencer
 

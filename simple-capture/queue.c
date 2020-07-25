@@ -35,7 +35,7 @@ int init_queues() {
     //Processing Q
     struct mq_attr mq_attr_processing = MQ_DEFAULTS;
     mq_attr_processing.mq_msgsize = MQ_BUFFER_PAYLOAD_SIZE;
-    mq_attr_processing.mq_maxmsg = NUM_BUF;
+    mq_attr_processing.mq_maxmsg = CAMERA_NUM_BUF;
     processing_Q = mq_open(PROCESSING_Q, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR, &mq_attr_processing);
 
     if (processing_Q == (mqd_t)-1) {

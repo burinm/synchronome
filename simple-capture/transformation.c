@@ -2,6 +2,7 @@
 #include "transformation.h"
 #include "setup.h"
 #include "dumptools.h"
+#include "resources.h"
 
 
 void do_transformations(buffer_t* b) {
