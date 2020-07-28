@@ -46,7 +46,7 @@ void* writeout(void* v) {
         MEMLOG_LOG(WRITEOUT_LOG, MEMLOG_E_S3_RUN);
 
         buffer_t b;
-        if (dequeue_P(writeout_Q, &b) == -1) {
+        if (dequeue_P(&writeout_Q, &b) == -1) {
             printf("[Writeout: dequeue error]\n");
             error_exit(-1);
         }

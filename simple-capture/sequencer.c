@@ -16,7 +16,8 @@
 #include "realtime.h"
 #include "frame.h"
 #include "timetools.h"
-#include "queue.h"
+//#include "queue.h"
+#include "resources.h"
 #include "processing.h"
 #include "writeout.h"
 #include "memlog.h"
@@ -83,7 +84,20 @@ s2.sa_handler = sequencer;
 sigaction(RT_SIGSEQUENCER, &s2, NULL);
 
 //init queues
-if (init_queues() == -1) {
+if (init_queue(&frame_Q) == -1) {
+    exit(-1);
+}
+
+if (init_queue(&writeout_Q) == -1) {
+    exit(-1);
+}
+
+//flush queues
+if (flush_queue(&frame_Q) == -1) {
+    exit(-1);
+}
+
+if (flush_queue(&writeout_Q) == -1) {
     exit(-1);
 }
 

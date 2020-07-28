@@ -10,145 +10,107 @@
 #include <pthread.h>
 #include <string.h>
 #include <errno.h>
+#include <assert.h>
 #include "queue.h"
+#include "resources.h"
 
 extern int running;
-mqd_t frame_receive_Q;
-mqd_t processing_Q;
-mqd_t writeout_Q;
 
-
-int init_queues() {
+int init_queue(queue_container_t *q) {
 
     //Frame Q
-    struct mq_attr mq_attr_frame = MQ_DEFAULTS;
-    mq_attr_frame.mq_msgsize = MQ_FRAME_PAYLOAD_SIZE;
-    mq_attr_frame.mq_maxmsg = FRAME_RECEIVE_Q_SIZE;
-    frame_receive_Q = mq_open(FRAME_RECEIVE_Q, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR, &mq_attr_frame);
+    struct mq_attr mq_attr_current = MQ_DEFAULTS;
+    mq_attr_current.mq_msgsize = q->max_payload_size;
+    mq_attr_current.mq_maxmsg = q->num_elems;
+    q->q = mq_open(q->name, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR, &mq_attr_current);
 
-    if (frame_receive_Q == (mqd_t)-1) {
+    if (q->q == (mqd_t)-1) {
         perror("Couldn't create/open frame queue");
         return -1; 
     }
 
-#if 0
-    //Processing Q
-    struct mq_attr mq_attr_processing = MQ_DEFAULTS;
-    mq_attr_processing.mq_msgsize = MQ_BUFFER_PAYLOAD_SIZE;
-    mq_attr_processing.mq_maxmsg = CAMERA_NUM_BUF;
-    processing_Q = mq_open(PROCESSING_Q, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR, &mq_attr_processing);
-
-    if (processing_Q == (mqd_t)-1) {
-        perror("Couldn't create/open processing queue");
-        return -1;
-    }
-#endif
-
-    //Writeout Q
-    struct mq_attr mq_attr_writeout = MQ_DEFAULTS;
-    mq_attr_writeout.mq_msgsize = MQ_BUFFER_PAYLOAD_SIZE;
-    mq_attr_writeout.mq_maxmsg = WRITEOUT_Q_SIZE;
-    writeout_Q = mq_open(WRITEOUT_Q, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR, &mq_attr_writeout);
-
-    if (writeout_Q == (mqd_t)-1) {
-        perror("Couldn't create/open writeout queue");
+    q->b = malloc(q->max_payload_size * sizeof(char));
+    if (q->b == NULL) {
+        printf("Malloc failed - init_queue\n");
         return -1;
     }
 
-    unsigned int prio;
-    struct timespec _t;
-
-    //flush frame queue
-    printf("flushing frame queue\n");
-    char b[MQ_FRAME_PAYLOAD_SIZE];
-    while(1) {
-            clock_gettime(CLOCK_REALTIME, &_t);
-            _t.tv_sec += 1;
-            int s =  mq_timedreceive(frame_receive_Q, b, MQ_FRAME_PAYLOAD_SIZE, &prio, &_t);
-            if (s == -1) {
-                if (errno == ETIMEDOUT) {
-                    break;
-                }
-                perror(NULL);
-                return -1;
-            }
-            printf(".");
-            fflush(stdout);
-    }
-
-#if 0
-    //flush processing queue
-    printf("flushing processing queue\n");
-    char d[MQ_BUFFER_PAYLOAD_SIZE];
-    while(1) {
-            clock_gettime(CLOCK_REALTIME, &_t);
-            _t.tv_sec += 1;
-            int s =  mq_timedreceive(processing_Q, d, MQ_BUFFER_PAYLOAD_SIZE, &prio, &_t);
-            if (s == -1) {
-                if (errno == ETIMEDOUT) {
-                    break;
-                }
-                perror(NULL);
-                return -1;
-            }
-            printf(".");
-            fflush(stdout);
-    }
-#endif
-
-    //flush writeout queue
-    printf("flushing writeout queue\n");
-    char c[MQ_BUFFER_PAYLOAD_SIZE];
-    while(1) {
-            clock_gettime(CLOCK_REALTIME, &_t);
-            _t.tv_sec += 1;
-            int s =  mq_timedreceive(writeout_Q, c, MQ_BUFFER_PAYLOAD_SIZE, &prio, &_t);
-            if (s == -1) {
-                if (errno == ETIMEDOUT) {
-                    break;
-                }
-                perror(NULL);
-                return -1;
-            }
-            printf(".");
-            fflush(stdout);
-    }
-    printf("\n");
 return 0;
 }
 
-void destroy_queues() {
-    mq_unlink(FRAME_RECEIVE_Q);
-    //mq_unlink(PROCESSING_Q);
-    mq_unlink(WRITEOUT_Q);
+int flush_queue(queue_container_t *q) {
+
+    unsigned int prio;
+
+    struct mq_attr mq_attr_current;
+    struct mq_attr mq_attr_old;
+
+    if (mq_getattr(q->q, &mq_attr_current) == -1 ) {
+        perror("flushQ  - mq_getattr");
+        return -1;
+    }
+
+    mq_attr_current.mq_flags |= O_NONBLOCK;
+
+    if (mq_setattr(q->q, &mq_attr_current, &mq_attr_old) == -1 ) {
+        perror("flushQ - mq_setattr");
+        return -1;
+    }
+
+    printf("flushing %s\n", q->name);
+
+    while(1) {
+            int s =  mq_receive(q->q, q->b, MQ_FRAME_PAYLOAD_SIZE, &prio);
+            if (s == -1) {
+                if (errno == EAGAIN) {
+                    break;
+                }
+                perror(NULL);
+                return -1;
+            }
+            printf(".");
+            fflush(stdout);
+    }
+
+
+    if (mq_setattr(q->q, &mq_attr_old, NULL) == -1 ) {
+        perror("flushQ - mq_setattr");
+        return -1;
+    }
+
+return 0;
 }
 
-//plain buffers
-static int enqueue_P_count = 0;
+void destroy_queue(queue_container_t *q) {
+    mq_unlink(q->name);
+}
 
-int enqueue_P(mqd_t Q, buffer_t *p) {
-    char b[MQ_BUFFER_PAYLOAD_SIZE];
+//buffer_t, but we could make it void*, code is now generic
+int enqueue_P(queue_container_t *q, buffer_t *p) {
 
-    if (enqueue_P_count == NUM_WO_BUF) {
+printf("%d %d\n", sizeof(*p), q->max_payload_size);
+assert(sizeof(*p) == q->max_payload_size);
+
+    if (q->count == q->num_elems) {
         printf("enqueue_P - (safety) enqueue_P full!\n");
         return -1;
     }
 
-    enqueue_P_count++;
+    q->count++;
 
     if (p) {
-        memcpy(b, (unsigned char*)p, MQ_BUFFER_PAYLOAD_SIZE);
+        memcpy(q->b, (unsigned char*)p, q->max_payload_size);
 
         printf(" sending_P  [start %p size %d] (#%d)\n",
                 (unsigned char*)p->start, p->size,
-                enqueue_P_count);
+                q->count);
 
         //2 second timeout (for ctrl_c)
         struct timespec _t;
         clock_gettime(CLOCK_REALTIME, &_t);
         _t.tv_sec += 2;
 
-        if (mq_timedsend(Q, b, MQ_BUFFER_PAYLOAD_SIZE, HI_PRI, &_t) == 0) {
+        if (mq_timedsend(q->q, q->b, q->max_payload_size, HI_PRI, &_t) == 0) {
             return 0;
         }
         perror("enqueue_P - Couldn't enqueue message!");
@@ -158,12 +120,14 @@ int enqueue_P(mqd_t Q, buffer_t *p) {
 return -1;
 }
 
-int dequeue_P(mqd_t Q, buffer_t *p) {
+int dequeue_P(queue_container_t *q, buffer_t *p) {
+
+assert(sizeof(*p) == q->max_payload_size);
+
     unsigned int prio = 0;
     int bytes_received = 0;
-    char b[MQ_BUFFER_PAYLOAD_SIZE];
 
-    enqueue_P_count--;
+    q->count--;
 
 #if 0
     //2 second timeout (for ctrl_c)
@@ -174,7 +138,7 @@ int dequeue_P(mqd_t Q, buffer_t *p) {
 
     do{
         //bytes_received = mq_timedreceive(Q, b, MQ_BUFFER_PAYLOAD_SIZE, &prio, &_t);
-        bytes_received = mq_receive(Q, b, MQ_BUFFER_PAYLOAD_SIZE, &prio);
+        bytes_received = mq_receive(q->q, q->b, MQ_BUFFER_PAYLOAD_SIZE, &prio);
         if (bytes_received == -1 && errno != EAGAIN) {
             perror("dequeue_P - Couldn't get message!");
             return -1;
@@ -182,16 +146,17 @@ int dequeue_P(mqd_t Q, buffer_t *p) {
     } while (bytes_received < 1);
 
 
-    memcpy(p, (buffer_t *)b, MQ_BUFFER_PAYLOAD_SIZE);
+    memcpy(p, (buffer_t *)(q->b), MQ_BUFFER_PAYLOAD_SIZE);
 
     printf(" receive_P  [start %p size %d] (#%d)\n",
             p->start, p->size,
-            enqueue_P_count);
+            q->count);
 
 return 0;
 }
 
 //v4l2 frames
+#if 0 // replaced with generic enqueue/dequeue
 int enqueue_V42L_frame(mqd_t Q, struct v4l2_buffer *p) {
     char b[MQ_FRAME_PAYLOAD_SIZE];
 
@@ -233,6 +198,4 @@ int dequeue_V42L_frame(mqd_t Q, struct v4l2_buffer *p) {
             p->index, p->type, p->memory);
 return 0;
 }
-
-
-
+#endif

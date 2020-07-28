@@ -118,7 +118,7 @@ while(did_frame_tick == 0) { //hack loop until circular buffer is coded
             printf("Processing: [start=%p size=%d] (out)\n",
                     wo_buffers[wo_buffer_index].start, wo_buffers[wo_buffer_index].size);
 
-            if (enqueue_P(writeout_Q, &wo_buffers[wo_buffer_index]) == -1) {
+            if (enqueue_P(&writeout_Q, &wo_buffers[wo_buffer_index]) == -1) {
                 error_exit(-1);
             }
         }

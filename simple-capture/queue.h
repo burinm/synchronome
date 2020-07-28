@@ -10,7 +10,6 @@
 #include <mqueue.h>
 #include <linux/videodev2.h>
 #include "buffer.h"
-#include "resources.h"
 
 #define MAX_QUEUE_SIZE 10
 #define MAX_PAYLOAD_SZ 128
@@ -28,23 +27,22 @@
 #define MQ_BUFFER_PAYLOAD_SIZE (sizeof(buffer_t))
 #define MQ_FRAME_PAYLOAD_SIZE (sizeof(struct v4l2_buffer))
 
-#define FRAME_RECEIVE_Q "/frame_recieve_q"
-#define FRAME_RECEIVE_Q_SIZE    CAMERA_NUM_BUF
-extern mqd_t frame_receive_Q;
+typedef struct {
+    mqd_t q;
+    char* name;
+    int max_payload_size;
+    int num_elems;
+    char* b; //receive buffer
+    int count; //sanity check counter
+} queue_container_t;
 
-#if 0
-#define PROCESSING_Q "/processing_q"
-extern mqd_t processing_Q;
-#endif
+int init_queue(queue_container_t *q);
+int flush_queue(queue_container_t *q);
+void destroy_queue(queue_container_t *q); //never called, we use flush, Makefile rm
 
-#define WRITEOUT_Q_SIZE         NUM_WO_BUF
-#define WRITEOUT_Q "/writeout_q"
-extern mqd_t writeout_Q;
 
-int init_queues();
-void destroy_queues();
-int enqueue_P(mqd_t Q, buffer_t *p);
-int dequeue_P(mqd_t Q, buffer_t *b);
+int enqueue_P(queue_container_t *q, buffer_t *p);
+int dequeue_P(queue_container_t *q, buffer_t *p);
 
 int enqueue_V42L_frame(mqd_t Q, struct v4l2_buffer *p);
 int dequeue_V42L_frame(mqd_t Q, struct v4l2_buffer *p);

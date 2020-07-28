@@ -1,7 +1,9 @@
 #ifndef __RESOURCES_H__
 #define __RESOURCES_H__
 
+#include <mqueue.h>
 #include "buffer.h"
+#include "queue.h"
 #include "setup.h"
 
 //Internal camera buffers
@@ -40,6 +42,20 @@ void deallocate_single_wo_buffer();
 
 int allocate_sharpen_buffer();
 void deallocate_sharpen_buffer();
+
+//Queues
+//frame queue
+extern queue_container_t frame_Q;
+
+//writeout queue
+extern queue_container_t writeout_Q;
+
+#if 0
+#define PROCESSING_Q "/processing_q"
+extern mqd_t processing_Q;
+#endif
+
+
 
 
 #endif
