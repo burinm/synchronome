@@ -12,6 +12,7 @@
 #include <unistd.h>    //getpid
 
 #include "camera.h"
+#include "camera_init.h"
 #include "realtime.h"
 #include "frame.h"
 #include "timetools.h"
@@ -124,6 +125,17 @@ video.camera_fd = -1;
 if (open_camera(CAMERA_DEV, &video) == -1) {
     exit(-1);
 }
+
+if (camera_init_all(&video) == -1 ) {
+    printf("Couldn't finish camera init\n");
+    exit(-1);
+}
+
+if (camera_start_streaming(&video) == -1 ) {
+    printf("Couldn't start camera streaming\n");
+    exit(-1);
+}
+
 
 //Start, wait on (1)main, (2)frame, (3)processor, (4)writeout
 pthread_barrier_init(&bar_thread_inits, NULL, 4);
@@ -278,6 +290,8 @@ if (thread_writeout_ok_stop) {
 //Free resources reports
 if (thread_framegrab_ok_stop) {
     printf("<free> video(frame) resources\n");
+
+    //This does camera stop, clean up etc..
     video_error_cleanup(ERROR_FULL_INIT, &video);
 }
 

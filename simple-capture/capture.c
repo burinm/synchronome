@@ -9,6 +9,7 @@
 #include "setup.h" //Keep this at top
 #include "frame.h"
 #include "camera_buffer.h"
+#include "camera_init.h"
 #include "resources.h"
 #include "buffer.h"
 #include "transformation.h"
@@ -50,12 +51,27 @@ int main() {
     video.camera_fd = -1;
 
     if (open_camera(CAMERA_DEV, &video) == -1) {
-        error_exit(0);
+        error_exit(-1);
+    }
+
+    if (camera_init_all(&video) == -1 ) {
+        printf("Couldn't finish camera init\n");
+        error_exit(-1);
+    }
+
+    if (camera_start_streaming(&video) == -1 ) {
+        printf("Couldn't start camera streaming\n");
+        error_exit(-1);
     }
 
     init_processing();
 
-return (int)frame((void*)&video);
+    int ret = (int)frame((void*)&video);
+
+    //This does camera stop, clean up etc..
+    video_error_cleanup(ERROR_FULL_INIT, &video);
+
+return ret;
 }
 
 void ctrl_c(int addr) {

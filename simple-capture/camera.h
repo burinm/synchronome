@@ -39,7 +39,7 @@ int stop_streaming(video_t *v);
 int try_refocus(int camera_fd);
 
 //Initalization routines
-void video_error_cleanup(int state, video_t *v);
+void video_error_cleanup(int state, video_t *v); //Use for "stop_streaming, camera_uninit"
 int camera_check_init(video_t *v);
 
 

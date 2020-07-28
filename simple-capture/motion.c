@@ -91,6 +91,7 @@ assert(first->start && second->start);
 assert(first->size == second->size);
 
     int count = 0;
+//TODO - iterate with words!
     //TODO - use words instead of bytes?
     unsigned char* f = first->start; 
     unsigned char* s = second->start; 
@@ -113,7 +114,6 @@ for (int i=scan_area.h1; i < scan_area.h2; i++, f += X_RES, s+= X_RES) { //every
     }
 }
 #endif
-
 
 #if 1
     for (int i=0; i<first->size /2; i++) {
