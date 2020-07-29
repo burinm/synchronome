@@ -167,7 +167,7 @@ while(running) {
         if (last_buffer_index != -1) {
             changed_pixels = frame_changes(&frame_buffers[last_buffer_index], &frame_buffers[current_b.index]);
             MEMLOG_LOG24(FRAME_LOG, MEMLOG_E_ADATA_24, changed_pixels);
-            console("pixels:%d seconds\n", changed_pixels);
+            console("pixels:%d pixels\n", changed_pixels);
             console(" changed = %s\n", is_motion(changed_pixels) ? "yes" : "no");
 
         }
@@ -181,45 +181,29 @@ while(running) {
 
 #else
 
-#if 1
-//scan_buffer -> enqueue in frame_buffer
 assert(scan_buffer[scan_buffer_index].size == frame_buffers[current_b.index].size);
 
-    COPY_BUFFER(scan_buffer[scan_buffer_index], frame_buffers[current_b.index]);
+        COPY_BUFFER(scan_buffer[scan_buffer_index], frame_buffers[current_b.index]);
 
-    memcpy(&scan_buffer[scan_buffer_index].time,
-           &timestamp,
-           sizeof(struct timespec));
+       // memcpy(&scan_buffer[scan_buffer_index].time,
+        //       &timestamp,
+         //      sizeof(struct timespec));
 
-    scan_buffer_index++;
-    //ghetto circular buffer
-    if (scan_buffer_index == SCAN_BUF_SIZE) {
-        scan_buffer_index = 0;
-    }
+        enqueue_P(&frame_Q, &scan_buffer_index);
 
-    enqueue_P(&frame_Q, &scan_buffer_index);
+        scan_buffer_index++;
+        //ghetto circular buffer
+        if (scan_buffer_index == SCAN_BUF_SIZE) {
+            scan_buffer_index = 0;
+        }
+
 #endif
 
-    //TODO turns out index is just buffers offset in memory... fix later
-    //frame_buffers[current_b.index].index = current_b.index;
-    //enqueue_P(&frame_Q, &frame_buffers[current_b.index]);
-
-
-#if 0
-    printf("Capture:    [index %d] (VIDIOC_DQBUF)\n", current_b.index);
-    if (camera_enqueue_V42L_frame(frame_receive_Q, &current_b) == -1) {
-        error_exit(-1);
-    }
-#endif
-#endif
-
-#if 1
     //Requeue buffer - TODO - do I need to clear it?
     if (camera_enqueue_buf(&current_b, video.camera_fd) == -1) {
         perror("VIDIOC_QBUF");
         error_exit(-1);
     }
-#endif
 
 }
 
