@@ -45,14 +45,14 @@ void* writeout(void* v) {
  //       MEMLOG_LOG(WRITEOUT_LOG, MEMLOG_E_S3_DONE);
         MEMLOG_LOG(WRITEOUT_LOG, MEMLOG_E_S3_RUN);
 
-        buffer_t b;
-        if (dequeue_P(&writeout_Q, &b) == -1) {
+        int wo_index;
+        if (dequeue_P(&writeout_Q, &wo_index) == -1) {
             printf("[Writeout: dequeue error]\n");
             error_exit(-1);
         }
-            printf("Writeout:   [start=%p size=%d] (i/o->)\n", b.start, b.size);
+            printf("Writeout:   [start=%p size=%d] (i/o->)\n", wo_buffers[wo_index].start, wo_buffers[wo_index].size);
 
-        do_transformations(&b, &wo_buffer);
+        do_transformations(&wo_buffers[wo_index], &wo_buffer);
 
     }
 

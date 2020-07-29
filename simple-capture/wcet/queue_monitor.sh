@@ -1,9 +1,9 @@
 #!/bin/bash
 
-FRAME_BUFFER_T_SZ=4
+FRAME_BUFFER_T_SZ=4 #sizeof(int)
 FRAME_BUF_COUNT=60
 
-WO_BUFFER_T_SZ=8
+WO_BUFFER_T_SZ=4 #sizeof(int)
 WO_BUF_COUNT=300
 
 clear

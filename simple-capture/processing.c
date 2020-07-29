@@ -75,53 +75,22 @@ void* processing(void* v) {
 #if 1
                 assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
 
-                //TEMP TEST
-                //do_transformations(&b, &wo_buffer);
-
                 //Copy frame to writeout buffer
                 if (did_frame_tick) {
                     memcpy((unsigned char*)wo_buffers[wo_buffer_index].start,
                             (unsigned char*)(scan_buffer[current_index].start),
                             scan_buffer[current_index].size);
 
-                    enqueue_P(&writeout_Q, &wo_buffers[wo_buffer_index]);
-
-
-#endif
-
-#if 0
-                    //Requeue internal buffer - TODO - do I need to clear it?
-                    struct v4l2_buffer enqueue_buf;
-                    memset(&enqueue_buf, 0, sizeof(struct v4l2_buffer));
-                    enqueue_buf.type = video.type;
-                    enqueue_buf.memory = video.memory;
-                    enqueue_buf.index = b.index;
-
-                    if (camera_enqueue_buf(&enqueue_buf, video.camera_fd) == -1) {
-                        perror("VIDIOC_QBUF");
-                        error_exit(-1);
-                    }
-#endif
-
-
-
-#if 0
-                    //Writeout
-                    printf("Processing: [start=%p size=%d] (out)\n",
-                            wo_buffers[wo_buffer_index].start, wo_buffers[wo_buffer_index].size);
-
-                    if (enqueue_P(&writeout_Q, &wo_buffers[wo_buffer_index]) == -1) {
-                        error_exit(-1);
-                    }
-
+                    enqueue_P(&writeout_Q, &wo_buffer_index);
 
                     //ghetto circular buffer
                     wo_buffer_index++;
                     if (wo_buffer_index == NUM_WO_BUF) {
                         wo_buffer_index = 0;
                     }
-#endif
 
+
+#endif
                     //Found frame and sent to write Q
                     if (did_frame_tick) {
                         break;
