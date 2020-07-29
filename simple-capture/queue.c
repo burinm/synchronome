@@ -85,7 +85,7 @@ void destroy_queue(queue_container_t *q) {
     mq_unlink(q->name);
 }
 
-//buffer_t, but we could make it void*, code is now generic
+//void*, code is now generic
 int enqueue_P(queue_container_t *q, void *p) {
 
 printf("%d %d\n", sizeof(p), q->max_payload_size);
@@ -129,16 +129,8 @@ assert(sizeof(p) == q->max_payload_size);
 
     q->count--;
 
-#if 0
-    //2 second timeout (for ctrl_c)
-    struct timespec _t;
-    clock_gettime(CLOCK_REALTIME, &_t);
-    _t.tv_sec += 2;
-#endif
-
     do{
-        //bytes_received = mq_timedreceive(Q, b, MQ_BUFFER_PAYLOAD_SIZE, &prio, &_t);
-        bytes_received = mq_receive(q->q, q->b, MQ_BUFFER_PAYLOAD_SIZE, &prio);
+        bytes_received = mq_receive(q->q, q->b, q->max_payload_size, &prio);
         if (bytes_received == -1 && errno != EAGAIN) {
             perror("dequeue_P - Couldn't get message!");
             return -1;
@@ -146,7 +138,7 @@ assert(sizeof(p) == q->max_payload_size);
     } while (bytes_received < 1);
 
 
-    memcpy(p, (buffer_t *)(q->b), MQ_BUFFER_PAYLOAD_SIZE);
+    memcpy(p, (char *)(q->b), q->max_payload_size);
 
     printf(" receive_P size %d (#%d)\n",
             sizeof(p),
