@@ -86,10 +86,10 @@ void destroy_queue(queue_container_t *q) {
 }
 
 //buffer_t, but we could make it void*, code is now generic
-int enqueue_P(queue_container_t *q, buffer_t *p) {
+int enqueue_P(queue_container_t *q, void *p) {
 
-printf("%d %d\n", sizeof(*p), q->max_payload_size);
-assert(sizeof(*p) == q->max_payload_size);
+printf("%d %d\n", sizeof(p), q->max_payload_size);
+assert(sizeof(p) == q->max_payload_size);
 
     if (q->count == q->num_elems) {
         printf("enqueue_P - (safety) enqueue_P full!\n");
@@ -101,8 +101,8 @@ assert(sizeof(*p) == q->max_payload_size);
     if (p) {
         memcpy(q->b, (unsigned char*)p, q->max_payload_size);
 
-        printf(" sending_P  [start %p size %d] (#%d)\n",
-                (unsigned char*)p->start, p->size,
+        printf(" sending_P size %d (#%d)\n",
+                sizeof(p),
                 q->count);
 
         //2 second timeout (for ctrl_c)
@@ -120,9 +120,9 @@ assert(sizeof(*p) == q->max_payload_size);
 return -1;
 }
 
-int dequeue_P(queue_container_t *q, buffer_t *p) {
+int dequeue_P(queue_container_t *q, void *p) {
 
-assert(sizeof(*p) == q->max_payload_size);
+assert(sizeof(p) == q->max_payload_size);
 
     unsigned int prio = 0;
     int bytes_received = 0;
@@ -148,8 +148,8 @@ assert(sizeof(*p) == q->max_payload_size);
 
     memcpy(p, (buffer_t *)(q->b), MQ_BUFFER_PAYLOAD_SIZE);
 
-    printf(" receive_P  [start %p size %d] (#%d)\n",
-            p->start, p->size,
+    printf(" receive_P size %d (#%d)\n",
+            sizeof(p),
             q->count);
 
 return 0;

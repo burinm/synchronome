@@ -9,6 +9,7 @@ typedef struct {
     void* start;
     size_t size;
     struct timespec time;
+    int index;
 } buffer_t;
 
 //If you forget to cast, the copy blows up.

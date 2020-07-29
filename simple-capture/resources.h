@@ -10,7 +10,7 @@
 #define CAMERA_NUM_BUF  3
 
 //Scan buffer size
-#define SCAN_BUF_SIZE 30
+#define SCAN_BUF_SIZE 50
 
 //Writeout buffer size
 #define NUM_WO_BUF 300

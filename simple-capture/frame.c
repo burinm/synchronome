@@ -28,6 +28,10 @@
     #include "timetools.h"
 #endif
 
+#ifdef IMAGE_DIFF_TEST
+    #include "motion.h"
+#endif
+
 #ifdef SHARPEN_ON
     #include "sharpen.h"
 #endif
@@ -79,7 +83,7 @@ struct v4l2_buffer current_b;
 
 #ifdef CAPTURE_STANDALONE
 
-#ifdef IMAGE_DIFF_PROFILE
+#ifdef IMAGE_DIFF_TEST
 int last_buffer_index = -1;
 uint32_t changed_pixels = 0;
 #endif
@@ -159,23 +163,26 @@ while(running) {
 
 #ifdef CAPTURE_STANDALONE
 
-    #ifdef IMAGE_DIFF_PROFILE
+    #ifdef IMAGE_DIFF_TEST
         if (last_buffer_index != -1) {
             changed_pixels = frame_changes(&frame_buffers[last_buffer_index], &frame_buffers[current_b.index]);
             MEMLOG_LOG24(FRAME_LOG, MEMLOG_E_ADATA_24, changed_pixels);
-            //printf("pixels:%d seconds\n", changed_pixels);
-            //printf(" changed = %s\n", is_motion(changed_pixels) ? "yes" : "no");
+            console("pixels:%d seconds\n", changed_pixels);
+            console(" changed = %s\n", is_motion(changed_pixels) ? "yes" : "no");
 
         }
         last_buffer_index = current_b.index;
     #else
-        do_transformations(&frame_buffers[current_b.index]);
+        do_transformations(&frame_buffers[current_b.index], &wo_buffer);
 
 
     #endif
 
 
 #else
+
+#if 1
+//scan_buffer -> enqueue in frame_buffer
 assert(scan_buffer[scan_buffer_index].size == frame_buffers[current_b.index].size);
 
     COPY_BUFFER(scan_buffer[scan_buffer_index], frame_buffers[current_b.index]);
@@ -190,6 +197,13 @@ assert(scan_buffer[scan_buffer_index].size == frame_buffers[current_b.index].siz
         scan_buffer_index = 0;
     }
 
+    enqueue_P(&frame_Q, &scan_buffer_index);
+#endif
+
+    //TODO turns out index is just buffers offset in memory... fix later
+    //frame_buffers[current_b.index].index = current_b.index;
+    //enqueue_P(&frame_Q, &frame_buffers[current_b.index]);
+
 
 #if 0
     printf("Capture:    [index %d] (VIDIOC_DQBUF)\n", current_b.index);
@@ -199,11 +213,13 @@ assert(scan_buffer[scan_buffer_index].size == frame_buffers[current_b.index].siz
 #endif
 #endif
 
+#if 1
     //Requeue buffer - TODO - do I need to clear it?
     if (camera_enqueue_buf(&current_b, video.camera_fd) == -1) {
         perror("VIDIOC_QBUF");
         error_exit(-1);
     }
+#endif
 
 }
 

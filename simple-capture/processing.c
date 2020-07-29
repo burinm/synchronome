@@ -5,7 +5,7 @@
 #include <assert.h>
 
 #include "processing.h"
-#include "camera.h"
+#include "camera_buffer.h"
 #include "resources.h"
 #include "writeout.h"
 #include "setup.h"
@@ -30,14 +30,12 @@ void* processing(void* v) {
         error_unbarrier_exit(-1);
     }
 
-    int frame_test_mod = 0;
     int wo_buffer_index = 0;
 
     int s_ret = -1;
     //struct v4l2_buffer b;
 
     int last_buffer_index = -1;
-    int current_index = 0;
     int changed_pixels = 0;
     int did_frame_tick = 0;
 
@@ -56,80 +54,93 @@ void* processing(void* v) {
             error_exit(-2);
         }
 
-        last_buffer_index = scan_buffer_index;
-        current_index = last_buffer_index +1;
-        if (current_index == SCAN_BUF_SIZE) {
-            current_index = 0;
-        }
-
-//did_frame_tick = 0;
-//int breakout = 0;
-while(did_frame_tick == 0) { //hack loop until circular buffer is coded
-//breakout++; if (breakout > 5) { break;}
-
 #if 0
         if (dequeue_V42L_frame(frame_receive_Q, &b) == -1) {
             printf("*Frame Processing: dequeue error\n");
             error_exit(-1);
         }
 #endif
+        while(1) {
 
-        printf("Processing: [index %d start=%p size=%d] (in)\n",
+            int current_index;
+            if (dequeue_P(&frame_Q, &current_index) == -1) {
+                printf("*Frame Processing: dequeue error\n");
+                error_exit(-1);
+            }
+
+            printf("Processing: [index %d] (VIDIOC_DEQBUF)\n", current_index);
+
+            if (last_buffer_index != -1) {
+
+                printf("Processing: [index %d start=%p size=%d] (in)\n",
                         last_buffer_index,
                         scan_buffer[last_buffer_index].start,
                         scan_buffer[last_buffer_index].size);
 
-        changed_pixels = frame_changes(&scan_buffer[last_buffer_index], &scan_buffer[current_index]);
-        printf("frame diff = %d ", changed_pixels);
-        did_frame_tick = is_motion(changed_pixels);
+                changed_pixels = frame_changes(&scan_buffer[last_buffer_index], &scan_buffer[current_index]);
+                printf("Processing %d vs %d frame diff = %d ", last_buffer_index, current_index, changed_pixels);
+                did_frame_tick = is_motion(changed_pixels);
 
-        printf("%s\n", did_frame_tick ? "yes" : "no");
+                printf("%s\n", did_frame_tick ? "yes" : "no");
 
-        last_buffer_index  = current_index;
+#if 1
+                assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
 
-        current_index++;
-        if (current_index == SCAN_BUF_SIZE) {
-            current_index = 0;
-        }
+                //TEMP TEST
+                //do_transformations(&b, &wo_buffer);
 
-#if 0
-        assert(buffers[b.index].size == wo_buffers[wo_buffer_index].size);
+                //Copy frame to writeout buffer
+                if (did_frame_tick) {
+                    memcpy((unsigned char*)wo_buffers[wo_buffer_index].start,
+                            (unsigned char*)(scan_buffer[current_index].start),
+                            scan_buffer[current_index].size);
 
-        //Copy frame to writeout buffer
-        if (did_frame_tick) {
-            memcpy((unsigned char*)wo_buffers[wo_buffer_index].start,
-                    (unsigned char*)buffers[b.index].start,
-                    buffers[b.index].size);
-        }
+                    enqueue_P(&writeout_Q, &wo_buffers[wo_buffer_index]);
+
+
 #endif
 
 #if 0
-        //Requeue internal buffer - TODO - do I need to clear it?
-        if (enqueue_buf(&b, video.camera_fd) == -1) {
-            error_exit(-1);
-        }
-        printf("Processing: [index %d] (VIDIOC_QBUF)\n", b.index);
+                    //Requeue internal buffer - TODO - do I need to clear it?
+                    struct v4l2_buffer enqueue_buf;
+                    memset(&enqueue_buf, 0, sizeof(struct v4l2_buffer));
+                    enqueue_buf.type = video.type;
+                    enqueue_buf.memory = video.memory;
+                    enqueue_buf.index = b.index;
+
+                    if (camera_enqueue_buf(&enqueue_buf, video.camera_fd) == -1) {
+                        perror("VIDIOC_QBUF");
+                        error_exit(-1);
+                    }
 #endif
 
 
-        //Writeout
-        if (did_frame_tick) {
 
-            printf("Processing: [start=%p size=%d] (out)\n",
-                    wo_buffers[wo_buffer_index].start, wo_buffers[wo_buffer_index].size);
+#if 0
+                    //Writeout
+                    printf("Processing: [start=%p size=%d] (out)\n",
+                            wo_buffers[wo_buffer_index].start, wo_buffers[wo_buffer_index].size);
 
-            if (enqueue_P(&writeout_Q, &wo_buffers[wo_buffer_index]) == -1) {
-                error_exit(-1);
+                    if (enqueue_P(&writeout_Q, &wo_buffers[wo_buffer_index]) == -1) {
+                        error_exit(-1);
+                    }
+
+
+                    //ghetto circular buffer
+                    wo_buffer_index++;
+                    if (wo_buffer_index == NUM_WO_BUF) {
+                        wo_buffer_index = 0;
+                    }
+#endif
+
+                    //Found frame and sent to write Q
+                    if (did_frame_tick) {
+                        break;
+                    }
+                }
             }
-        }
-        frame_test_mod++;
-
-        //ghetto circular buffer
-        wo_buffer_index++;
-        if (wo_buffer_index == NUM_WO_BUF) {
-            wo_buffer_index = 0;
-        }
-} //end hack for now
-}
+            last_buffer_index = current_index;
+        } //forever, until change is detected
+    }
 return 0;
 }

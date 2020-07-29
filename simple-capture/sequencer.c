@@ -131,6 +131,11 @@ if (set_main_realtime() == -1) {
 //Startup tests
 long int clock_get_latency = test_clock_gettime_latency();
 
+//resources
+if (init_writeout() == -1) {
+    printf("init_writeout failed\n");
+}
+
 //Camera init
 video_t video;
 memset(&video, 0, sizeof(video_t));
@@ -152,7 +157,7 @@ if (camera_start_streaming(&video) == -1 ) {
 
 
 //Start, wait on (1)main, (2)frame, (3)processor, (4)writeout
-pthread_barrier_init(&bar_thread_inits, NULL, 4);
+pthread_barrier_init(&bar_thread_inits, NULL, 3);
 
 printf("Creating frame grabber thread\n");
 pthread_attr_t rt_sched_attr;  // For realtime H/M/L threads
@@ -175,9 +180,12 @@ if (pthread_create(&thread_processing, &rt_sched_attr, processing, (void*)&video
 }
 
 //Writeout thread
-schedule_priority(&rt_sched_attr, LOW_PRI);
+//schedule_priority(&rt_sched_attr, LOW_PRI);
 
-if (pthread_create(&thread_writeout, &rt_sched_attr, writeout, (void*)&video) == -1) {
+pthread_attr_t be_sched_attr;  // For realtime H/M/L threads
+schedule_best_effort(&be_sched_attr);
+//SCHED_OTHER - ???
+if (pthread_create(&thread_writeout, &be_sched_attr, writeout, (void*)&video) == -1) {
     perror("Couldn't create writeout thread");
     exit(-1);
 }

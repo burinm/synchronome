@@ -3,6 +3,7 @@
 
 /* regular buffer management */
 int allocate_buffer(buffer_t *b, int blocks) {
+    b->index = -1;
     int size = sizeof(unsigned char) * FRAME_SIZE * blocks;
     b->start = malloc(size);
     b->size = size;

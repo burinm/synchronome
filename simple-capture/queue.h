@@ -41,8 +41,8 @@ int flush_queue(queue_container_t *q);
 void destroy_queue(queue_container_t *q); //never called, we use flush, Makefile rm
 
 
-int enqueue_P(queue_container_t *q, buffer_t *p);
-int dequeue_P(queue_container_t *q, buffer_t *p);
+int enqueue_P(queue_container_t *q, void *p);
+int dequeue_P(queue_container_t *q, void *p);
 
 int enqueue_V42L_frame(mqd_t Q, struct v4l2_buffer *p);
 int dequeue_V42L_frame(mqd_t Q, struct v4l2_buffer *p);

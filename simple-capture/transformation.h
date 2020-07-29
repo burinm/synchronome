@@ -9,7 +9,7 @@
 #define BYTES_RGB_PIXELS    6
 #define BYTES_GREY_PIXELS   2
 
-void do_transformations(buffer_t *b);
+void do_transformations(buffer_t *b, buffer_t *out);
 
 void yuv2rgb(int y, int u, int v, unsigned char *r, unsigned char *g, unsigned char *b);
 void yuv2grey(int y, unsigned char *grey);

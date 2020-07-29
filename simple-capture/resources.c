@@ -81,14 +81,14 @@ void deallocate_sharpen_buffer() {
 //Queues
 queue_container_t frame_Q = {
     .name = "/frame_recieve_q",
-    .max_payload_size = sizeof(buffer_t),
-    .num_elems = CAMERA_NUM_BUF,
+    .max_payload_size = sizeof(int),
+    .num_elems = SCAN_BUF_SIZE,
     .b = NULL
 };
 
 queue_container_t writeout_Q = {
     .name = "/writeout_q",
-    .max_payload_size = sizeof(buffer_t),
+    .max_payload_size = sizeof(int),
     .num_elems = NUM_WO_BUF,
     .b = NULL
 };

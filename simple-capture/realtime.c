@@ -70,6 +70,37 @@ int schedule_realtime(pthread_attr_t *attr) {
 return 0;
 }
 
+int schedule_best_effort(pthread_attr_t *attr) {
+    //Setup realtime threads' schedule policy
+    if (pthread_attr_init(attr) != 0) {
+        perror("pthread_attr_init");
+        return -1;
+    }
+
+    if (pthread_attr_setinheritsched(attr, PTHREAD_EXPLICIT_SCHED) != 0) {
+        perror("pthread_attr_setinheritsched");
+        return -1;
+    }
+
+    if (pthread_attr_setschedpolicy(attr, SCHED_OTHER) != 0) {
+        perror("pthread_attr_setschedpolicy");
+        return -1;
+    }
+
+    //procesor 2 for best effort
+    cpu_set_t threadcpu;
+    CPU_ZERO(&threadcpu);
+    int coreid = WRITEOUT_CPU;
+    CPU_SET(coreid, &threadcpu);
+
+    if (pthread_attr_setaffinity_np(attr, sizeof(cpu_set_t), &threadcpu) != 0) {
+        perror("pthread_attr_setaffinity_np");
+        return -1;
+    }
+
+return 0;
+}
+
 int schedule_priority(pthread_attr_t *attr, int pri) {
     struct sched_param rt_param; //TODO - can this be on the stack?
     rt_param.sched_priority = pri;

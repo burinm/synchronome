@@ -5,7 +5,7 @@
 #include "resources.h"
 
 
-void do_transformations(buffer_t* b) {
+void do_transformations(buffer_t* b, buffer_t* out) {
 
 #ifdef PPM_CAPTURE
     #ifdef SHARPEN_ON
@@ -31,7 +31,7 @@ void do_transformations(buffer_t* b) {
 #ifdef PROFILE_FRAMES
 #else
     //Write out buffer to disk
-    dump_rgb_raw_buffer(&wo_buffer);
+    dump_rgb_raw_buffer(out);
 #endif
 }
 

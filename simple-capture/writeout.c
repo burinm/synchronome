@@ -31,7 +31,7 @@ void* writeout(void* v) {
 
     int s_ret = -1;
 
-    pthread_barrier_wait(&bar_thread_inits); //GO!!
+    //pthread_barrier_wait(&bar_thread_inits); //GO!!
 
         //Best effort!
         s_ret = sem_wait(&sem_writeout);
@@ -52,7 +52,7 @@ void* writeout(void* v) {
         }
             printf("Writeout:   [start=%p size=%d] (i/o->)\n", b.start, b.size);
 
-        do_transformations(&b);
+        do_transformations(&b, &wo_buffer);
 
     }
 
