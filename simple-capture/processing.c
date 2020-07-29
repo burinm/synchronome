@@ -35,6 +35,8 @@ void* processing(void* v) {
     int changed_pixels = 0;
     int did_frame_tick = 0;
 
+    int num_frames_till_selection = 0;
+
 
     //pthread_barrier_wait(&bar_thread_inits); //GO!!
 
@@ -49,17 +51,20 @@ void* processing(void* v) {
 
 
         MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_DONE);
+        num_frames_till_selection = 0;
         while(1) {
+
 
             int current_index;
             if (dequeue_P(&frame_Q, &current_index) == -1) {
                 printf("*Frame Processing: dequeue error\n");
                 error_exit(-1);
             }
-
-            MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_RUN);
+            num_frames_till_selection++;
 
             printf("Processing: [index %d] (VIDIOC_DEQBUF)\n", current_index);
+
+            did_frame_tick = 0;
 
             if (last_buffer_index != -1) {
 
@@ -76,31 +81,40 @@ void* processing(void* v) {
 
                 assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
 
-                //Copy frame to writeout buffer
-                if (did_frame_tick) {
+            }
 
+            //Copy frame to writeout buffer
+            if (did_frame_tick) {
 #if 0
-                    memcpy((unsigned char*)wo_buffers[wo_buffer_index].start,
-                            (unsigned char*)(scan_buffer[current_index].start),
-                            scan_buffer[current_index].size);
+                memcpy((unsigned char*)wo_buffers[wo_buffer_index].start,
+                        (unsigned char*)(scan_buffer[current_index].start),
+                        scan_buffer[current_index].size);
 #endif
-                     COPY_BUFFER(wo_buffers[wo_buffer_index], scan_buffer[current_index]);
+                 COPY_BUFFER(wo_buffers[wo_buffer_index], scan_buffer[current_index]);
 
-                    enqueue_P(&writeout_Q, &wo_buffer_index);
-                    total_frames_selected_g++;
+                enqueue_P(&writeout_Q, &wo_buffer_index);
+                total_frames_selected_g++;
 
-                    //ghetto circular buffer
-                    wo_buffer_index++;
-                    if (wo_buffer_index == NUM_WO_BUF) {
-                        wo_buffer_index = 0;
-                    }
+                //ghetto circular buffer
+                wo_buffer_index++;
+                if (wo_buffer_index == NUM_WO_BUF) {
+                    wo_buffer_index = 0;
+                }
 
+            }
+
+            last_buffer_index = current_index;
+
+            if (num_frames_till_selection > 26) {
+                 MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_ERROR_SCAN);
+            }
+
+            if (did_frame_tick) {
                     //Found frame and sent to write Q
                     break;
-                }
             }
-            last_buffer_index = current_index;
         } //forever, until change is detected
+        MEMLOG_LOG24(PROCESSING_LOG, MEMLOG_E_ADATA_24, num_frames_till_selection);
     }
 return 0;
 }

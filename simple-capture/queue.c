@@ -88,7 +88,6 @@ void destroy_queue(queue_container_t *q) {
 //void*, code is now generic
 int enqueue_P(queue_container_t *q, void *p) {
 
-printf("%d %d\n", sizeof(p), q->max_payload_size);
 assert(sizeof(p) == q->max_payload_size);
 
     if (q->count == q->num_elems) {
