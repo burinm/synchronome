@@ -38,7 +38,7 @@ void dump_buffer_raw(buffer_t *b) {
     frame_num++;
 
     //Don't fill up disk ;)
-    if (frame_num == 1800) {
+    if (frame_num == FILE_NUMBER_MAX) {
         frame_num = 0;
     }
 
@@ -99,7 +99,7 @@ void dump_rgb_raw_buffer(buffer_t *b) {
 
     frame_num++;
     //Don't fill up disk ;)
-    if (frame_num == 1800) {
+    if (frame_num == FILE_NUMBER_MAX) {
         frame_num = 0;
     }
 

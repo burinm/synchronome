@@ -5,6 +5,7 @@
 #include "setup.h"
 
 #define FILE_NAME_SIZE 42
+#define FILE_NUMBER_MAX 1801
 
 //https://gcc.gnu.org/onlinedocs/cpp/Stringizing.html (lame!)
 #define xstr(s) str(s)
