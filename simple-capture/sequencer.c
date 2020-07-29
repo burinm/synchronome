@@ -132,8 +132,14 @@ if (set_main_realtime() == -1) {
 long int clock_get_latency = test_clock_gettime_latency();
 
 //resources
+if (init_processing() == -1) {
+    printf("init_processing failed\n");
+    exit(-1);
+}
+
 if (init_writeout() == -1) {
     printf("init_writeout failed\n");
+    exit(-1);
 }
 
 //Camera init
@@ -157,7 +163,7 @@ if (camera_start_streaming(&video) == -1 ) {
 
 
 //Start, wait on (1)main, (2)frame, (3)processor, (4)writeout
-pthread_barrier_init(&bar_thread_inits, NULL, 3);
+pthread_barrier_init(&bar_thread_inits, NULL, 2);
 
 printf("Creating frame grabber thread\n");
 pthread_attr_t rt_sched_attr;  // For realtime H/M/L threads
@@ -171,10 +177,15 @@ if (pthread_create(&thread_framegrab, &rt_sched_attr, frame, (void*)&video) == -
     exit(-1);
 }
 
-//Processing thread
-schedule_priority(&rt_sched_attr, MID_PRI);
+//Best effort
+pthread_attr_t be_sched_attr;  // For realtime H/M/L threads
+//SCHED_OTHER - ???
 
-if (pthread_create(&thread_processing, &rt_sched_attr, processing, (void*)&video) == -1) {
+//Processing thread
+//schedule_priority(&rt_sched_attr, MID_PRI);
+
+schedule_best_effort(&be_sched_attr, PROCESSING_CPU);
+if (pthread_create(&thread_processing, &be_sched_attr, processing, (void*)&video) == -1) {
     perror("Couldn't create processing thread");
     exit(-1);
 }
@@ -182,9 +193,7 @@ if (pthread_create(&thread_processing, &rt_sched_attr, processing, (void*)&video
 //Writeout thread
 //schedule_priority(&rt_sched_attr, LOW_PRI);
 
-pthread_attr_t be_sched_attr;  // For realtime H/M/L threads
-schedule_best_effort(&be_sched_attr);
-//SCHED_OTHER - ???
+schedule_best_effort(&be_sched_attr, WRITEOUT_CPU);
 if (pthread_create(&thread_writeout, &be_sched_attr, writeout, (void*)&video) == -1) {
     perror("Couldn't create writeout thread");
     exit(-1);
@@ -347,6 +356,7 @@ void sequencer(int v) {
 
         //Best effort services
         sem_post(&sem_writeout);
+        sem_post(&sem_processing);
 
     if (running) {
         if (sequence % 4 == 0) { // 4 * 10 = 40ms, 25Hz
@@ -354,10 +364,12 @@ void sequencer(int v) {
             sem_post(&sem_framegrab);
         }
 
-        //if (sequence % 10 == 0) { // 100 * 10 = 1000ms, 1Hz
-        if (sequence % 10 == 0) { // 10 * 10 = 100ms, 10Hz
+#if 0
+        if (sequence % 100 == 0) { // 100 * 10 = 1000ms, 1Hz
+        //if (sequence % 10 == 0) { // 10 * 10 = 100ms, 10Hz
             sem_post(&sem_processing);
         }
+#endif
 
 #if 0
         if (sequence % 10 == 0) { // 100 * 10 = 1000ms, 10Hz

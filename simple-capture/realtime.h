@@ -4,7 +4,8 @@
 #include <time.h>
 #include <pthread.h>
 
-#define SYNCHONOME_CPU  PROCESSOR_TWO
+#define SYNCHONOME_CPU  PROCESSOR_ONE
+#define PROCESSING_CPU  PROCESSOR_TWO
 #define WRITEOUT_CPU    PROCESSOR_THREE
 
 #define RT_MAX_PRIO     (sched_get_priority_max(SCHED_FIFO))
@@ -29,7 +30,7 @@
 
 int set_main_realtime();
 int schedule_realtime(pthread_attr_t *attr);
-int schedule_best_effort(pthread_attr_t *attr);
+int schedule_best_effort(pthread_attr_t *attr, int cpu);
 int schedule_priority(pthread_attr_t *attr, int pri);
 
 long int test_clock_gettime_latency();

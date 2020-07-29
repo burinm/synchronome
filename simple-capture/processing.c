@@ -26,10 +26,6 @@ void* processing(void* v) {
 
     PROCESSING_LOG = memlog_init();
 
-    if (init_processing() == -1) {
-        error_unbarrier_exit(-1);
-    }
-
     int wo_buffer_index = 0;
 
     int s_ret = -1;
@@ -40,26 +36,19 @@ void* processing(void* v) {
     int did_frame_tick = 0;
 
 
-    pthread_barrier_wait(&bar_thread_inits); //GO!!
+    //pthread_barrier_wait(&bar_thread_inits); //GO!!
+
+    //Best effort!
+    s_ret = sem_wait(&sem_processing);
+    if (s_ret == -1) {
+        perror("sem_wait sem_processing failed");
+        error_exit(-2);
+    }
 
     while(running) {
 
-        MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_DONE);
-        s_ret = sem_wait(&sem_processing);
-
         MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_RUN);
 
-        if (s_ret == -1) {
-            perror("sem_wait sem_processing failed");
-            error_exit(-2);
-        }
-
-#if 0
-        if (dequeue_V42L_frame(frame_receive_Q, &b) == -1) {
-            printf("*Frame Processing: dequeue error\n");
-            error_exit(-1);
-        }
-#endif
         while(1) {
 
             int current_index;

@@ -7,7 +7,7 @@ buffer_t frame_buffers[CAMERA_NUM_BUF];
 
 //scan buffers 
 buffer_t scan_buffer[SCAN_BUF_SIZE];
-int scan_buffer_index;
+int scan_buffer_index = 0;
 
 //write out buffers
 buffer_t wo_buffers[NUM_WO_BUF];
