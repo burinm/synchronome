@@ -1,5 +1,10 @@
 #include "resources.h"
 
+//global stats
+int total_frames_queued_g = 0;
+int total_frames_selected_g = 0;
+int total_frames_written_g = 0;
+
 
 
 //mmap buffers

@@ -47,8 +47,8 @@ void* processing(void* v) {
 
     while(running) {
 
-        MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_RUN);
 
+        MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_DONE);
         while(1) {
 
             int current_index;
@@ -56,6 +56,8 @@ void* processing(void* v) {
                 printf("*Frame Processing: dequeue error\n");
                 error_exit(-1);
             }
+
+            MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_RUN);
 
             printf("Processing: [index %d] (VIDIOC_DEQBUF)\n", current_index);
 
@@ -72,16 +74,20 @@ void* processing(void* v) {
 
                 printf("%s\n", did_frame_tick ? "yes" : "no");
 
-#if 1
                 assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
 
                 //Copy frame to writeout buffer
                 if (did_frame_tick) {
+
+#if 0
                     memcpy((unsigned char*)wo_buffers[wo_buffer_index].start,
                             (unsigned char*)(scan_buffer[current_index].start),
                             scan_buffer[current_index].size);
+#endif
+                     COPY_BUFFER(wo_buffers[wo_buffer_index], scan_buffer[current_index]);
 
                     enqueue_P(&writeout_Q, &wo_buffer_index);
+                    total_frames_selected_g++;
 
                     //ghetto circular buffer
                     wo_buffer_index++;
@@ -89,12 +95,8 @@ void* processing(void* v) {
                         wo_buffer_index = 0;
                     }
 
-
-#endif
                     //Found frame and sent to write Q
-                    if (did_frame_tick) {
-                        break;
-                    }
+                    break;
                 }
             }
             last_buffer_index = current_index;

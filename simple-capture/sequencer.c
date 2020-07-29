@@ -346,6 +346,10 @@ printf("clock_gettime takes an average of %ld nsec to run\n", clock_get_latency)
 struct timespec diff_time;
 timespec_subtract(&diff_time, &finish_time, &start_time);
 
+printf("total_frames_queued:      %d\n", total_frames_queued_g);
+printf("total_frames_selected:    %d\n", total_frames_selected_g);
+printf("total_frames_written:   %d\n", total_frames_written_g);
+
 printf("total time elapsed: %lld.%.9ld\n",
     (long long)diff_time.tv_sec, diff_time.tv_nsec);
 
@@ -393,6 +397,11 @@ void sequencer(int v) {
             sem_post(&sem_teardown);
     }
 
+    //TODO - total_frames_written_g technically needs mutex
+    if (total_frames_written_g >= 1801) {
+        running = 0;
+    }
+
 }
 
 void ctrl_c(int s) {
@@ -402,7 +411,12 @@ void ctrl_c(int s) {
 
 void dump_logs(int s) {
     running = 0;
+
     printf("<BORK>");
+    printf("total_frames_queued:      %d\n", total_frames_queued_g);
+    printf("total_frames_selected:    %d\n", total_frames_selected_g);
+    printf("total_frames_written:     %d\n", total_frames_written_g);
+
     memlog_dump("frame.log", FRAME_LOG);
     memlog_dump("processing.log", PROCESSING_LOG);
     memlog_dump("writeout.log", WRITEOUT_LOG);

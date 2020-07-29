@@ -6,11 +6,16 @@
 #include "queue.h"
 #include "setup.h"
 
+//Global stats
+extern int total_frames_queued_g;
+extern int total_frames_selected_g;
+extern int total_frames_written_g;
+
 //Internal camera buffers
 #define CAMERA_NUM_BUF  3
 
 //Scan buffer size
-#define SCAN_BUF_SIZE 60
+#define SCAN_BUF_SIZE 90
 
 //Writeout buffer size
 #define NUM_WO_BUF 300

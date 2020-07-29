@@ -204,6 +204,7 @@ assert(scan_buffer[scan_buffer_index].size == frame_buffers[current_b.index].siz
         perror("VIDIOC_QBUF");
         error_exit(-1);
     }
+    total_frames_queued_g++;
 
 }
 

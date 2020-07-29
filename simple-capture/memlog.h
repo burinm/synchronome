@@ -11,7 +11,8 @@
 #include <stdint.h>
 #include <string.h> //memset
 #include <time.h>
-#define MEMLOG_MAX  1024
+//#define MEMLOG_MAX  1024
+#define MEMLOG_MAX  110000
 
 typedef struct _entry {
     //Running 32bit arm, should be aligned?
