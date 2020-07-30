@@ -12,10 +12,10 @@ typedef struct {
     int index;
 } buffer_t;
 
-//If you forget to cast, the copy blows up.
+//convenience macro
 #define COPY_BUFFER(dst, src)   assert ((dst).size == (src).size); \
-                                memcpy( (unsigned char*)dst.start, \
-                                        (unsigned char*)src.start, \
+                                memcpy( dst.start, \
+                                        src.start, \
                                         (dst).size)
 
 

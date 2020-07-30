@@ -18,7 +18,8 @@ extern int running;
 
 int init_queue(queue_container_t *q) {
 
-    //Frame Q
+    q->count = 0;
+
     struct mq_attr mq_attr_current = MQ_DEFAULTS;
     mq_attr_current.mq_msgsize = q->max_payload_size;
     mq_attr_current.mq_maxmsg = q->num_elems;
@@ -29,7 +30,7 @@ int init_queue(queue_container_t *q) {
         return -1; 
     }
 
-    q->b = malloc(q->max_payload_size * sizeof(char));
+    q->b = malloc(q->max_payload_size);
     if (q->b == NULL) {
         printf("Malloc failed - init_queue\n");
         return -1;
@@ -88,8 +89,6 @@ void destroy_queue(queue_container_t *q) {
 //void*, code is now generic
 int enqueue_P(queue_container_t *q, void *p) {
 
-assert(sizeof(p) == q->max_payload_size);
-
     if (q->count == q->num_elems) {
         printf("enqueue_P - (safety) enqueue_P full!\n");
         return -1;
@@ -120,8 +119,6 @@ return -1;
 }
 
 int dequeue_P(queue_container_t *q, void *p) {
-
-assert(sizeof(p) == q->max_payload_size);
 
     unsigned int prio = 0;
     int bytes_received = 0;
