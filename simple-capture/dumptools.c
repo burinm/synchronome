@@ -51,18 +51,18 @@ int header_with_timestamp(int fd, struct timespec *timestamp) {
     int count = 0;
 
 #ifdef PPM_CAPTURE
-    header_size = snprintf(header_buf, PGM_HEADER_MAX_LEN, "%s%s#%010lu sec %09lu nsec\n%s",
+    header_size = snprintf(header_buf, PGM_HEADER_MAX_LEN, "%s%s#%010lld.%09ld TIMESTAMP_E\n%s",
                 PPM_HEADER_DESC,
                 PPM_HEADER_RES,
-                timestamp->tv_sec, timestamp->tv_nsec,
+                (long long)timestamp->tv_sec, timestamp->tv_nsec,
                 PPM_HEADER_DEPTH);
 #endif
 
 #ifdef PGM_CAPTURE
-    header_size = snprintf(header_buf, PGM_HEADER_MAX_LEN, "%s%s#%010lu sec %09lu nsec\n%s",
+    header_size = snprintf(header_buf, PGM_HEADER_MAX_LEN, "%s%s#%010lld.%09ld TIMESTAMP_E\n%s",
                 PGM_HEADER_DESC,
                 PGM_HEADER_RES,
-                timestamp->tv_sec, timestamp->tv_nsec,
+                (long long)timestamp->tv_sec, timestamp->tv_nsec,
                 PGM_HEADER_DEPTH);
 #endif
 
@@ -81,13 +81,12 @@ void dump_rgb_raw_buffer(buffer_t *b) {
 
     static uint16_t frame_num = 0;
 
-    //Frame timestamps are right after all the processing is done
-    clock_gettime(CLOCK_MONOTONIC, &frame_time);
-
     fd = _open_for_write(frame_num, IMAGE_SUFFIX);
     if (fd == -1) {
         return;
     }
+
+    BUFFER_GET_TIMESTAMP(*b, frame_time);
 
     (void)header_with_timestamp(fd, &frame_time);
 

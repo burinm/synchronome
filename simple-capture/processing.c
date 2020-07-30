@@ -90,7 +90,8 @@ void* processing(void* v) {
                         (unsigned char*)(scan_buffer[current_index].start),
                         scan_buffer[current_index].size);
 #endif
-                 COPY_BUFFER(wo_buffers[wo_buffer_index], scan_buffer[current_index]);
+                COPY_BUFFER(wo_buffers[wo_buffer_index], scan_buffer[current_index]);
+                COPY_BUFFER_TIMESTAMP(wo_buffers[wo_buffer_index], scan_buffer[current_index]);
 
                 enqueue_P(&writeout_Q, &wo_buffer_index);
                 total_frames_selected_g++;

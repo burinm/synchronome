@@ -173,9 +173,8 @@ while(running) {
         }
         last_buffer_index = current_b.index;
     #else
+        BUFFER_SET_TIMESTAMP(frame_buffers[current_b.index], timestamp);
         do_transformations(&frame_buffers[current_b.index], &wo_buffer);
-
-
     #endif
 
 
@@ -185,9 +184,12 @@ assert(scan_buffer[scan_buffer_index].size == frame_buffers[current_b.index].siz
 
         COPY_BUFFER(scan_buffer[scan_buffer_index], frame_buffers[current_b.index]);
 
-       // memcpy(&scan_buffer[scan_buffer_index].time,
-        //       &timestamp,
-         //      sizeof(struct timespec));
+        BUFFER_SET_TIMESTAMP(scan_buffer[scan_buffer_index], timestamp);
+#if 0
+        memcpy(&scan_buffer[scan_buffer_index].time,
+               &timestamp,
+               sizeof(struct timespec));
+#endif
 
         enqueue_P(&frame_Q, &scan_buffer_index);
 

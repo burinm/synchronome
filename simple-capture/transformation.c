@@ -31,6 +31,7 @@ void do_transformations(buffer_t* b, buffer_t* out) {
 #ifdef PROFILE_FRAMES
 #else
     //Write out buffer to disk
+    COPY_BUFFER_TIMESTAMP(*out, *b);
     dump_rgb_raw_buffer(out);
 #endif
 }

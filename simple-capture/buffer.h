@@ -2,6 +2,7 @@
 #define __BUFFER_H__
 
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 
@@ -17,6 +18,22 @@ typedef struct {
                                 memcpy( dst.start, \
                                         src.start, \
                                         (dst).size)
+
+#define COPY_BUFFER_TIMESTAMP(dst, src) \
+                                memcpy( &(dst).time, \
+                                        &(src).time, \
+                                        sizeof(struct timespec))
+
+#define BUFFER_GET_TIMESTAMP(b, timestamp) \
+                                memcpy( &timestamp, \
+                                        &(b).time, \
+                                        sizeof(struct timespec))
+
+#define BUFFER_SET_TIMESTAMP(b, timestamp) \
+                                memcpy( &(b).time, \
+                                        &timestamp, \
+                                        sizeof(struct timespec))
+
 
 
 #endif

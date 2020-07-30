@@ -15,23 +15,23 @@
 //Boo, this is brittle, c strings are terrible
 #define PPM_HEADER_DESC  "P6\n"               //    2
 #define PPM_HEADER_RES   xstr(X_RES Y_RES\n)  //    9 xxxx xxxx
-//# (1) 9999999999 sec (15) 999999999 nsec\n (15)
-#define PPM_TIMESTAMP_SIZE 31                 //   31
+//#9999999999.999999999 TIMESTAMP_E\n  (34)
+#define PPM_TIMESTAMP_SIZE 34                 //   34
 #define PPM_HEADER_DEPTH   "255\n"            //    5
 
 // +1 because srncpy includes '\0' as one of the bytes
-#define PPM_HEADER_MAX_LEN                        (47 + 2)
+#define PPM_HEADER_MAX_LEN                        (50 + 2)
 
 /* -----------------------PGM--------------------------- */
 //Boo, this is brittle, c strings are terrible
 #define PGM_HEADER_DESC  "P5\n"               //    2
 #define PGM_HEADER_RES   xstr(X_RES Y_RES\n)  //    9 xxxx xxxx
-//# (1) 9999999999 sec (15) 999999999 nsec\n (15)
-#define PGM_TIMESTAMP_SIZE 31                 //   31
+//#9999999999.999999999 TIMESTAMP_E\n  (34)
+#define PGM_TIMESTAMP_SIZE 34                 //   34
 #define PGM_HEADER_DEPTH   "255\n"            //    5
 
 // +1 because srncpy includes '\0' as one of the bytes
-#define PGM_HEADER_MAX_LEN                        (47 + 2)
+#define PGM_HEADER_MAX_LEN                        (50 + 2)
 
 
 /* -------Selection of image type------------------------ */
