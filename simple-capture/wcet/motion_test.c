@@ -9,7 +9,20 @@
 #include "../transformation.h"
 #include "../motion.h"
 
+#define OUTPUT_PPM
+//#define OUTPUT_PGM
+
+#ifdef OUTPUT_PPM
+    #define OUT_BUFFER_SZ (3)
+#endif
+
+#ifdef OUTPUT_PGM
+    #define OUT_BUFFER_SZ (1)
+#endif
+
+
 extern int motion_state;
+buffer_t out_buffer;
 
 int printf_on = 1;
 int rebuild_images = 0;
@@ -98,23 +111,31 @@ if (rebuild_images) { //just writeout ppms
         note timestamp info from raw yuv
         future enhancement: dump raw serialized buffer_t structures!
     */
-    allocate_single_wo_buffer();
+
+    if (allocate_buffer(&out_buffer, OUT_BUFFER_SZ) == -1) {
+        console("couldn't allocate error out buffer\n");
+        return -1;
+    }
+
 
     int type;
-#ifdef PPM_CAPTURE
-    type = PPM_BUFFER;
-#endif
-
-#ifdef PGM_CAPTURE
-    type = PGM_BUFFER;
-#endif
-    assert(type);
 
 
     for (int i=0; i<buf_num; i++) {
-        yuv422torgb888(&scan_buffer[i], &wo_buffer, 0);
-        wo_buffer.id = scan_buffer[i].id; 
-        dump_raw_buffer_with_header(&wo_buffer, type, scan_buffer[i].id);
+#ifdef OUTPUT_PPM
+        type = PPM_BUFFER;
+        yuv422torgb888(&scan_buffer[i], &out_buffer, 0);
+#endif
+
+#ifdef OUTPUT_PGM
+        type = PGM_BUFFER;
+        yuv422toG8(&scan_buffer[i], &out_buffer, 0);
+#endif
+
+    assert(type);
+
+        out_buffer.id = scan_buffer[i].id;
+        dump_raw_buffer_with_header(&out_buffer, type, scan_buffer[i].id);
     }
 } else { //motion test
 
@@ -146,7 +167,12 @@ if (rebuild_images) { //just writeout ppms
                     scan_buffer[last_buffer_index].size);
 
             changed_pixels = frame_changes(&scan_buffer[last_buffer_index], &scan_buffer[current_index]);
-            printf("Processing %d vs %d frame diff = %d ", last_buffer_index, current_index, changed_pixels);
+            printf("Processing %d (%06d) vs %d (%06d) frame diff = %d ",
+                            last_buffer_index,
+                            scan_buffer[last_buffer_index].id,
+                            current_index,
+                            scan_buffer[current_index].id,
+                            changed_pixels);
             did_frame_tick = is_motion(changed_pixels);
 
             printf("%s\n", did_frame_tick ? "yes" : "no");
@@ -157,7 +183,7 @@ if (rebuild_images) { //just writeout ppms
 
     }
 
-    deallocate_single_wo_buffer();
+    deallocate_buffer(&out_buffer);
 }
 
 deallocate_processing();
