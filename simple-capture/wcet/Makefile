@@ -28,3 +28,4 @@ clean:
 	-rm -f *.o flash_wcet motion_test
 	-rm -f *.ppm
 	-rm -f ./errors/*[.yuv,.ppm,.pgm]
+	-rm -f buffers.list
