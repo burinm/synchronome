@@ -125,14 +125,16 @@ int dequeue_P(queue_container_t *q, void *p) {
 
     q->count--;
 
-    do{
-        bytes_received = mq_receive(q->q, q->b, q->max_payload_size, &prio);
-        if (bytes_received == -1 && errno != EAGAIN) {
+        //2 second timeout (for ctrl_c)
+        struct timespec _t;
+        clock_gettime(CLOCK_REALTIME, &_t);
+        _t.tv_sec += 2;
+
+        bytes_received = mq_timedreceive(q->q, q->b, q->max_payload_size, &prio, &_t);
+        if (bytes_received == -1) {
             perror("dequeue_P - Couldn't get message!");
             return -1;
         }
-    } while (bytes_received < 1);
-
 
     memcpy(p, (char *)(q->b), q->max_payload_size);
 

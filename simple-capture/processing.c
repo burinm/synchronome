@@ -56,12 +56,15 @@ void* processing(void* v) {
 
 
         MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_DONE);
-        num_frames_till_selection = 0;
         while(1) {
 
 
             int current_index;
-            if (dequeue_P(&frame_Q, &current_index) == -1) {
+            int ret;
+            ret = dequeue_P(&frame_Q, &current_index);
+            if (ret == 1) {
+                break; //Empty queue, give back CPU
+            } else if (ret == -1) {
                 printf("*Frame Processing: dequeue error\n");
                 error_exit(-1);
             }
@@ -147,6 +150,7 @@ void* processing(void* v) {
             sem_post(&sem_teardown);
             while(1); //boo
         }
+        num_frames_till_selection = 0;
     }
 return 0;
 }
