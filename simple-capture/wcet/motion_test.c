@@ -7,14 +7,30 @@
 #include "../resources.h"
 #include "../dumptools.h"
 #include "../transformation.h"
+#include "../motion.h"
+
+extern int motion_state;
 
 int printf_on = 1;
+int rebuild_images = 0;
 
-int main() {
+int main(int argc, char* argv[]) {
     FILE* stream;
     if ((stream = fopen("buffers.list", "r")) == NULL) {
         printf("motion: needs <buffers.list>\n");
         return 0;
+    }
+
+    if (argc != 2) {
+        printf("usage: motion <-b/r>  rebuild/run motion\n");
+        return 0;
+    }
+
+        
+    if (argc == 2) {
+        if (strcmp(argv[1], "-b") == 0) {
+            rebuild_images = 1;
+        }
     }
 
     size_t frame_total_bytes = FRAME_SIZE * NATIVE_CAMERA_FORMAT_SIZE;
@@ -76,6 +92,12 @@ int main() {
     free(line_buf);
     fclose(stream);
 
+if (rebuild_images) { //just writeout ppms 
+
+    /* Write frames back out as sanity test
+        note timestamp info from raw yuv
+        future enhancement: dump raw serialized buffer_t structures!
+    */
     allocate_single_wo_buffer();
 
     int type;
@@ -88,14 +110,56 @@ int main() {
 #endif
     assert(type);
 
+
     for (int i=0; i<buf_num; i++) {
         yuv422torgb888(&scan_buffer[i], &wo_buffer, 0);
         wo_buffer.id = scan_buffer[i].id; 
         dump_raw_buffer_with_header(&wo_buffer, type, scan_buffer[i].id);
     }
+} else { //motion test
 
+    /* Same algorithm from processing */
+
+    //Start here
+    motion_state = MOTION_STATE_SEARCHING;
+
+    int last_buffer_index = -1;
+    int changed_pixels = 0;
+    int did_frame_tick = 0;
+
+    int num_frames_till_selection = 0;
+
+    for (int i=0; i<buf_num; i++) {
+
+        int current_index = i;
+        num_frames_till_selection++;
+
+        printf("Processing: [index %d] (VIDIOC_DEQBUF)\n", current_index);
+
+        did_frame_tick = 0;
+
+        if (last_buffer_index != -1) {
+
+            printf("Processing: [index %d start=%p size=%d] (in)\n",
+                    last_buffer_index,
+                    scan_buffer[last_buffer_index].start,
+                    scan_buffer[last_buffer_index].size);
+
+            changed_pixels = frame_changes(&scan_buffer[last_buffer_index], &scan_buffer[current_index]);
+            printf("Processing %d vs %d frame diff = %d ", last_buffer_index, current_index, changed_pixels);
+            did_frame_tick = is_motion(changed_pixels);
+
+            printf("%s\n", did_frame_tick ? "yes" : "no");
+
+
+        }
+        last_buffer_index = current_index;
+
+    }
+
+    deallocate_single_wo_buffer();
+}
 
 deallocate_processing();
-deallocate_single_wo_buffer();
 return 0;    
 }
