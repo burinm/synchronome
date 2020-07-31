@@ -1,4 +1,4 @@
-all: flash_wcet buffer_wcet
+all: flash_wcet motion_test 
 
 
 flash_wcet: flash_wcet.o ../buffer.o ../dumptools.o ../timetools.o
@@ -8,7 +8,7 @@ flash_wcet.o: flash_wcet.c
 	$(CC) $(LDFLAGS) $(CFLAGS) -c $^ -o $@
 
 
-buffer_wcet: fake_capture.o sequencer.o processing.o ../buffer.o ../queue.o ../motion.o ../memlog.o ../timetools.o ../realtime.o
+motion_test: motion_test.o ../buffer.o ../motion.o ../resources.o ../dumptools.o ../transformation.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ -lrt -lpthread
 
 fake_capture.o: fake_capture.c
@@ -25,5 +25,6 @@ processing.o: processing.c
 
 
 clean:
-	-rm -f *.o flash_wcet
+	-rm -f *.o flash_wcet motion_test
 	-rm -f *.ppm
+	-rm -f ./errors/*[.yuv,.ppm,.pgm]

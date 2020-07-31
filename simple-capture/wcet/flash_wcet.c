@@ -77,7 +77,7 @@ for (int i=0; i < TEST_ITERS; i++) {
     //Since flash is so slow, we don't care if nanosleep lags
     nanosleep(&write_frequency, NULL);
      
-    dump_rgb_raw_buffer(&random_images[random_index]);
+    dump_raw_buffer_with_header(&random_images[random_index], PPM_BUFFER, DEBUG_NONE);
 
     random_index++;
     if (random_index == NUM_IMAGES) {
