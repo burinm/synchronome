@@ -82,7 +82,12 @@ void* processing(void* v) {
                         scan_buffer[last_buffer_index].size);
 
                 changed_pixels = frame_changes(&scan_buffer[last_buffer_index], &scan_buffer[current_index]);
-                printf("Processing %d vs %d frame diff = %d ", last_buffer_index, current_index, changed_pixels);
+                printf("Processing %d (%06d) vs %d (%06d) frame diff = %d ",
+                                last_buffer_index,
+                                scan_buffer[last_buffer_index].id,
+                                current_index,
+                                scan_buffer[current_index].id,
+                                changed_pixels);
                 did_frame_tick = is_motion(changed_pixels);
 
                 printf("%s\n", did_frame_tick ? "yes" : "no");
@@ -131,20 +136,21 @@ void* processing(void* v) {
             printf("Bork! took %d frames to select. id:%d \n", num_frames_till_selection,
                                                             scan_buffer[last_buffer_index].id );
             for (int i=0; i < SCAN_BUF_SIZE; i++) {
+                int buffer_id = scan_buffer[i].id;
 
-                dump_buffer_raw(&scan_buffer[i], scan_buffer[i].id, 1);
+                dump_buffer_raw(&scan_buffer[i], buffer_id, 1);
 
                 COPY_BUFFER_TIMESTAMP(er_buffer, scan_buffer[i]);
                 er_buffer.id =  scan_buffer[i].id;
 
                 #ifdef PPM_CAPTURE
                     yuv422torgb888(&scan_buffer[i], &er_buffer, 0);
-                    dump_raw_buffer_with_header(&er_buffer, PPM_BUFFER, 1);
+                    dump_raw_buffer_with_header(&er_buffer, PPM_BUFFER, buffer_id);
                 #endif
 
                 #ifdef PGM_CAPTURE
                     yuv422toG8(&scan_buffer[i], &er_buffer, 0);
-                    dump_raw_buffer_with_header(&er_buffer, PGM_BUFFER, 1);
+                    dump_raw_buffer_with_header(&er_buffer, PGM_BUFFER, buffer_id);
                 #endif
             }
             sem_post(&sem_teardown);
