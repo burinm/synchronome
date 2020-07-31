@@ -17,6 +17,7 @@ clean: clean-frames
 
 clean-frames:
 	-rm -f ./frames/*[.yuv,.ppm,.pgm]
+	-rm -f ./errors/*[.yuv,.ppm,.pgm]
 	-rm -f timestamps.txt
 	-rm -f *.log
 

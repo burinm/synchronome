@@ -4,7 +4,10 @@
 #include "buffer.h"
 #include "setup.h"
 
-#define FILE_NAME_SIZE 42
+#define PPM_BUFFER  1
+#define PGM_BUFFER  2
+
+#define FILE_NAME_SIZE 256 //To include long paths
 #define FILE_NUMBER_MAX 1801
 
 //https://gcc.gnu.org/onlinedocs/cpp/Stringizing.html (lame!)
@@ -47,11 +50,8 @@
 
 extern char header_buf[PGM_HEADER_MAX_LEN];
 
-void dump_buffer_raw(buffer_t *b);
-void dump_yuv422_to_rgb_raw(buffer_t *b);
+void dump_buffer_raw(buffer_t *b, int debug);
+void dump_raw_buffer_with_header(buffer_t *b, int type, int is_debug);
 
-int header_with_timestamp(int fd, struct timespec *timestamp);
-
-void dump_rgb_raw_buffer(buffer_t *b);
 
 #endif

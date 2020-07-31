@@ -52,6 +52,7 @@ extern memlog_t* WRITEOUT_LOG;
 
 int running = 1;
 int printf_on = 1;
+int freeze_system = 0;
 
 struct timespec start_time;
 struct timespec finish_time;
@@ -362,7 +363,7 @@ void sequencer(int v) {
         sem_post(&sem_writeout);
         sem_post(&sem_processing);
 
-    if (running) {
+    if (running && freeze_system == 0) {
         if (sequence % 4 == 0) { // 4 * 10 = 40ms, 25Hz
         //if (sequence % 3 == 0) { // 3 * 10 = 30ms, 33.3Hz
             sem_post(&sem_framegrab);
@@ -390,11 +391,14 @@ void sequencer(int v) {
                 perror("couldn't disarm timer");
                 exit(-1);
             }
-            //unblock everyone
-            sem_post(&sem_framegrab);
-            sem_post(&sem_processing);
-            sem_post(&sem_writeout);
-            sem_post(&sem_teardown);
+
+            if (!freeze_system) {
+                //unblock everyone
+                sem_post(&sem_framegrab);
+                sem_post(&sem_processing);
+                sem_post(&sem_writeout);
+                sem_post(&sem_teardown);
+            }
     }
 
     //TODO - total_frames_written_g technically needs mutex

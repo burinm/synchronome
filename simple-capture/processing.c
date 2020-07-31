@@ -14,9 +14,14 @@
 #include "motion.h"
 #include "memlog.h"
 
+#include "dumptools.h" //FOR errors only
+#include "transformation.h" //FOR errors only
+extern int freeze_system; //DEBUG
+
 extern int running;
 extern pthread_barrier_t bar_thread_inits;
 extern sem_t sem_processing;
+extern sem_t sem_teardown;
 
 memlog_t* PROCESSING_LOG;
 
@@ -116,6 +121,25 @@ void* processing(void* v) {
             }
         } //forever, until change is detected
         MEMLOG_LOG24(PROCESSING_LOG, MEMLOG_E_ADATA_24, num_frames_till_selection);
+
+        if (num_frames_till_selection > 35) {
+            freeze_system = 1; //Makes sequencer stop timer
+            printf("Bork! Took %d frames to select\n", num_frames_till_selection);
+            for (int i=0; i < SCAN_BUF_SIZE; i++) {
+                #ifdef PPM_CAPTURE
+                    yuv422torgb888(&scan_buffer[i], &wo_buffer, 0);
+                    dump_raw_buffer_with_header(&wo_buffer, PPM_BUFFER, 1);
+                #endif
+
+                #ifdef PGM_CAPTURE
+                    yuv422toG8(&scan_buffer[i], &wo_buffer, 0);
+                    dump_raw_buffer_with_header(&wo_buffer, PGM_BUFFER, 1);
+                #endif
+                dump_buffer_raw(&scan_buffer[i], 1);
+            }
+            sem_post(&sem_teardown);
+            while(1); //boo
+        }
     }
 return 0;
 }

@@ -7,7 +7,11 @@
 
 void do_transformations(buffer_t* b, buffer_t* out) {
 
+int type = 0;
+
 #ifdef PPM_CAPTURE
+    type = PPM_BUFFER;
+
     #ifdef SHARPEN_ON
         yuv422toG8(b, &sharpen_buffer, 0);
     #else
@@ -16,6 +20,8 @@ void do_transformations(buffer_t* b, buffer_t* out) {
 #endif
 
 #ifdef PGM_CAPTURE
+    type = PGM_BUFFER;
+
     #ifdef SHARPEN_ON
         y_channel_sharpen(b, &wo_buffer, 0);
         //yuv422toG8(&buffers[current_b.index], &sharpen_buffer, 0);
@@ -32,7 +38,7 @@ void do_transformations(buffer_t* b, buffer_t* out) {
 #else
     //Write out buffer to disk
     COPY_BUFFER_TIMESTAMP(*out, *b);
-    dump_rgb_raw_buffer(out);
+    dump_raw_buffer_with_header(out, type, 0);
 #endif
 }
 

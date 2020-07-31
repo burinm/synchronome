@@ -45,6 +45,9 @@ extern int running;
 #else
 extern pthread_barrier_t bar_thread_inits;
 extern sem_t sem_framegrab;
+
+extern int freeze_system;
+extern sem_t sem_teardown;
 #endif
 
 void* frame(void* v) {
@@ -94,10 +97,12 @@ pthread_barrier_wait(&bar_thread_inits); //GO!!
 #endif
 
 while(running) {
+
     MEMLOG_LOG(FRAME_LOG, MEMLOG_E_S1_DONE);
 #ifdef CAPTURE_STANDALONE
 #else
     s_ret = sem_wait(&sem_framegrab);
+
 #endif
 
     MEMLOG_LOG(FRAME_LOG, MEMLOG_E_S1_RUN);
