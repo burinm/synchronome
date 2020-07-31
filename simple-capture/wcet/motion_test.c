@@ -9,8 +9,8 @@
 #include "../transformation.h"
 #include "../motion.h"
 
-#define OUTPUT_PPM
-//#define OUTPUT_PGM
+//#define OUTPUT_PPM
+#define OUTPUT_PGM
 
 #ifdef OUTPUT_PPM
     #define OUT_BUFFER_SZ (3)
