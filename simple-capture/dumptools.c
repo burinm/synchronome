@@ -27,7 +27,7 @@ void dump_buffer_raw(buffer_t *b, int id, int debug) {
 
     char* prefix = NULL;
     if (debug == 1) {
-        prefix = "./errors/frame";
+        prefix = "./errors/buffer";
     }
 
     fd = _open_for_write(id, prefix, "yuv");
@@ -60,7 +60,7 @@ if (type == PPM_BUFFER) {
 
 } else if (type == PGM_BUFFER) {
 
-    header_size = snprintf(header_buf, PGM_HEADER_MAX_LEN, "%s%s#%010lld.%09ld TIMESTAMP_E\n id:%06d%s",
+    header_size = snprintf(header_buf, PGM_HEADER_MAX_LEN, "%s%s#%010lld.%09ld TIMESTAMP_E id:%06d\n%s",
                 PGM_HEADER_DESC,
                 PGM_HEADER_RES,
                 (long long)timestamp->tv_sec, timestamp->tv_nsec,
@@ -82,19 +82,18 @@ return count;
 }
 
 static struct timespec frame_time;
-void dump_raw_buffer_with_header(buffer_t *b, int type, int is_debug) {
+void dump_raw_buffer_with_header(buffer_t *b, int type, int debug_id) {
 
     static uint16_t frame_num_s = 0;
-    static uint16_t debug_frame_num = 10000;
 
     char* prefix = NULL;
-    if (is_debug) {
-        prefix = "./errors/frame";
+    if (debug_id > -1) {
+        prefix = "./errors/buffer";
     }
 
     uint16_t frame_num = frame_num_s;
-    if (is_debug) {
-       frame_num = debug_frame_num; 
+    if (debug_id > -1) {
+       frame_num = debug_id;
     }
 
 
@@ -120,9 +119,7 @@ void dump_raw_buffer_with_header(buffer_t *b, int type, int is_debug) {
         console("all bytes not written %d of %d\n", count, b->size);
     }
 
-    if (is_debug) {
-        debug_frame_num++;
-    } else {
+    if (debug_id == -1) {
         frame_num_s++;
         //Don't fill up disk ;)
         if (frame_num_s == FILE_NUMBER_MAX) {

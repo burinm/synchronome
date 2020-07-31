@@ -4,6 +4,8 @@
 #include "buffer.h"
 #include "setup.h"
 
+#define DEBUG_NONE  -1
+
 #define PPM_BUFFER  1
 #define PGM_BUFFER  2
 
@@ -51,7 +53,7 @@
 extern char header_buf[PGM_HEADER_MAX_LEN];
 
 void dump_buffer_raw(buffer_t *b, int id, int debug);
-void dump_raw_buffer_with_header(buffer_t *b, int type, int is_debug);
+void dump_raw_buffer_with_header(buffer_t *b, int type, int debug_id);
 
 
 #endif

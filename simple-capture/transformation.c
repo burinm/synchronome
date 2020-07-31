@@ -39,7 +39,7 @@ int type = 0;
     //Write out buffer to disk
     COPY_BUFFER_TIMESTAMP(*out, *b);
     out->id = b->id;
-    dump_raw_buffer_with_header(out, type, 0);
+    dump_raw_buffer_with_header(out, type, DEBUG_NONE);
 #endif
 }
 
