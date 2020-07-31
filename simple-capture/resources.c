@@ -17,8 +17,9 @@ int scan_buffer_index = 0;
 //write out buffers
 buffer_t wo_buffers[NUM_WO_BUF];
 
-//single wo buffer
+//single wo buffers
 buffer_t wo_buffer;
+buffer_t er_buffer;
 
 //sharpen buffer
 buffer_t sharpen_buffer;
@@ -66,6 +67,14 @@ int allocate_single_wo_buffer() {
 return 0;
 }
 
+int allocate_single_er_buffer() {
+    if (allocate_buffer(&er_buffer, BYTES_PER_PIXEL) == -1) {
+        console("couldn't allocate error out buffer\n");
+        return -1;
+    }
+return 0;
+}
+
 int allocate_sharpen_buffer() {
     if (allocate_buffer(&sharpen_buffer, BYTES_PER_PIXEL) == -1) {
         console("couldn't allocate write out buffer\n");
@@ -76,6 +85,10 @@ return 0;
 
 void deallocate_single_wo_buffer() {
     deallocate_buffer(&wo_buffer);
+}
+
+void deallocate_single_er_buffer() {
+    deallocate_buffer(&er_buffer);
 }
 
 void deallocate_sharpen_buffer() {

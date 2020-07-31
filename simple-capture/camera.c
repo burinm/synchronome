@@ -378,6 +378,7 @@ void video_error_cleanup(int state, video_t *v) {
             }
         case ERROR_LEVEL_3:
             deallocate_single_wo_buffer();
+            deallocate_single_er_buffer();
 #ifdef SHARPEN_ON
             deallocate_sharpen_buffer();
 #endif

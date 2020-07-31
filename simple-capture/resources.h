@@ -33,6 +33,7 @@ extern buffer_t wo_buffers[NUM_WO_BUF];
 
 //other buffers
 extern buffer_t wo_buffer; //Temporary buffer for file output (write out)
+extern buffer_t er_buffer; //Temporary buffer for file output (error out)
 extern buffer_t sharpen_buffer;
 
 //Allocations
@@ -44,6 +45,9 @@ void deallocate_writeout();
 
 int allocate_single_wo_buffer();
 void deallocate_single_wo_buffer();
+
+int allocate_single_er_buffer();
+void deallocate_single_er_buffer();
 
 int allocate_sharpen_buffer();
 void deallocate_sharpen_buffer();

@@ -27,6 +27,11 @@ int camera_init_all(video_t * video) {
         return(-1);
     }
 
+    if (allocate_single_er_buffer() == -1) {
+        video_error_cleanup(ERROR_LEVEL_3, video);
+        return(-1);
+    }
+
     #ifdef SHARPEN_ON
     if (allocate_sharpen_buffer() == -1) {
         video_error_cleanup(ERROR_LEVEL_3, video);

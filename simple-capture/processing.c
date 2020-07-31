@@ -97,6 +97,7 @@ void* processing(void* v) {
 #endif
                 COPY_BUFFER(wo_buffers[wo_buffer_index], scan_buffer[current_index]);
                 COPY_BUFFER_TIMESTAMP(wo_buffers[wo_buffer_index], scan_buffer[current_index]);
+                wo_buffers[wo_buffer_index].id = scan_buffer[current_index].id;
 
                 enqueue_P(&writeout_Q, &wo_buffer_index);
                 total_frames_selected_g++;
@@ -124,18 +125,24 @@ void* processing(void* v) {
 
         if (num_frames_till_selection > 35) {
             freeze_system = 1; //Makes sequencer stop timer
-            printf("Bork! Took %d frames to select\n", num_frames_till_selection);
+            printf("Bork! took %d frames to select. id:%d \n", num_frames_till_selection,
+                                                            scan_buffer[last_buffer_index].id );
             for (int i=0; i < SCAN_BUF_SIZE; i++) {
+
+                dump_buffer_raw(&scan_buffer[i], scan_buffer[i].id, 1);
+
+                COPY_BUFFER_TIMESTAMP(er_buffer, scan_buffer[i]);
+                er_buffer.id =  scan_buffer[i].id;
+
                 #ifdef PPM_CAPTURE
-                    yuv422torgb888(&scan_buffer[i], &wo_buffer, 0);
-                    dump_raw_buffer_with_header(&wo_buffer, PPM_BUFFER, 1);
+                    yuv422torgb888(&scan_buffer[i], &er_buffer, 0);
+                    dump_raw_buffer_with_header(&er_buffer, PPM_BUFFER, 1);
                 #endif
 
                 #ifdef PGM_CAPTURE
-                    yuv422toG8(&scan_buffer[i], &wo_buffer, 0);
-                    dump_raw_buffer_with_header(&wo_buffer, PGM_BUFFER, 1);
+                    yuv422toG8(&scan_buffer[i], &er_buffer, 0);
+                    dump_raw_buffer_with_header(&er_buffer, PGM_BUFFER, 1);
                 #endif
-                dump_buffer_raw(&scan_buffer[i], 1);
             }
             sem_post(&sem_teardown);
             while(1); //boo

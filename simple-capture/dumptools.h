@@ -18,23 +18,23 @@
 //Boo, this is brittle, c strings are terrible
 #define PPM_HEADER_DESC  "P6\n"               //    2
 #define PPM_HEADER_RES   xstr(X_RES Y_RES\n)  //    9 xxxx xxxx
-//#9999999999.999999999 TIMESTAMP_E\n  (34)
-#define PPM_TIMESTAMP_SIZE 34                 //   34
+//#9999999999.999999999 TIMESTAMP_E id:nnnnnn\n  (44)
+#define PPM_TIMESTAMP_SIZE 34                 //   44
 #define PPM_HEADER_DEPTH   "255\n"            //    5
 
 // +1 because srncpy includes '\0' as one of the bytes
-#define PPM_HEADER_MAX_LEN                        (50 + 2)
+#define PPM_HEADER_MAX_LEN                        (60 + 2)
 
 /* -----------------------PGM--------------------------- */
 //Boo, this is brittle, c strings are terrible
 #define PGM_HEADER_DESC  "P5\n"               //    2
 #define PGM_HEADER_RES   xstr(X_RES Y_RES\n)  //    9 xxxx xxxx
-//#9999999999.999999999 TIMESTAMP_E\n  (34)
-#define PGM_TIMESTAMP_SIZE 34                 //   34
+//#9999999999.999999999 TIMESTAMP_E id:nnnnnn\n  (44)
+#define PGM_TIMESTAMP_SIZE 34                 //   44
 #define PGM_HEADER_DEPTH   "255\n"            //    5
 
 // +1 because srncpy includes '\0' as one of the bytes
-#define PGM_HEADER_MAX_LEN                        (50 + 2)
+#define PGM_HEADER_MAX_LEN                        (60 + 2)
 
 
 /* -------Selection of image type------------------------ */
@@ -50,7 +50,7 @@
 
 extern char header_buf[PGM_HEADER_MAX_LEN];
 
-void dump_buffer_raw(buffer_t *b, int debug);
+void dump_buffer_raw(buffer_t *b, int id, int debug);
 void dump_raw_buffer_with_header(buffer_t *b, int type, int is_debug);
 
 

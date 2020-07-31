@@ -11,6 +11,7 @@ typedef struct {
     size_t size;
     struct timespec time;
     int index;
+    int id;
 } buffer_t;
 
 //convenience macro

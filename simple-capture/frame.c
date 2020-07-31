@@ -36,6 +36,8 @@
     #include "sharpen.h"
 #endif
 
+int frame_id_g = 0;
+
 memlog_t* FRAME_LOG;
 
 extern int printf_on;
@@ -46,8 +48,6 @@ extern int running;
 extern pthread_barrier_t bar_thread_inits;
 extern sem_t sem_framegrab;
 
-extern int freeze_system;
-extern sem_t sem_teardown;
 #endif
 
 void* frame(void* v) {
@@ -190,6 +190,8 @@ assert(scan_buffer[scan_buffer_index].size == frame_buffers[current_b.index].siz
         COPY_BUFFER(scan_buffer[scan_buffer_index], frame_buffers[current_b.index]);
 
         BUFFER_SET_TIMESTAMP(scan_buffer[scan_buffer_index], timestamp);
+        scan_buffer[scan_buffer_index].id = frame_id_g;
+        frame_id_g++;
 #if 0
         memcpy(&scan_buffer[scan_buffer_index].time,
                &timestamp,

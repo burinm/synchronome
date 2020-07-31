@@ -392,11 +392,9 @@ void sequencer(int v) {
                 exit(-1);
             }
 
-            if (!freeze_system) {
+            if (!freeze_system) { //This way the freezing thread can post sem_teardown
                 //unblock everyone
                 sem_post(&sem_framegrab);
-                sem_post(&sem_processing);
-                sem_post(&sem_writeout);
                 sem_post(&sem_teardown);
             }
     }
