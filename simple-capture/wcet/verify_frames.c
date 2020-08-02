@@ -100,10 +100,12 @@ int main(int argc, char* argv[]) {
             } else {
 
                 char dummy;
-                #define TIMESTAMP_LEN 21
-                #define ID_LEN 7
-                char timestamp[TIMESTAMP_LEN];
-                char id_str[ID_LEN];
+                #define COMMENT_LEN 42 //0000351847.726530079 TIMESTAMP_E id:000011
+                #define TIMESTAMP_LEN   20
+                #define ID_LEN 6
+                char comment[COMMENT_LEN];
+                char timestamp[TIMESTAMP_LEN + 1];
+                char id_str[ID_LEN + 1];
 
                 int header_count = 0;
                 int header_token = 0;
@@ -112,12 +114,11 @@ int main(int argc, char* argv[]) {
                      fread(&dummy, 1, 1, image);
 
                      if (dummy == '#') {
-                        fread(&timestamp, 1, TIMESTAMP_LEN -1, image);
-                        timestamp[TIMESTAMP_LEN - 1] = '\0';
-
-                        fread(&timestamp, 1, 16, image); //space between timestamp and id
-                        fread(&id_str, 1, ID_LEN -1, image);
-                        id_str[ID_LEN - 1] = '\0';
+                        fread(&comment, 1, COMMENT_LEN, image);
+                        strncpy(timestamp, &comment[0], TIMESTAMP_LEN);
+                        timestamp[TIMESTAMP_LEN] = '\0';
+                        strncpy(id_str, &comment[36], ID_LEN);
+                        id_str[ID_LEN] = '\0';
                         continue;
                      }
 
