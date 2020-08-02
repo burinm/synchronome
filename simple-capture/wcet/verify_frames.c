@@ -100,8 +100,11 @@ int main(int argc, char* argv[]) {
             } else {
 
                 char dummy;
-                #define TIMESTAMP_LEN 22
+                #define TIMESTAMP_LEN 21
+                #define ID_LEN 7
                 char timestamp[TIMESTAMP_LEN];
+                char id_str[ID_LEN];
+
                 int header_count = 0;
                 int header_token = 0;
 
@@ -109,8 +112,12 @@ int main(int argc, char* argv[]) {
                      fread(&dummy, 1, 1, image);
 
                      if (dummy == '#') {
-                        fread(&timestamp, 1, TIMESTAMP_LEN, image);
+                        fread(&timestamp, 1, TIMESTAMP_LEN -1, image);
                         timestamp[TIMESTAMP_LEN - 1] = '\0';
+
+                        fread(&timestamp, 1, 16, image); //space between timestamp and id
+                        fread(&id_str, 1, ID_LEN -1, image);
+                        id_str[ID_LEN - 1] = '\0';
                         continue;
                      }
 
@@ -161,7 +168,8 @@ int main(int argc, char* argv[]) {
                 printf("timestamp:%lld.%.9ld\n", (long long)temp_time.tv_sec, temp_time.tv_nsec);
                 BUFFER_SET_TIMESTAMP(test_buffers[buf_num], temp_time); 
 
-                test_buffers[buf_num].id = image_id;
+                int i_id = atoi(id_str);
+                test_buffers[buf_num].id = i_id;
 
                 buf_num++;
                 fclose(image);
