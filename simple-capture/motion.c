@@ -6,8 +6,10 @@
 void print_motion_state();
 
 int motion_state = MOTION_STATE_START;
-int good_frames_in_a_row = 0;
+
 int drop_frames = MOTION_DROP_FRAMES;
+int bookend_frames = 0;
+int good_frames_in_a_row = 0;
 
 int next_motion_state(int changed) {
 
@@ -15,10 +17,10 @@ int next_motion_state(int changed) {
 
     switch(motion_state) {
         case MOTION_STATE_START: //TODO synchronization is in requirements. drift?
-            if (drop_frames == MOTION_DROP_FRAMES) {
+            if (drop_frames++ == MOTION_DROP_FRAMES) {
+                drop_frames = 0; //We shouldn't ever start over, just for completeness
                 motion_state = MOTION_STATE_SEARCHING;
             }
-            drop_frames++;
             break;
 
         case MOTION_STATE_SEARCHING: //find different frame
@@ -27,13 +29,15 @@ int next_motion_state(int changed) {
             }
             break;
 
-        case MOTION_STATE_BOOKEND: //if there is a burst of different frames, don't start counting
-            if (!changed) {
+        case MOTION_STATE_BOOKEND: //assume a burst of different frames, skip them
+            bookend_frames++;
+            if (bookend_frames == MOTION_BOOKEND_FRAMES) {
+                bookend_frames = 0;
                 motion_state = MOTION_STATE_COUNTING;
             }
             break;
 
-        case MOTION_STATE_COUNTING:
+        case MOTION_STATE_COUNTING: //now look for all clean frames in a row
             if (!changed) {
                 good_frames_in_a_row++;
             } else {
@@ -51,6 +55,11 @@ int next_motion_state(int changed) {
 
 
 return 0;
+}
+
+void set_state_MOTION_STATE_SEARCHING() {
+    motion_state = MOTION_STATE_SEARCHING;
+    good_frames_in_a_row = 0;
 }
 
 void print_motion_state() {

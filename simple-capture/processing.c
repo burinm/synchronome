@@ -96,6 +96,12 @@ void* processing(void* v) {
 
             }
 
+            if (num_frames_till_selection > 26) { //Sync missed frame, force algorithm
+                MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_FORCE_FRAME);
+                set_state_MOTION_STATE_SEARCHING();
+                did_frame_tick = 1;
+            }
+
             //Copy frame to writeout buffer
             if (did_frame_tick) {
 #if 0
@@ -120,9 +126,6 @@ void* processing(void* v) {
 
             last_buffer_index = current_index;
 
-            if (num_frames_till_selection > 26) {
-                 MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_ERROR_SCAN);
-            }
 
             if (did_frame_tick) {
                     //Found frame and sent to write Q

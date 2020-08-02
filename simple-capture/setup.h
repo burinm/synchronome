@@ -6,7 +6,7 @@
 #define PROFILE_ITERS   500
 
 //Standalone/profiling option
-//#define IMAGE_DIFF_TEST //Do image motion test instead of processing
+#define IMAGE_DIFF_TEST //Do image motion test instead of processing
 
 #define X_RES   640
 #define Y_RES   480

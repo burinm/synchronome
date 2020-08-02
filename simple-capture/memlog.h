@@ -42,6 +42,7 @@ typedef struct _memlog_g {
 
 //Errors
 #define MEMLOG_E_ERROR_SCAN    0x20
+#define MEMLOG_E_FORCE_FRAME   0x21
 
 //Data logging events
 #define MEMLOG_E_ADATA_24       0xf0

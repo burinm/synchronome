@@ -88,6 +88,7 @@ void destroy_queue(queue_container_t *q) {
 
 //void*, code is now generic
 int enqueue_P(queue_container_t *q, void *p) {
+    int ret;
 
     if (q->count == q->num_elems) {
         printf("enqueue_P - (safety) enqueue_P full!\n");
@@ -110,8 +111,13 @@ int enqueue_P(queue_container_t *q, void *p) {
         clock_gettime(CLOCK_REALTIME, &_t);
         _t.tv_sec += 2;
 
-        if (mq_timedsend(q->q, q->b, q->max_payload_size, HI_PRI, &_t) == 0) {
+
+        ret = mq_timedsend(q->q, q->b, q->max_payload_size, HI_PRI, &_t);
+        if (ret == 0) {
             return 0;
+        }
+        if (errno == EAGAIN) {
+            return -1;
         }
         perror("enqueue_P - Couldn't enqueue message!");
     } else {
@@ -128,12 +134,16 @@ int dequeue_P(queue_container_t *q, void *p) {
     q->count--;
 
         //2 second timeout (for ctrl_c)
-        struct timespec _t;
-        clock_gettime(CLOCK_REALTIME, &_t);
-        _t.tv_sec += 2;
+        //struct timespec _t;
+        //clock_gettime(CLOCK_REALTIME, &_t);
+        //_t.tv_sec += 2;
 
-        bytes_received = mq_timedreceive(q->q, q->b, q->max_payload_size, &prio, &_t);
+        //bytes_received = mq_timedreceive(q->q, q->b, q->max_payload_size, &prio, &_t);
+        bytes_received = mq_receive(q->q, q->b, q->max_payload_size, &prio);
         if (bytes_received == -1) {
+            if (errno == EAGAIN) {
+                return -1;
+            }
             perror("dequeue_P - Couldn't get message!");
             return -1;
         }

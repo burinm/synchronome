@@ -1,3 +1,5 @@
+tar vczf ~/backup/ecen5623_final_report_xx-yy-zz_aa-bb.tgz -C ~/class/ECEE\ 5623\ -\ Real-Time\ Embedded\ Systems/Final/ .
+
 mplayer -demuxer rawvideo -rawvideo w=320:h=240:format=yuy2 *.yuv  fps=30 -loop 0
 ffmpeg -pattern_type glob -framerate 60 -i "*.ppm" -codec copy output.avi
 

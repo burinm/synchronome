@@ -153,6 +153,10 @@ char* memlog_event_desc(uint32_t e) {
             return "MEMLOG_E_ERROR_SCAN";
             break;
 
+        case MEMLOG_E_FORCE_FRAME:
+            return "MEMLOG_E_FORCE_FRAME";
+            break;
+
         case MEMLOG_E_ADATA_24:
             return "MEMLOG_E_ADATA";
             break;
