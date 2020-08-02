@@ -1,4 +1,4 @@
-all: flash_wcet motion_test 
+all: flash_wcet motion_test verify_f
 
 
 flash_wcet: flash_wcet.o ../buffer.o ../dumptools.o ../timetools.o
@@ -12,6 +12,12 @@ motion_test: motion_test.o ../buffer.o ../motion.o ../resources.o ../dumptools.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ -lrt -lpthread
 
 motion_test.o: motion_test.c
+	$(CC) $(LDFLAGS) $(CFLAGS) -c $^ -o $@
+
+verify_f: verify_frames.o ../buffer.o ../motion.o ../timetools.o
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ -lrt -lpthread
+
+verify_frames.o: verify_frames.c
 	$(CC) $(LDFLAGS) $(CFLAGS) -c $^ -o $@
 
 fake_capture.o: fake_capture.c
@@ -28,7 +34,8 @@ processing.o: processing.c
 
 
 clean:
-	-rm -f *.o flash_wcet motion_test
+	-rm -f *.o flash_wcet motion_test verify_f
 	-rm -f *.ppm
 	-rm -f ./errors/*[.yuv,.ppm,.pgm]
 	-rm -f buffers.list
+	-rm -f frames.list
