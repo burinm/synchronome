@@ -152,3 +152,32 @@ inline int image_threshold(int count) {
     return count > MOTION_THRESHOLD;
 }
 #endif
+int frame_changes_RGB(buffer_t *first, buffer_t *second) {
+assert(first->start && second->start);
+assert(first->size == second->size);
+
+    int count = 0;
+    unsigned char* f = first->start; 
+    unsigned char* s = second->start; 
+
+// RGB
+    int diff_total = 0;
+    int diff_r = 0;
+    int diff_g = 0;
+    int diff_b = 0;
+
+    for (int i=0; i<first->size; i+=3) {
+        diff_r = abs(*f - *s);
+        f++; s++;
+        diff_g = abs(*f - *s);
+        f++; s++;
+        diff_b = abs(*f - *s);
+        f++; s++;
+
+        diff_total = diff_r + diff_g + diff_b; 
+        if (diff_total > MOTION_SENSITIVITY * 3) { //sensitivity
+            count++;
+        }
+    }
+return count;
+}

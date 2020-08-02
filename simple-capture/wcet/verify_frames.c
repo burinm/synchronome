@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
         int current_index = i;
         if (last_buffer_index != -1) {
 
-            changed_pixels = frame_changes(&test_buffers[last_buffer_index], &test_buffers[current_index]);
+            changed_pixels = frame_changes_RGB(&test_buffers[last_buffer_index], &test_buffers[current_index]);
 
 #if 0
             printf("current_index     : %lld.%.9ld\n",
@@ -221,15 +221,26 @@ int main(int argc, char* argv[]) {
             one_second.tv_sec = 1;
             one_second.tv_nsec = 0;
 
+            char* sign;
             if (diff_time.tv_sec >= 1L) {
                 timespec_subtract(&jitter_time, &diff_time, &one_second);
-                printf("+");
+                sign = "+";
             } else {
                 timespec_subtract(&jitter_time, &one_second, &diff_time);
-                printf("-");
+                sign = "-";
             }
 
-            printf("jitter: %lld.%.9ld \n", (long long)jitter_time.tv_sec, jitter_time.tv_nsec);
+            printf("jitter: %s%lld.%.9ld ", sign, (long long)jitter_time.tv_sec, jitter_time.tv_nsec);
+
+            if (jitter_time.tv_sec > 0 || jitter_time.tv_nsec > 10000000) { //10ms 
+                printf("*j ");
+            }
+
+            if (changed_pixels < 400) { //10ms 
+                printf("*same? ");
+            }
+
+            printf("\n");
     
 
 

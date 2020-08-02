@@ -31,6 +31,9 @@ int next_motion_state(int changed);
 int frame_changes(buffer_t *first, buffer_t *second);
 void set_state_MOTION_STATE_SEARCHING();
 
+//For external testing
+int frame_changes_RGB(buffer_t *first, buffer_t *second);
+
 
 
 
