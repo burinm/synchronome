@@ -6,7 +6,7 @@
 #define MOTION_SENSITIVITY              35
 #define MOTION_THRESHOLD                50
 
-#define MOTION_START_GOOD_FRAMES        8
+#define MOTION_DROP_FRAMES              25 //ignore the first second of frames
 #define MOTION_GOOD_FRAMES_THRESHOLD    4
 
 //At the start look for a bunch of same frames before we start
@@ -28,6 +28,7 @@ typedef struct {
 int is_motion(int count);
 int next_motion_state(int changed);
 int frame_changes(buffer_t *first, buffer_t *second);
+
 
 
 

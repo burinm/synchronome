@@ -7,7 +7,7 @@ void print_motion_state();
 
 int motion_state = MOTION_STATE_START;
 int good_frames_in_a_row = 0;
-//int different_frame_found = 0;
+int drop_frames = MOTION_DROP_FRAMES;
 
 int next_motion_state(int changed) {
 
@@ -15,16 +15,10 @@ int next_motion_state(int changed) {
 
     switch(motion_state) {
         case MOTION_STATE_START: //TODO synchronization is in requirements. drift?
-            if (changed) {
-                good_frames_in_a_row = 0;
-            } else {
-                good_frames_in_a_row++;
-            }
-
-            if (good_frames_in_a_row > MOTION_START_GOOD_FRAMES) {
+            if (drop_frames == MOTION_DROP_FRAMES) {
                 motion_state = MOTION_STATE_SEARCHING;
-                good_frames_in_a_row = 0;
             }
+            drop_frames++;
             break;
 
         case MOTION_STATE_SEARCHING: //find different frame
