@@ -11,6 +11,9 @@ flash_wcet.o: flash_wcet.c
 motion_test: motion_test.o ../buffer.o ../motion.o ../resources.o ../dumptools.o ../transformation.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ -lrt -lpthread
 
+motion_test.o: motion_test.c
+	$(CC) $(LDFLAGS) $(CFLAGS) -c $^ -o $@
+
 fake_capture.o: fake_capture.c
 	$(CC) $(LDFLAGS) $(CFLAGS) -c $^ -o $@
 

@@ -9,8 +9,8 @@
 #include "../transformation.h"
 #include "../motion.h"
 
-//#define OUTPUT_PPM
-#define OUTPUT_PGM
+#define OUTPUT_PPM
+//#define OUTPUT_PGM
 
 #ifdef OUTPUT_PPM
     #define OUT_BUFFER_SZ (3)
@@ -20,12 +20,16 @@
     #define OUT_BUFFER_SZ (1)
 #endif
 
+#define DIFF_NUM_START  10000
 
 extern int motion_state;
 buffer_t out_buffer;
 
 int printf_on = 1;
 int rebuild_images = 0;
+int diff_images = 0;
+
+void frame_changes_writeout(buffer_t *first, buffer_t *second, buffer_t *out);
 
 int main(int argc, char* argv[]) {
     FILE* stream;
@@ -35,7 +39,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (argc != 2) {
-        printf("usage: motion <-b/r>  rebuild/run motion\n");
+        printf("usage: motion <-b/-d/r>  rebuild/diff/run motion\n");
         return 0;
     }
 
@@ -43,6 +47,12 @@ int main(int argc, char* argv[]) {
     if (argc == 2) {
         if (strcmp(argv[1], "-b") == 0) {
             rebuild_images = 1;
+        }
+    }
+
+    if (argc == 2) {
+        if (strcmp(argv[1], "-d") == 0) {
+            diff_images = 1;
         }
     }
 
@@ -117,9 +127,7 @@ if (rebuild_images) { //just writeout ppms
         return -1;
     }
 
-
     int type;
-
 
     for (int i=0; i<buf_num; i++) {
 #ifdef OUTPUT_PPM
@@ -137,6 +145,36 @@ if (rebuild_images) { //just writeout ppms
         out_buffer.id = scan_buffer[i].id;
         dump_raw_buffer_with_header(&out_buffer, type, scan_buffer[i].id);
     }
+} else if (diff_images) {
+
+    if (allocate_buffer(&out_buffer, OUT_BUFFER_SZ) == -1) {
+        console("couldn't allocate error out buffer\n");
+        return -1;
+    }
+
+    int previous_index = -1;
+    for (int current_index = 0; current_index < buf_num; current_index++) {
+       if (previous_index != -1) {
+            frame_changes_writeout(&scan_buffer[previous_index],
+                                   &scan_buffer[current_index],
+                                   &out_buffer);
+            int type;
+#ifdef OUTPUT_PPM
+            type = PPM_BUFFER;
+#endif
+
+#ifdef OUTPUT_PGM
+            type = PGM_BUFFER;
+#endif
+            out_buffer.id = scan_buffer[previous_index].id;
+            dump_raw_buffer_with_header(&out_buffer,
+                                        type,
+                                        scan_buffer[previous_index].id + DIFF_NUM_START);
+        }
+        previous_index = current_index;
+    }
+
+
 } else { //motion test
 
     /* Same algorithm from processing */
@@ -188,4 +226,39 @@ if (rebuild_images) { //just writeout ppms
 
 deallocate_processing();
 return 0;    
+}
+
+void frame_changes_writeout(buffer_t *first, buffer_t *second, buffer_t *out) {
+
+    unsigned char* f = first->start;
+    unsigned char* s = second->start;
+    unsigned char* o = out->start;
+    int count = 0;
+
+assert(first->start && second->start);
+assert(first->size == second->size);
+printf("%d %d \n", first->size * OUT_BUFFER_SZ,  out->size);
+    memset(out->start, 0, out->size);
+
+    for (int i=0; i<first->size /2; i++) {
+        int diff = abs(*f - *s);
+        if (diff > MOTION_SENSITIVITY) { //sensitivity
+            count++;
+#ifdef OUTPUT_PPM
+            *o = 255; o++; *o = 255; o++; *o = 255; o++;
+#endif
+#ifdef OUTPUT_PGM
+            *o = 255; o++; //greyscale of diffs
+#endif
+        } else {
+#ifdef OUTPUT_PPM
+            o+=3;
+#endif
+#ifdef OUTPUT_PGM
+            o++;
+#endif
+        }
+        //Just diff Ys, skip U/V
+        f+=2; s+=2;
+    }
 }
