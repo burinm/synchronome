@@ -258,6 +258,13 @@ int main(int argc, char* argv[]) {
 
     }
 
+    struct timespec diff_time;
+    timespec_subtract(&diff_time, //Total time between first/last frame
+                      &test_buffers[last_buffer_index].time,
+                      &test_buffers[0].time);
+
+    printf("total elapsed: %lld.%.9ld\n", (long long)diff_time.tv_sec, diff_time.tv_nsec);
+
 
     for (int i=0; i < NUM_TEST_BUFFERS; i++) {
         deallocate_buffer(&test_buffers[i]);
