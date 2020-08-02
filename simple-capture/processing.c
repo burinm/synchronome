@@ -132,7 +132,8 @@ void* processing(void* v) {
                     break;
             }
         } //forever, until change is detected
-        MEMLOG_LOG24(PROCESSING_LOG, MEMLOG_E_ADATA_24, num_frames_till_selection);
+        MEMLOG_LOG24(PROCESSING_LOG, MEMLOG_E_ADATA_24, num_frames_till_selection); //how many step it took to select
+        MEMLOG_LOG24(PROCESSING_LOG, MEMLOG_E_BDATA_24, scan_buffer[last_buffer_index].id); //selected frame id
 
         if (num_frames_till_selection > 35) {
             freeze_system = 1; //Makes sequencer stop timer
