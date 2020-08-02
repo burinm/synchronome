@@ -37,7 +37,7 @@ void frame_changes_writeout(buffer_t *first, buffer_t *second, buffer_t *out);
 int main(int argc, char* argv[]) {
     FILE* stream;
     if ((stream = fopen("frames.list", "r")) == NULL) {
-        printf("motion: needs <buffers.list>\n");
+        printf("verify_f: needs <frames.list>\n");
         return 0;
     }
 
