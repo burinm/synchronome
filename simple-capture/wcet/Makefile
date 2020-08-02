@@ -1,5 +1,6 @@
 all: flash_wcet motion_test verify_f
 
+CFLAGS += -g
 
 flash_wcet: flash_wcet.o ../buffer.o ../dumptools.o ../timetools.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^
@@ -39,3 +40,10 @@ clean:
 	-rm -f ./errors/*[.yuv,.ppm,.pgm]
 	-rm -f buffers.list
 	-rm -f frames.list
+
+.PHONY: errors
+errors:
+	-rm -f ./errors/*[.yuv,.ppm,.pgm]
+	./make_buffers_list.sh
+	./motion_test -b
+	./motion_test -d

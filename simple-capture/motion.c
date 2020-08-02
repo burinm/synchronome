@@ -3,25 +3,25 @@
 #include <assert.h>
 #include "motion.h"
 
-void print_motion_state();
+//int motion_state = MOTION_STATE_START;
+int motion_state = MOTION_STATE_SEARCHING;
 
-int motion_state = MOTION_STATE_START;
-
-int drop_frames = MOTION_DROP_FRAMES;
+int drop_frames = 0;
 int bookend_frames = 0;
 int good_frames_in_a_row = 0;
 
 int next_motion_state(int changed) {
 
-    print_motion_state();
-
     switch(motion_state) {
+#if 0
         case MOTION_STATE_START: //TODO synchronization is in requirements. drift?
             if (drop_frames++ == MOTION_DROP_FRAMES) {
                 drop_frames = 0; //We shouldn't ever start over, just for completeness
                 motion_state = MOTION_STATE_SEARCHING;
             }
+            return MOTION_IGNORE;
             break;
+#endif
 
         case MOTION_STATE_SEARCHING: //find different frame
             if (changed) {
@@ -48,13 +48,13 @@ int next_motion_state(int changed) {
             if (good_frames_in_a_row > MOTION_GOOD_FRAMES_THRESHOLD) {
                 motion_state = MOTION_STATE_SEARCHING;
                 good_frames_in_a_row = 0;
-                return 1; //Hooray
+                return MOTION_DETECTED; //Hooray
             }
             break;
     }
 
 
-return 0;
+return MOTION_NONE;
 }
 
 void set_state_MOTION_STATE_SEARCHING() {
@@ -64,28 +64,29 @@ void set_state_MOTION_STATE_SEARCHING() {
 
 void print_motion_state() {
 
+    char* state;
     switch(motion_state) {
         case MOTION_STATE_START:
-            printf("MOTION_STATE_START:");
+            state = "MOTION_STATE_START:";
             break;
 
         case MOTION_STATE_SEARCHING: //find different frame
-            printf("MOTION_STATE_SEARCHING:");
+            state = "MOTION_STATE_SEARCHING:";
             break;
 
         case MOTION_STATE_BOOKEND: //find different frame
-            printf("MOTION_STATE_BOOKEND:");
+            state = "MOTION_STATE_BOOKEND:";
             break;
 
         case MOTION_STATE_COUNTING:
-            printf("MOTION_STATE_COUNTING:");
+            state = "MOTION_STATE_COUNTING:";
             break;
 
         default:
-            printf("MOTION - unknown state!");
+            state = "MOTION - unknown state!";
     }
 
-    printf("(%d)\n", good_frames_in_a_row);
+    printf("%-25s(%d)", state, good_frames_in_a_row);
 }
 
 int frame_changes(buffer_t *first, buffer_t *second) {

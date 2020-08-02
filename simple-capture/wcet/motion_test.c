@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
             char* image_id_c = strtok(NULL, "."); //.[nnnnnn].yuv
             int image_id = atoi(image_id_c);
 
-            printf("load %s id=(%d)\n", filename, image_id);
+            printf("#%d load %s id=(%d)\n", buf_num, filename, image_id);
             //printf("load %s\n", filename);
             FILE* image;
             if ((image = fopen(filename, "rb")) == NULL) {
@@ -104,9 +104,10 @@ int main(int argc, char* argv[]) {
                 assert(offset == frame_total_bytes);
 
                 scan_buffer[buf_num].id = image_id;
-                buf_num++;
                 fclose(image);
-                assert(buf_num < SCAN_BUF_SIZE + 1);
+
+                buf_num++;
+                assert(buf_num <= SCAN_BUF_SIZE);
             }
 
         }
@@ -193,27 +194,24 @@ if (rebuild_images) { //just writeout ppms
         int current_index = i;
         num_frames_till_selection++;
 
-        printf("Processing: [index %d] (VIDIOC_DEQBUF)\n", current_index);
-
         did_frame_tick = 0;
 
         if (last_buffer_index != -1) {
 
-            printf("Processing: [index %d start=%p size=%d] (in)\n",
-                    last_buffer_index,
-                    scan_buffer[last_buffer_index].start,
-                    scan_buffer[last_buffer_index].size);
-
             changed_pixels = frame_changes(&scan_buffer[last_buffer_index], &scan_buffer[current_index]);
-            printf("Processing %d (%06d) vs %d (%06d) frame diff = %d ",
-                            last_buffer_index,
-                            scan_buffer[last_buffer_index].id,
-                            current_index,
-                            scan_buffer[current_index].id,
-                            changed_pixels);
             did_frame_tick = is_motion(changed_pixels);
 
-            printf("%s\n", did_frame_tick ? "yes" : "no");
+            printf("Processing index [%2d] - [%2d] (#%06d) vs [%2d] (#%06d) changed_pixels=%4d tick=",
+                    current_index,
+                    last_buffer_index,
+                    scan_buffer[last_buffer_index].id,
+                    current_index,
+                    scan_buffer[current_index].id,
+                    changed_pixels);
+
+            printf("%s ", did_frame_tick ? "yes" : "no ");
+            print_motion_state();
+            printf("\n");
 
 
         }

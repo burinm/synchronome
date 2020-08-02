@@ -38,7 +38,7 @@ void* processing(void* v) {
 
     int last_buffer_index = -1;
     int changed_pixels = 0;
-    int did_frame_tick = 0;
+    int did_frame_tick = MOTION_NONE;
 
     int num_frames_till_selection = 0;
 
@@ -52,12 +52,13 @@ void* processing(void* v) {
         error_exit(-2);
     }
 
+    int startup_frames_ignore = 0;
+
     while(running) {
 
 
         MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_DONE);
         while(1) {
-
 
             int current_index;
             int ret;
@@ -70,45 +71,60 @@ void* processing(void* v) {
             }
             num_frames_till_selection++;
 
-            printf("Processing: [index %d] (VIDIOC_DEQBUF)\n", current_index);
 
-            did_frame_tick = 0;
+            did_frame_tick = MOTION_NONE;
 
             if (last_buffer_index != -1) {
-
-                printf("Processing: [index %d start=%p size=%d] (in)\n",
-                        last_buffer_index,
-                        scan_buffer[last_buffer_index].start,
-                        scan_buffer[last_buffer_index].size);
-
                 changed_pixels = frame_changes(&scan_buffer[last_buffer_index], &scan_buffer[current_index]);
-                printf("Processing %d (%06d) vs %d (%06d) frame diff = %d ",
-                                last_buffer_index,
-                                scan_buffer[last_buffer_index].id,
-                                current_index,
-                                scan_buffer[current_index].id,
-                                changed_pixels);
                 did_frame_tick = is_motion(changed_pixels);
+assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
+            }
 
-                printf("%s\n", did_frame_tick ? "yes" : "no");
+            //Startup
+            if (did_frame_tick == MOTION_DETECTED && startup_frames_ignore < MOTION_SELECTIONS_IGNORE) {
+                startup_frames_ignore++;
+                printf("ignoring %d frame(s)\n", startup_frames_ignore);
+                //TODO, there should be a better way to organzixe loop logic
+                last_buffer_index = current_index;
+                break;
+            }
 
-                assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
+            if (startup_frames_ignore == MOTION_SELECTIONS_IGNORE) {  //Now processing
+                if (last_buffer_index != -1) {
+#if 0
+                    printf("Processing: [index %d start=%p size=%d] (in)\n",
+                            last_buffer_index,
+                            scan_buffer[last_buffer_index].start,
+                            scan_buffer[last_buffer_index].size);
+#endif
+
+                    printf("Processing index [%2d] - [%2d] (#%06d) vs [%2d] (#%06d) changed_pixels=%4d tick=",
+                            current_index,
+                            last_buffer_index,
+                            scan_buffer[last_buffer_index].id,
+                            current_index,
+                            scan_buffer[current_index].id,
+                            changed_pixels);
+
+                    printf("%s ", did_frame_tick ? "yes" : "no ");
+                    print_motion_state();
+                    printf("\n");
+                }
+
 
             }
 
+#ifdef FORCE_FRAME_SYNC
             if (num_frames_till_selection > 26) { //Sync missed frame, force algorithm
                 MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_FORCE_FRAME);
                 set_state_MOTION_STATE_SEARCHING();
-                did_frame_tick = 1;
+                did_frame_tick = MOTION_DETECTED;
             }
+#endif
 
             //Copy frame to writeout buffer
-            if (did_frame_tick) {
-#if 0
-                memcpy((unsigned char*)wo_buffers[wo_buffer_index].start,
-                        (unsigned char*)(scan_buffer[current_index].start),
-                        scan_buffer[current_index].size);
-#endif
+            if (did_frame_tick == MOTION_DETECTED) {
+
                 COPY_BUFFER(wo_buffers[wo_buffer_index], scan_buffer[current_index]);
                 COPY_BUFFER_TIMESTAMP(wo_buffers[wo_buffer_index], scan_buffer[current_index]);
                 wo_buffers[wo_buffer_index].id = scan_buffer[current_index].id;
@@ -127,15 +143,25 @@ void* processing(void* v) {
             last_buffer_index = current_index;
 
 
-            if (did_frame_tick) {
-                    //Found frame and sent to write Q
+
+            if (did_frame_tick == MOTION_DETECTED) { //Found frame and sent to write Q
                     break;
             }
         } //forever, until change is detected
+
+        if (startup_frames_ignore < MOTION_SELECTIONS_IGNORE) {
+            //TODO, there should be a better way to organzixe loop logic
+            num_frames_till_selection = 0;
+            continue;
+        }
+
         MEMLOG_LOG24(PROCESSING_LOG, MEMLOG_E_ADATA_24, num_frames_till_selection); //how many step it took to select
         MEMLOG_LOG24(PROCESSING_LOG, MEMLOG_E_BDATA_24, scan_buffer[last_buffer_index].id); //selected frame id
 
-        if (num_frames_till_selection > 35) {
+
+        //timing off +/-120ms!
+        if (num_frames_till_selection > MOTION_FRAMES_SEC + MOTION_FRAMES_DRIFT ||
+            num_frames_till_selection < MOTION_FRAMES_SEC - MOTION_FRAMES_DRIFT) {
             freeze_system = 1; //Makes sequencer stop timer
             printf("Bork! took %d frames to select. id:%d \n", num_frames_till_selection,
                                                             scan_buffer[last_buffer_index].id );
@@ -144,6 +170,7 @@ void* processing(void* v) {
 
                 dump_buffer_raw(&scan_buffer[i], buffer_id, 1);
 
+#if 0 //dump actual processed frame
                 COPY_BUFFER_TIMESTAMP(er_buffer, scan_buffer[i]);
                 er_buffer.id =  scan_buffer[i].id;
 
@@ -156,6 +183,7 @@ void* processing(void* v) {
                     yuv422toG8(&scan_buffer[i], &er_buffer, 0);
                     dump_raw_buffer_with_header(&er_buffer, PGM_BUFFER, buffer_id);
                 #endif
+#endif
             }
             sem_post(&sem_teardown);
             while(1); //boo

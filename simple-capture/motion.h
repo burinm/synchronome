@@ -3,6 +3,10 @@
 
 #include "buffer.h"
 
+#define MOTION_DETECTED                 2
+#define MOTION_IGNORE                   1
+#define MOTION_NONE                     0
+
 #define MOTION_SENSITIVITY              35
 #define MOTION_THRESHOLD                50
 
@@ -30,6 +34,8 @@ int is_motion(int count);
 int next_motion_state(int changed);
 int frame_changes(buffer_t *first, buffer_t *second);
 void set_state_MOTION_STATE_SEARCHING();
+
+void print_motion_state();
 
 //For external testing
 int frame_changes_RGB(buffer_t *first, buffer_t *second);
