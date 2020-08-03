@@ -89,7 +89,7 @@ assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
                 break;
             }
 
-            if (startup_frames_ignore == MOTION_SELECTIONS_IGNORE) {  //Now processing
+            //if (startup_frames_ignore == MOTION_SELECTIONS_IGNORE) {  //Now processing
                 if (last_buffer_index != -1) {
 #if 0
                     printf("Processing: [index %d start=%p size=%d] (in)\n",
@@ -110,9 +110,7 @@ assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
                     print_motion_state();
                     printf("\n");
                 }
-
-
-            }
+            //}
 
 #ifdef FORCE_FRAME_SYNC
             if (num_frames_till_selection > 26) { //Sync missed frame, force algorithm

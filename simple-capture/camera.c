@@ -273,14 +273,14 @@ int try_refocus(int camera_fd) {
 
     memset(&c[0], 0, sizeof(struct v4l2_ext_control));
     c[0].id = V4L2_CID_FOCUS_ABSOLUTE;
-    c[0].value = 153; //Distance to my wall, lol
+    c[0].value = CAMERA_STATIC_FOCUS;
     //c[0].value = 0; //infinity
 
     if (ioctl(camera_fd, VIDIOC_S_EXT_CTRLS, &ext) == -1) {
         perror("ioctl V4L2_CID_FOCUS_ABSOLUTE failed");
         return -1;
     }
-    console("focus forced to 153.");
+    console("focus forced to %d.", CAMERA_STATIC_FOCUS);
     //console("infinity.");
     fflush(stdout);
 
