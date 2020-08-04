@@ -2,6 +2,7 @@
 #define __MOTION_H__
 
 #include "buffer.h"
+#include "setup.h"
 
 #define MOTION_DETECTED                 2
 #define MOTION_IGNORE                   1
@@ -12,7 +13,18 @@
 
 #define MOTION_DROP_FRAMES              25 //ignore the first second of frames
 #define MOTION_BOOKEND_FRAMES           3
-#define MOTION_GOOD_FRAMES_THRESHOLD    4
+
+#ifdef MODE_ALWAYS_DETECT_FRAME
+    /* synced selection
+        We want to select as soon as tick settles
+    */
+    #define MOTION_GOOD_FRAMES_THRESHOLD    4
+#else
+    /* Continuous detection (bookend ~2 + 9 = 12) 25/2 = 12.5
+        We want to setup to select right in the middle
+    */
+    #define MOTION_GOOD_FRAMES_THRESHOLD    9
+#endif
 
 //At the start look for a bunch of same frames before we start
 #define MOTION_STATE_START              0

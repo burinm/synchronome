@@ -13,7 +13,8 @@
 #define ERROR_LEVEL_0   0
 
 //#define CAMERA_STATIC_FOCUS 153 //Distance to my wall, lol
-#define CAMERA_STATIC_FOCUS 120 //Distance to light table
+//#define CAMERA_STATIC_FOCUS 120 //Distance to light table
+#define CAMERA_STATIC_FOCUS 115 //Distance to light table
 
 typedef struct {
     int camera_fd;

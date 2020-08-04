@@ -1,6 +1,9 @@
 #ifndef __SETUP_H__
 #define __SETUP_H__
 
+//Re-sync every frame (This currently works at 1Hz if lighting is good)
+#define MODE_ALWAYS_DETECT_FRAME
+
 //Test frames without writing to disk
 //#define PROFILE_FRAMES
 #define PROFILE_ITERS   500

@@ -40,8 +40,10 @@ void* processing(void* v) {
     int changed_pixels = 0;
     int did_frame_tick = MOTION_NONE;
 
-    int num_frames_till_selection = 0;
+    int is_startup = 1;
+    int startup_frames_ignore = 0;
 
+    int num_frames_till_selection = 0;
 
     //pthread_barrier_wait(&bar_thread_inits); //GO!!
 
@@ -52,7 +54,6 @@ void* processing(void* v) {
         error_exit(-2);
     }
 
-    int startup_frames_ignore = 0;
 
     while(running) {
 
@@ -69,56 +70,50 @@ void* processing(void* v) {
                 printf("*Frame Processing: dequeue error\n");
                 error_exit(-1);
             }
+
+            //Need at least two frames to start comparing
+            if (last_buffer_index == -1) {
+                last_buffer_index = current_index;
+                break;
+            }
+
             num_frames_till_selection++;
 
 
             did_frame_tick = MOTION_NONE;
 
-            if (last_buffer_index != -1) {
-                changed_pixels = frame_changes(&scan_buffer[last_buffer_index], &scan_buffer[current_index]);
-                did_frame_tick = is_motion(changed_pixels);
+            changed_pixels = frame_changes(&scan_buffer[last_buffer_index], &scan_buffer[current_index]);
+            did_frame_tick = is_motion(changed_pixels);
 assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
-            }
 
             //Startup
-            if (did_frame_tick == MOTION_DETECTED && startup_frames_ignore < MOTION_SELECTIONS_IGNORE) {
-                startup_frames_ignore++;
-                printf("ignoring %d frame(s)\n", startup_frames_ignore);
-                //TODO, there should be a better way to organzixe loop logic
-                last_buffer_index = current_index;
-                break;
-            }
+            if (is_startup) {
+                if (did_frame_tick == MOTION_DETECTED) {
+                    startup_frames_ignore++;
+                    if (startup_frames_ignore == MOTION_SELECTIONS_IGNORE) {
+                        is_startup = 0;
+                    }
+                    printf("ignoring %d frame(s)\n", startup_frames_ignore);
+                    //TODO, there should be a better way to organize loop logic
 
-            //if (startup_frames_ignore == MOTION_SELECTIONS_IGNORE) {  //Now processing
-                if (last_buffer_index != -1) {
-#if 0
-                    printf("Processing: [index %d start=%p size=%d] (in)\n",
-                            last_buffer_index,
-                            scan_buffer[last_buffer_index].start,
-                            scan_buffer[last_buffer_index].size);
-#endif
-
-                    printf("Processing index [%2d] - [%2d] (#%06d) vs [%2d] (#%06d) changed_pixels=%4d tick=",
-                            current_index,
-                            last_buffer_index,
-                            scan_buffer[last_buffer_index].id,
-                            current_index,
-                            scan_buffer[current_index].id,
-                            changed_pixels);
-
-                    printf("%s ", did_frame_tick ? "yes" : "no ");
-                    print_motion_state();
-                    printf("\n");
+                    //This needs to go in here, skip still needs to run same algorithm
+                    last_buffer_index = current_index;
+                    break;
                 }
-            //}
-
-#ifdef FORCE_FRAME_SYNC
-            if (num_frames_till_selection > 26) { //Sync missed frame, force algorithm
-                MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_FORCE_FRAME);
-                set_state_MOTION_STATE_SEARCHING();
-                did_frame_tick = MOTION_DETECTED;
             }
-#endif
+
+            printf("Processing index [%2d] - [%2d] (#%06d) vs [%2d] (#%06d) changed_pixels=%4d tick=",
+                    current_index,
+                    last_buffer_index,
+                    scan_buffer[last_buffer_index].id,
+                    current_index,
+                    scan_buffer[current_index].id,
+                    changed_pixels);
+
+            printf("%s ", did_frame_tick ? "yes" : "no ");
+            print_motion_state();
+            printf("\n");
+
 
             //Copy frame to writeout buffer
             if (did_frame_tick == MOTION_DETECTED) {
@@ -141,13 +136,13 @@ assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
             last_buffer_index = current_index;
 
 
-
             if (did_frame_tick == MOTION_DETECTED) { //Found frame and sent to write Q
                     break;
             }
         } //forever, until change is detected
 
-        if (startup_frames_ignore < MOTION_SELECTIONS_IGNORE) {
+        //Startup condition, skip error check
+        if (is_startup) {
             //TODO, there should be a better way to organzixe loop logic
             num_frames_till_selection = 0;
             continue;

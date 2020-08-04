@@ -22,6 +22,9 @@ clean-frames:
 	-rm -f timestamps.txt
 	-rm -f *.log
 
+run: clean-frames
+	sudo ./sequencer
+
 sequencer: ${OBJS} sequencer.o frame.o processing.o writeout.o realtime.o memlog.o queue.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ -lrt -lpthread
 
