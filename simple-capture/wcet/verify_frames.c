@@ -10,6 +10,8 @@
 #include "../motion.h"
 #include "../timetools.h"
 
+#define MAX_CHANGED_PIXELS  200 //No less than this changed
+
 #define NUM_TEST_BUFFERS    1801
 buffer_t test_buffers[NUM_TEST_BUFFERS];
 
@@ -245,7 +247,7 @@ int main(int argc, char* argv[]) {
                 printf("*j ");
             }
 
-            if (changed_pixels < 400) { //10ms 
+            if (changed_pixels < MAX_CHANGED_PIXELS) { //10ms 
                 printf("*same? ");
             }
 
