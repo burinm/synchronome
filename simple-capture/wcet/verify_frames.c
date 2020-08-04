@@ -26,7 +26,7 @@ buffer_t test_buffers[NUM_TEST_BUFFERS];
     #define IN_BUFFER_SZ (1)
 #endif
 
-#define DIFF_NUM_START  10000
+#define DIFF_NUM_START  100000
 
 extern int motion_state;
 

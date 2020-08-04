@@ -14,6 +14,11 @@
 #include "motion.h"
 #include "memlog.h"
 
+#ifdef MODE_ALWAYS_DETECT_FRAME
+#else
+    #include "timetools.h"
+#endif
+
 #include "dumptools.h" //FOR errors only
 #include "transformation.h" //FOR errors only
 extern int freeze_system; //DEBUG
@@ -44,6 +49,13 @@ void* processing(void* v) {
     int startup_frames_ignore = 0;
 
     int num_frames_till_selection = 0;
+
+#ifdef MODE_ALWAYS_DETECT_FRAME
+#else
+    struct timespec time_diff;
+    struct timespec current_stamp;
+    struct timespec last_stamp;
+#endif
 
     //pthread_barrier_wait(&bar_thread_inits); //GO!!
 
@@ -82,10 +94,20 @@ void* processing(void* v) {
 
             did_frame_tick = MOTION_NONE;
 
+#ifdef MODE_ALWAYS_DETECT_FRAME
+#else
+        if (is_startup) {
+#endif
             changed_pixels = frame_changes(&scan_buffer[last_buffer_index], &scan_buffer[current_index]);
             did_frame_tick = is_motion(changed_pixels);
 assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
 
+#ifdef MODE_ALWAYS_DETECT_FRAME
+#else
+       }
+#endif
+
+#ifdef MODE_ALWAYS_DETECT_FRAME
             //Startup
             if (is_startup) {
                 if (did_frame_tick == MOTION_DETECTED) {
@@ -101,7 +123,52 @@ assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
                     break;
                 }
             }
+#else
+            //Startup
+            if (is_startup) {
+                if (did_frame_tick == MOTION_DETECTED) {
+                    BUFFER_GET_TIMESTAMP(scan_buffer[current_index], current_stamp);
+                    BUFFER_GET_TIMESTAMP(scan_buffer[last_buffer_index], last_stamp);
 
+                    if (timespec_subtract(&time_diff, &current_stamp, &last_stamp) == 0) {
+
+                        ///80ms jitter check
+                        if (time_diff.tv_sec == 0) {
+                            if (time_diff.tv_nsec < 80000000L) { // < 80ms
+                                startup_frames_ignore++;
+                                if (startup_frames_ignore == MOTION_SELECTIONS_IGNORE) {
+                                    is_startup = 0;
+                                }
+                                printf("sync #%d %lld.%.9ld \n", startup_frames_ignore,
+                                                                 (long long)time_diff.tv_sec,
+                                                                 time_diff.tv_nsec);
+                                last_buffer_index = current_index;
+                                break;
+                            }
+                        }
+                    }
+                    printf("sync #%d %lld.%.9ld failed\n",startup_frames_ignore,
+                                                          (long long)time_diff.tv_sec,
+                                                          time_diff.tv_nsec);
+                    startup_frames_ignore = 0;
+                    last_buffer_index = current_index;
+                    break;
+                }
+            }
+
+
+            //We should be synced, grab a frame every second
+            if (num_frames_till_selection == MOTION_FRAMES_SEC) {
+                did_frame_tick = MOTION_DETECTED;
+            }
+
+
+#endif
+
+#ifdef MODE_ALWAYS_DETECT_FRAME
+#else
+        if(is_startup) {
+#endif
             printf("Processing index [%2d] - [%2d] (#%06d) vs [%2d] (#%06d) changed_pixels=%4d tick=",
                     current_index,
                     last_buffer_index,
@@ -113,6 +180,20 @@ assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
             printf("%s ", did_frame_tick ? "yes" : "no ");
             print_motion_state();
             printf("\n");
+
+#ifdef MODE_ALWAYS_DETECT_FRAME
+#else
+       }
+#endif
+
+#ifdef MODE_ALWAYS_DETECT_FRAME
+#else
+            printf("Processing index [%2d] (#%06d) auto selected  = %s(offset %d)\n",
+                    current_index,
+                    scan_buffer[current_index].id,
+                    did_frame_tick == MOTION_DETECTED ? "yes" : "no ",
+                    num_frames_till_selection);
+#endif
 
 
             //Copy frame to writeout buffer

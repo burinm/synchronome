@@ -1,8 +1,11 @@
 #ifndef __SETUP_H__
 #define __SETUP_H__
 
-//Re-sync every frame (This currently works at 1Hz if lighting is good)
-#define MODE_ALWAYS_DETECT_FRAME
+/* Re-sync every frame (This currently works at 1Hz if lighting is good)
+   When this is off, the system syncs, then autoselects a frame every
+   MOTION_FRAMES_SEC frames (1 second)
+*/
+//#define MODE_ALWAYS_DETECT_FRAME
 
 //Test frames without writing to disk
 //#define PROFILE_FRAMES
