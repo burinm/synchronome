@@ -26,7 +26,7 @@ buffer_t test_buffers[NUM_TEST_BUFFERS];
     #define IN_BUFFER_SZ (1)
 #endif
 
-#define DIFF_NUM_START  100000
+#define DIFF_NUM_START  1000000
 
 extern int motion_state;
 
@@ -243,7 +243,7 @@ int main(int argc, char* argv[]) {
 
             printf("jitter: %s%lld.%.9ld ", sign, (long long)jitter_time.tv_sec, jitter_time.tv_nsec);
 
-            if (jitter_time.tv_sec > 0 || jitter_time.tv_nsec > 10000000) { //10ms 
+            if (jitter_time.tv_sec > 0 || jitter_time.tv_nsec > 100000) { //100us 
                 printf("*j ");
             }
 
