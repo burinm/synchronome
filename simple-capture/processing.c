@@ -31,6 +31,177 @@ extern sem_t sem_teardown;
 
 memlog_t* PROCESSING_LOG;
 
+#ifdef MODE_10Hz
+void* processing(void* v) {
+    video_t video;
+    memcpy(&video, (video_t*)v, sizeof(video_t));
+
+    PROCESSING_LOG = memlog_init();
+
+    int wo_buffer_index = 0;
+
+    int s_ret = -1;
+    //struct v4l2_buffer b;
+
+    int last_buffer_index = -1;
+    int current_index = 0;
+
+    int did_frame_tick = MOTION_NONE;
+
+    int num_frames_till_selection = 0;
+
+    int is_even = 0;
+    int changed_pixels = 0;
+    int zero_pixels = 0;
+    int is_startup = 1;
+    int startup_count = 0;
+    struct timespec time_diff;
+    struct timespec current_stamp;
+    struct timespec last_stamp;
+
+    //pthread_barrier_wait(&bar_thread_inits); //GO!!
+
+#if 1
+    //Best effort!
+    s_ret = sem_wait(&sem_processing);
+    if (s_ret == -1) {
+        perror("sem_wait sem_processing failed");
+        error_exit(-2);
+    }
+
+    if (schedule_best_effort_priority(-20) == -1) {
+        perror("processing prio (-20)");
+        error_exit(-2);
+    }
+#endif
+
+
+    while(running) {
+
+        MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_DONE);
+        while(1) {
+
+            int ret;
+            ret = dequeue_P(&frame_Q, &current_index);
+            if (ret == 1) {
+                break; //Empty queue, give back CPU
+            } else if (ret == -1) {
+                printf("*Frame Processing: dequeue error\n");
+                error_exit(-1);
+            }
+
+            //Need at least two frames to start comparing
+            if (last_buffer_index == -1) {
+                last_buffer_index = current_index;
+                break;
+            }
+
+            did_frame_tick = MOTION_NONE;
+
+    if (is_startup) {
+            changed_pixels = frame_changes(&scan_buffer[last_buffer_index], &scan_buffer[current_index]);
+            //did_frame_tick = is_motion(changed_pixels);
+assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
+
+            if (changed_pixels == 0) {
+                zero_pixels++; 
+                if (zero_pixels == 2) {
+                    zero_pixels = 0;
+                    did_frame_tick = MOTION_DETECTED;
+                    printf("         <-#%d----- 00 ------>\n", startup_count);
+                }
+            } else {
+                zero_pixels = 0;
+            }
+
+            if (did_frame_tick == MOTION_DETECTED) {
+                BUFFER_GET_TIMESTAMP(scan_buffer[current_index], current_stamp);
+                BUFFER_GET_TIMESTAMP(scan_buffer[last_buffer_index], last_stamp);
+
+                if (timespec_subtract(&time_diff, &current_stamp, &last_stamp) == 0) {
+
+                    ///80ms jitter check
+                    if (time_diff.tv_sec == 0) {
+                        if (time_diff.tv_nsec < 80000000L) { // < 80ms
+                            startup_count++;
+                            if (startup_count == 5) {
+                                is_startup = 0;
+                                num_frames_till_selection = -12; //Try and put in middle of changes
+                                last_buffer_index = current_index;
+                                continue;
+                            }
+                            printf("sync #%d %lld.%.9ld \n", startup_count,
+                                    (long long)time_diff.tv_sec,
+                                    time_diff.tv_nsec);
+                        }
+                    }
+                }
+            }
+
+            last_buffer_index = current_index;
+            break;
+    }
+
+
+            num_frames_till_selection++;
+
+            if (num_frames_till_selection > 0) { //Add delay after trigger
+                if (is_even) {
+                    if (num_frames_till_selection == 2) {
+                        did_frame_tick = MOTION_DETECTED;
+                        is_even = 0;
+                    }
+                } else {
+                    if (num_frames_till_selection == 3) {
+                        did_frame_tick = MOTION_DETECTED;
+                        is_even = 1;
+                    }
+
+                }
+            }
+
+            printf("Processing index [%2d] (#%06d) auto (pixels %d)  = %s(offset %d)\n",
+                    current_index,
+                    scan_buffer[current_index].id,
+                    changed_pixels,
+                    did_frame_tick == MOTION_DETECTED ? "yes" : "no ",
+                    num_frames_till_selection);
+
+
+            if (did_frame_tick == MOTION_DETECTED) { //Found frame and sent to write Q
+                COPY_BUFFER(wo_buffers[wo_buffer_index], scan_buffer[current_index]);
+                COPY_BUFFER_TIMESTAMP(wo_buffers[wo_buffer_index], scan_buffer[current_index]);
+                wo_buffers[wo_buffer_index].id = scan_buffer[current_index].id;
+
+                if (enqueue_P(&writeout_Q, &wo_buffer_index) == -1) {
+                    perror("writeout Q full!");
+                    error_exit(-1);
+                }
+                total_frames_selected_g++;
+
+                //ghetto circular buffer
+                wo_buffer_index++;
+                if (wo_buffer_index == NUM_WO_BUF) {
+                    wo_buffer_index = 0;
+                }
+            }
+
+
+            last_buffer_index = current_index;
+
+
+            if (did_frame_tick == MOTION_DETECTED) { //Found frame and sent to write Q
+                break;
+            }
+        } //forever, until change is detected
+        num_frames_till_selection = 0;
+        //}
+
+    }
+    return 0;
+}
+
+#else
 void* processing(void* v) {
     video_t video;
     memcpy(&video, (video_t*)v, sizeof(video_t));
@@ -274,3 +445,4 @@ assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
     }
 return 0;
 }
+#endif
