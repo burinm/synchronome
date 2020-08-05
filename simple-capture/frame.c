@@ -192,19 +192,14 @@ assert(scan_buffer[scan_buffer_index].size == frame_buffers[current_b.index].siz
         BUFFER_SET_TIMESTAMP(scan_buffer[scan_buffer_index], timestamp);
         scan_buffer[scan_buffer_index].id = frame_id_g;
         frame_id_g++;
-#if 0
-        memcpy(&scan_buffer[scan_buffer_index].time,
-               &timestamp,
-               sizeof(struct timespec));
-#endif
 
         if (enqueue_P(&frame_Q, &scan_buffer_index) == -1) {
             perror("scan Q full");
             error_exit(-1);
         }
 
-        scan_buffer_index++;
         //ghetto circular buffer
+        scan_buffer_index++;
         if (scan_buffer_index == SCAN_BUF_SIZE) {
             scan_buffer_index = 0;
         }
@@ -221,12 +216,9 @@ assert(scan_buffer[scan_buffer_index].size == frame_buffers[current_b.index].siz
 }
 
 #ifdef CAPTURE_STANDALONE
-#if 1
-    //deallocate_processing(); TODO - refactor to one area
     for (int i=0; i<SCAN_BUF_SIZE; i++) {
         deallocate_buffer(&scan_buffer[i]);
     }
-#endif
 #endif
 
 #ifdef PROFILE_FRAMES

@@ -78,6 +78,7 @@ void* processing(void* v) {
 
 
         MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_DONE);
+        MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_RUN);
         while(1) {
 
             int current_index;
