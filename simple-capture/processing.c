@@ -161,12 +161,12 @@ assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
                     last_buffer_index = current_index;
                     break;
                 }
-            }
+            } else {
 
-
-            //We should be synced, grab a frame every second
-            if (num_frames_till_selection == MOTION_FRAMES_SEC) {
-                did_frame_tick = MOTION_DETECTED;
+                //We should be synced, grab a frame every second
+                if (num_frames_till_selection == MOTION_FRAMES_SEC) {
+                    did_frame_tick = MOTION_DETECTED;
+                }
             }
 
 

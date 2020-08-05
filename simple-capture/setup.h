@@ -1,6 +1,9 @@
 #ifndef __SETUP_H__
 #define __SETUP_H__
 
+#define WRITEOUT_TOTAL_FRAMES 1801
+//#define WRITEOUT_TOTAL_FRAMES 181
+
 /* Re-sync every frame (This currently works at 1Hz if lighting is good)
    When this is off, the system syncs, then autoselects a frame every
    MOTION_FRAMES_SEC frames (1 second)
