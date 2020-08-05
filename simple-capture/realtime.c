@@ -10,6 +10,14 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <unistd.h> //syscall
+#include <sys/syscall.h> //syscall
+
+#include <sys/time.h> //setpriority
+#include <sys/resource.h> //setpriority
+
+
+
 #include "realtime.h"
 #include "timetools.h"
 
@@ -99,6 +107,14 @@ int schedule_best_effort(pthread_attr_t *attr, int cpu) {
         return -1;
     }
 
+return 0;
+}
+
+int schedule_best_effort_priority(int prio) {
+    if (setpriority(PRIO_PROCESS, syscall(SYS_gettid), prio) == -1) {
+        perror("schedule_best_effort_priority");
+        return -1;
+    }
 return 0;
 }
 

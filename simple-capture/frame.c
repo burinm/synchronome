@@ -198,7 +198,10 @@ assert(scan_buffer[scan_buffer_index].size == frame_buffers[current_b.index].siz
                sizeof(struct timespec));
 #endif
 
-        enqueue_P(&frame_Q, &scan_buffer_index);
+        if (enqueue_P(&frame_Q, &scan_buffer_index) == -1) {
+            perror("scan Q full");
+            error_exit(-1);
+        }
 
         scan_buffer_index++;
         //ghetto circular buffer

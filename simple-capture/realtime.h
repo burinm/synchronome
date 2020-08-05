@@ -31,6 +31,7 @@
 int set_main_realtime();
 int schedule_realtime(pthread_attr_t *attr);
 int schedule_best_effort(pthread_attr_t *attr, int cpu);
+int schedule_best_effort_priority(int prio);
 int schedule_priority(pthread_attr_t *attr, int pri);
 
 long int test_clock_gettime_latency();

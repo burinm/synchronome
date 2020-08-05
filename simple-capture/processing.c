@@ -12,6 +12,7 @@
 #include "buffer.h"
 #include "queue.h"
 #include "motion.h"
+#include "realtime.h"
 #include "memlog.h"
 
 #ifdef MODE_ALWAYS_DETECT_FRAME
@@ -65,6 +66,12 @@ void* processing(void* v) {
         perror("sem_wait sem_processing failed");
         error_exit(-2);
     }
+
+    if (schedule_best_effort_priority(-20) == -1) {
+        perror("processing prio (-20)");
+        error_exit(-2);
+    }
+
 
 
     while(running) {

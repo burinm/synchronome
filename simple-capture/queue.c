@@ -91,7 +91,7 @@ int enqueue_P(queue_container_t *q, void *p) {
     int ret;
 
     if (q->count == q->num_elems) {
-        printf("enqueue_P - (safety) enqueue_P full!\n");
+        printf("enqueue_P - (safety) enqueue_P full (%d)!!\n", q->num_elems);
         return -1;
     }
 

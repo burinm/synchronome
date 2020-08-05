@@ -11,6 +11,7 @@
 #include "setup.h"
 #include "transformation.h"
 #include "resources.h"
+#include "realtime.h"
 #include "memlog.h"
 
 extern int running;
@@ -36,6 +37,12 @@ void* writeout(void* v) {
         error_exit(-2);
     }
 
+    if (schedule_best_effort_priority(-19) == -1) {
+        perror("writeout prio (-19)");
+        error_exit(-2);
+    }
+
+
     while(running) {
 
         MEMLOG_LOG(WRITEOUT_LOG, MEMLOG_E_S3_DONE);
@@ -52,6 +59,10 @@ void* writeout(void* v) {
 
         do_transformations(&wo_buffers[wo_index], &wo_buffer);
         total_frames_written_g++;
+        if (total_frames_written_g == WRITEOUT_TOTAL_FRAMES) {
+           running = 0;
+           return 0;
+        }
 
     }
 

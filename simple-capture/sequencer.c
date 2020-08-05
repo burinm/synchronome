@@ -399,11 +399,6 @@ void sequencer(int v) {
             }
     }
 
-    //TODO - total_frames_written_g technically needs mutex
-    if (total_frames_written_g >= 1801) {
-        running = 0;
-    }
-
 }
 
 void ctrl_c(int s) {
