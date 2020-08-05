@@ -10,8 +10,6 @@
 #include "../motion.h"
 #include "../timetools.h"
 
-#define MAX_CHANGED_PIXELS  200 //No less than this changed
-
 #define NUM_TEST_BUFFERS    1801
 buffer_t test_buffers[NUM_TEST_BUFFERS];
 
@@ -43,39 +41,30 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-#if 0
-    if (argc != 2) {
-        printf("usage: motion <-b/-d/r>  rebuild/diff/run motion\n");
+    if (argc != 3) {
+        printf("usage: verify_f <frame limit> <jitter limit ms>\n");
         return 0;
     }
 
-        
-    if (argc == 2) {
-        if (strcmp(argv[1], "-b") == 0) {
-            rebuild_images = 1;
-        }
-    }
+    int frame_limit = atoi(argv[1]);
+    long jitter_limit = atoi(argv[2]) * 1000000L; //to ns
 
-    if (argc == 2) {
-        if (strcmp(argv[1], "-d") == 0) {
-            diff_images = 1;
-        }
-    }
-#endif
+    printf("Mark all frames < %d as no change, Mark all jitter over %dns as suspect\n", frame_limit, jitter_limit);
+
 
     size_t frame_total_bytes = FRAME_SIZE * IN_BUFFER_SZ;
     printf("image size is %dx%d (bytes: %d)\n", X_RES, Y_RES, frame_total_bytes);
 
     for (int i=0; i < NUM_TEST_BUFFERS; i++) {
         if (allocate_buffer(&test_buffers[i], IN_BUFFER_SZ) == -1) {
-            return -1; 
+            return -1;
         }
     }
 
     char *line_buf;
     size_t read_n = 0;
 
-    int buf_num = 0; 
+    int buf_num = 0;
     char load_buffer[X_RES];
 
     while(1) {
@@ -243,11 +232,11 @@ int main(int argc, char* argv[]) {
 
             printf("jitter: %s%lld.%.9ld ", sign, (long long)jitter_time.tv_sec, jitter_time.tv_nsec);
 
-            if (jitter_time.tv_sec > 0 || jitter_time.tv_nsec > 100000) { //100us 
+            if (jitter_time.tv_sec > 0 || jitter_time.tv_nsec > jitter_limit) {
                 printf("*j ");
             }
 
-            if (changed_pixels < MAX_CHANGED_PIXELS) { //10ms 
+            if (changed_pixels < frame_limit) {
                 printf("*same? ");
             }
 
