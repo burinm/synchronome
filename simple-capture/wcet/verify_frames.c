@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     }
 
     int frame_limit = atoi(argv[1]);
-    long jitter_limit = atoi(argv[2]) * 1000000L; //to ns
+    float jitter_limit = atof(argv[2]) * 1000000L; //to ns
 
     printf("Mark all frames < %d as no change, Mark all jitter over %dns as suspect\n", frame_limit, jitter_limit);
 
@@ -230,7 +230,9 @@ int main(int argc, char* argv[]) {
                 sign = "-";
             }
 
-            printf("jitter: %s%lld.%.9ld ", sign, (long long)jitter_time.tv_sec, jitter_time.tv_nsec);
+            //printf("jitter: %s%lld.%.9ld ", sign, (long long)jitter_time.tv_sec, jitter_time.tv_nsec);
+            // Print ms
+            printf("jitter: %s%lld sec %.9f ms ", sign, (long long)jitter_time.tv_sec, (float)jitter_time.tv_nsec / 1000000);
 
             if (jitter_time.tv_sec > 0 || jitter_time.tv_nsec > jitter_limit) {
                 printf("*j ");
