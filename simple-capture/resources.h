@@ -18,7 +18,7 @@ extern int total_frames_written_g;
 #define SCAN_BUF_SIZE 90
 
 //Writeout buffer size
-#define NUM_WO_BUF 300
+#define NUM_WO_BUF 100
 
 
 //mmap buffers
