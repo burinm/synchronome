@@ -55,7 +55,7 @@ void* writeout(void* v) {
 
         MEMLOG_LOG(WRITEOUT_LOG, MEMLOG_E_S3_RUN);
 
-            printf("Writeout:   [start=%p size=%d] (i/o->)\n", wo_buffers[wo_index].start, wo_buffers[wo_index].size);
+            console("Writeout:   [start=%p size=%d] (i/o->)\n", wo_buffers[wo_index].start, wo_buffers[wo_index].size);
 
         do_transformations(&wo_buffers[wo_index], &wo_buffer);
         total_frames_written_g++;

@@ -1,7 +1,7 @@
 #ifndef __SETUP_H__
 #define __SETUP_H__
 
-//#define MODE_10Hz
+#define MODE_10Hz
 
 #define WRITEOUT_TOTAL_FRAMES 1801
 //#define WRITEOUT_TOTAL_FRAMES 181

@@ -249,6 +249,8 @@ if (sigprocmask(SIG_SETMASK, &main_sig, NULL) == -1) {
 
 sem_wait(&sem_teardown);
 
+printf_on = 1;
+
 clock_gettime(CLOCK_MONOTONIC, &finish_time);
 
 #if 0 //now done in sequencer

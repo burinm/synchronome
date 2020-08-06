@@ -41,7 +41,6 @@ void* processing(void* v) {
     int wo_buffer_index = 0;
 
     int s_ret = -1;
-    //struct v4l2_buffer b;
 
     int last_buffer_index = -1;
     int current_index = 0;
@@ -55,13 +54,12 @@ void* processing(void* v) {
     int zero_pixels = 0;
     int is_startup = 1;
     int startup_count = 0;
+
+    int last_sync_frame = -1;
     struct timespec time_diff;
     struct timespec current_stamp;
     struct timespec last_stamp;
 
-    //pthread_barrier_wait(&bar_thread_inits); //GO!!
-
-#if 1
     //Best effort!
     s_ret = sem_wait(&sem_processing);
     if (s_ret == -1) {
@@ -73,8 +71,6 @@ void* processing(void* v) {
         perror("processing prio (-20)");
         error_exit(-2);
     }
-#endif
-
 
     while(running) {
 
@@ -98,45 +94,85 @@ void* processing(void* v) {
 
             did_frame_tick = MOTION_NONE;
 
+#if 0 // free run
+            did_frame_tick = MOTION_DETECTED;
+            is_startup = 0;
+#endif
+
     if (is_startup) {
             changed_pixels = frame_changes(&scan_buffer[last_buffer_index], &scan_buffer[current_index]);
             //did_frame_tick = is_motion(changed_pixels);
 assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
 
-            if (changed_pixels == 0) {
+            /* New 10Hz strategy. There is a pattern with this stopwatch where two
+               frames with no changes appear in a row together. Attempt to sync to
+               this pattern
+            */
+    printf("pixels %d\n", changed_pixels);
+
+#if 0 //LCD stopwatch
+            if (changed_pixels == 0) { //no change
                 zero_pixels++; 
-                if (zero_pixels == 2) {
+                //if (zero_pixels == 2) {// x2
+                if (zero_pixels == 1) {// x2
                     zero_pixels = 0;
                     did_frame_tick = MOTION_DETECTED;
-                    printf("         <-#%d----- 00 ------>\n", startup_count);
+                    console("         <-#%d----- 00 ------>\n", startup_count);
                 }
             } else {
                 zero_pixels = 0;
             }
+#endif
 
+#if 1 // ANDROID_PHONE - display too slow!!
+            if (changed_pixels > 0) {
+                zero_pixels = 1;
+            }
+
+            if (zero_pixels == 1 && changed_pixels == 0) {
+                did_frame_tick = MOTION_DETECTED;
+                zero_pixels = 0;
+            }
+
+#endif
+
+
+
+#if 1
             if (did_frame_tick == MOTION_DETECTED) {
-                BUFFER_GET_TIMESTAMP(scan_buffer[current_index], current_stamp);
-                BUFFER_GET_TIMESTAMP(scan_buffer[last_buffer_index], last_stamp);
+                if (last_sync_frame != -1) {
+                    BUFFER_GET_TIMESTAMP(scan_buffer[current_index], current_stamp);
+                    BUFFER_GET_TIMESTAMP(scan_buffer[last_sync_frame], last_stamp);
 
-                if (timespec_subtract(&time_diff, &current_stamp, &last_stamp) == 0) {
+                    if (timespec_subtract(&time_diff, &current_stamp, &last_stamp) == 0) {
 
-                    ///80ms jitter check
-                    if (time_diff.tv_sec == 0) {
-                        if (time_diff.tv_nsec < 80000000L) { // < 80ms
-                            startup_count++;
-                            if (startup_count == 5) {
-                                is_startup = 0;
-                                num_frames_till_selection = -12; //Try and put in middle of changes
-                                last_buffer_index = current_index;
-                                continue;
+                        //20ms jitter check
+                        if (time_diff.tv_sec == 0) {
+                            if (time_diff.tv_nsec < 130000000L) { // < 200ms
+                                startup_count++;
+                                if (startup_count == 5) {
+                                    is_startup = 0;
+                                    printf_on = 0; //No more console
+#if 1 // ANDROID_PHONE
+    //                                num_frames_till_selection = -3; //Try and put in middle of changes
+#endif
+    //                                num_frames_till_selection = -12; //Try and put in middle of changes
+                                    last_buffer_index = current_index;
+                                    continue;
+                                }
+                                console("sync #%d %lld.%.9ld \n", startup_count,
+                                        (long long)time_diff.tv_sec,
+                                        time_diff.tv_nsec);
+                            } else {
+                                startup_count = 0;
+                                printf("sync jiiter too large %9ldns\n", time_diff.tv_nsec);
                             }
-                            printf("sync #%d %lld.%.9ld \n", startup_count,
-                                    (long long)time_diff.tv_sec,
-                                    time_diff.tv_nsec);
                         }
                     }
                 }
+                last_sync_frame = current_index;
             }
+#endif
 
             last_buffer_index = current_index;
             break;
@@ -160,7 +196,7 @@ assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
                 }
             }
 
-            printf("Processing index [%2d] (#%06d) auto (pixels %d)  = %s(offset %d)\n",
+            console("Processing index [%2d] (#%06d) auto (pixels %d)  = %s(offset %d)\n",
                     current_index,
                     scan_buffer[current_index].id,
                     changed_pixels,
@@ -318,7 +354,7 @@ assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
                                 if (startup_frames_ignore == MOTION_SELECTIONS_IGNORE) {
                                     is_startup = 0;
                                 }
-                                printf("sync #%d %lld.%.9ld \n", startup_frames_ignore,
+                                console("sync #%d %lld.%.9ld \n", startup_frames_ignore,
                                                                  (long long)time_diff.tv_sec,
                                                                  time_diff.tv_nsec);
                                 last_buffer_index = current_index;
@@ -348,7 +384,7 @@ assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
 #else
         if(is_startup) {
 #endif
-            printf("Processing index [%2d] - [%2d] (#%06d) vs [%2d] (#%06d) changed_pixels=%4d tick=",
+            console("Processing index [%2d] - [%2d] (#%06d) vs [%2d] (#%06d) changed_pixels=%4d tick=",
                     current_index,
                     last_buffer_index,
                     scan_buffer[last_buffer_index].id,
@@ -356,9 +392,9 @@ assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
                     scan_buffer[current_index].id,
                     changed_pixels);
 
-            printf("%s ", did_frame_tick ? "yes" : "no ");
+            console("%s ", did_frame_tick ? "yes" : "no ");
             print_motion_state();
-            printf("\n");
+            console("\n");
 
 #ifdef MODE_ALWAYS_DETECT_FRAME
 #else
@@ -367,7 +403,7 @@ assert(scan_buffer[current_index].size == wo_buffers[wo_buffer_index].size);
 
 #ifdef MODE_ALWAYS_DETECT_FRAME
 #else
-            printf("Processing index [%2d] (#%06d) auto selected  = %s(offset %d)\n",
+            console("Processing index [%2d] (#%06d) auto selected  = %s(offset %d)\n",
                     current_index,
                     scan_buffer[current_index].id,
                     did_frame_tick == MOTION_DETECTED ? "yes" : "no ",
