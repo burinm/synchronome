@@ -1,8 +1,15 @@
+/* camera_buffer.c - internal v4l2 buffer manipulation
+    burin (c) 2020
+
+    Other parts from:
+        https://www.kernel.org/doc/html/v4.9/media/uapi/v4l/mmap.html
+        https://www.kernel.org/doc/html/v4.9/media/uapi/v4l/buffer.html#c.v4l2_buffer
+        https://www.kernel.org/doc/html/v4.19/media/uapi/v4l/vidioc-expbuf.html#vidioc-expbuf
+*/
 #include <stdio.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
-//#include <stdlib.h>
 #include <assert.h>
 #include <unistd.h> //close for DMA fd
 
@@ -18,7 +25,6 @@ void _close_dma_fds();
 
 void _free_camera_buffers(video_t *v);
 void _munmap_camera_buffers(int num_buffers);
-
 
 int camera_request_buffers(video_t *v) {
     assert(v->camera_fd != -1);
@@ -52,8 +58,6 @@ return 0;
 }
 
 int camera_mmap_buffers(video_t *v) {
-
-    //memset(&frame_buffers, 0, sizeof(buffer_t) * CAMERA_NUM_BUF);
 
     //Code taken/modified from here:
     // https://www.kernel.org/doc/html/v4.9/media/uapi/v4l/mmap.html

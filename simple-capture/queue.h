@@ -1,4 +1,4 @@
-/* queue.h - demonstrate a message Q 
+/* queue.h - Wrap posix mqueue in easy to use format 
     burin (c) 2020
     burin (c) 2019 - parts taken from here:
         https://github.com/burinm/aesd5013/blob/master/src/hw4/ipcs/mq.c

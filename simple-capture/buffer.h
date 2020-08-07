@@ -1,10 +1,12 @@
+/* buffer.h - manage buffers for video information - allocation, copies, timestamps
+    burin (c) 2020
+*/
 #ifndef __BUFFER_H__
 #define __BUFFER_H__
 
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
 
 typedef struct {
     void* start;
@@ -35,11 +37,13 @@ typedef struct {
                                         &timestamp, \
                                         sizeof(struct timespec))
 
-
+// Get a new buffer of size x_resolution x y_resolution * blocks
+int allocate_buffer(buffer_t *b, int blocks);
+// Get a new buffer of size x_resolution x y_resolution
+int allocate_frame_buffer(buffer_t *b);
+// Return buffer, safe for NULL
+void deallocate_buffer(buffer_t *b);
 
 #endif
 
-int allocate_buffer(buffer_t *b, int blocks);
-int allocate_frame_buffer(buffer_t *b);
-void deallocate_buffer(buffer_t *b);
 

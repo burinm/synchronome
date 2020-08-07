@@ -1,5 +1,7 @@
 /* camera_buffer.h - Management of v4l2 internal camera buffers
     burin (c) 2020
+
+    Sychonome uses the mmmap feature of v4l2
 */
 #ifndef __CAMERA_BUFFER_H__
 #define __CAMERA_BUFFER_H__
@@ -18,6 +20,7 @@ void camera_deallocate_internal_buffers(video_t *v);
 
 int camera_mmap_buffers(video_t *v);
 
+// Get frames and return them to driver
 int camera_enqueue_buf(struct v4l2_buffer* b, int camera_fd);
 int camera_dequeue_buf(struct v4l2_buffer* b, int camera_fd);
 

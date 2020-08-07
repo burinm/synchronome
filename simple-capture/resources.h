@@ -1,3 +1,8 @@
+/* resources.h - Central point to allocate buffers, queues
+    burin (c) 2020
+
+     Adjust all synchonome resources here
+*/
 #ifndef __RESOURCES_H__
 #define __RESOURCES_H__
 

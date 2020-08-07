@@ -15,8 +15,8 @@
 #define NUM_TEST_BUFFERS    1801
 buffer_t test_buffers[NUM_TEST_BUFFERS];
 
-#define INPUT_PPM
-//#define INPUT_PGM
+//#define INPUT_PPM
+#define INPUT_PGM
 
 #ifdef INPUT_PPM
     #define IN_BUFFER_SZ (3)

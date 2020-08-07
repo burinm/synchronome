@@ -1,3 +1,15 @@
+/* motion.c - Homegrown image detection state machine
+    burin(c) 2020
+
+    Currently the flow is like this
+
+        1) Search for a frame change
+        2) Once found, that's a bookend
+        3) Skip MOTION_BOOKEND_FRAMES frames
+            Found it's better to just skip instead of
+            looking for solid bookend
+        4) Now look for MOTION_GOOD_FRAMES_THRESHOLD unchanged frames in a row
+*/
 #include <stdlib.h> //abs
 #include <stdio.h> //abs
 #include <assert.h>

@@ -1,4 +1,5 @@
 #!/bin/bash
+# Creates a faux log from timestamps in frames
 
 DIR=$1
 SUFFIX=$2
@@ -9,8 +10,6 @@ then
     exit
 fi 
 
-#Write blank file
-echo -n > timestamps.txt
 
 # Don't order, just glob all the image files
 for j in `ls -1 ${DIR}/*.${SUFFIX}`
@@ -25,5 +24,5 @@ do
     fi
 
     echo $TIMESTAMP_LINE | sed 's/#//'
-done
+done > timestamps.log
 

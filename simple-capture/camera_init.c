@@ -1,3 +1,5 @@
+/* camera_init.c - camera initialization aggregate functions 
+*/
 #include <stdio.h>
 #include <stddef.h>
 #include "camera_init.h"

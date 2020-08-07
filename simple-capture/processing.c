@@ -1,3 +1,61 @@
+/* processing.c - Frame selection driver - main thread
+    burin (c) 2020
+    
+    This is where the magic happens!
+
+    This code looks messy, that's because it supports too many options:
+
+    -----10Hz options ---- processing() at line:93 - MODE_10Hz
+
+        1) 10Hz - one time sync
+
+            Try to find 5 good ticks at startup, then start capturing frames
+    
+            This algorithm is baked into processing.c, but is should
+            eventually be modularized.
+
+            Specific to an Android phone
+                1) Sync - look for bookend that does: (x5)
+                    a) one frame change, b) x2 no frame changes
+                2) Continuously capture frames
+                    Alternate
+                        every 2 frames
+                        every 3 frames
+
+                This is because 25Hz isn't divisible by 10Hz...grrr
+
+        2) 10Hz - Stopwatch specific [NOT USED]
+
+            This code is abandoned because I couldn't get good
+            photography of the LCD on the stopwatch.
+
+            The particular stopwatch I was using had a pattern where
+            two frames in a row would always show no change. Syncing
+            on this appeared to be successful.
+
+    -----1Hz options ---- processing() at line:299
+
+        1) 1Hz - continuous scanning  - MODE_ALWAYS_DETECT_FRAME
+
+            Try to detect every watch tick and record that frame.
+
+             This works great *under ideal lighting* conditions,
+             but is sensitive to vibrations. Since the mass of
+             the watch is light, slight movement causes shift and
+             the system thinks it's a tick
+
+        2) 1Hz - one time sync - !MODE_ALWAYS_DETECT_FRAME
+
+            Try to find 5 good ticks at startup, then start capturing frames
+
+             This strategy works great even when the camera decides
+             to defocus in the middle of a run! The timing drift is
+             negligable and this mode easily selects correct frames
+             for 30 minutes 
+
+
+
+*/
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>

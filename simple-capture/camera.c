@@ -1,3 +1,10 @@
+/* camera.c - all main camera control, knobs
+    burin (c) 2020
+
+    other parts from:
+        https://www.kernel.org/doc/html/v4.9/media/uapi/v4l/vidioc-querycap.html#vidioc-querycap
+        https://www.kernel.org/doc/html/v4.9/media/uapi/v4l/standard.html
+*/
 #include <stdint.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -36,8 +43,9 @@ int open_camera(char* camera, video_t *v) {
         return -1; 
     }
 
-    //Let's go for the gravy and open the device
-    //According to the documentation O_EXCL is not required
+    /* Let's go for the gravy and open the device
+        According to the documentation O_EXCL is not required
+    */ 
     int camera_fd;
     if ((camera_fd = open(camera, O_RDWR)) == -1) {
         perror("Couldn't open camera");
@@ -77,9 +85,10 @@ int show_camera_capabilities(int camera_fd) {
     print_caps(camera_caps.device_caps);
     console("\n");
 
-    //Find current video input (assuming this camera only has one)
-    // These are modeled as video cards with connectors, so I'm assumiing
-    // the web cameras "input" is a virtual connection from the camera -> driver
+    /* Find current video input (assuming this camera only has one)
+        These are modeled as video cards with connectors, so I'm assumiing
+        the web cameras "input" is a virtual connection from the camera -> driver
+    */
     struct v4l2_input camera_input;
     if (ioctl(camera_fd, VIDIOC_G_INPUT, &camera_input.index) == -1) {
         perror("Couldn't get camera INPUT index");
@@ -92,14 +101,17 @@ int show_camera_capabilities(int camera_fd) {
     }
 
     //I'm guessing .std isn't set because a USB camera?
-    console("\n[INPUT %s index = %u std(0x%.16llx)]\n", camera_input.name, camera_input.index, camera_input.std);
+    console("\n[INPUT %s index = %u std(0x%.16llx)]\n",
+                camera_input.name, camera_input.index, camera_input.std);
 
 return 0;
 }
 
 
 #if 0 //Don't think this works on USB cameras
-// Enumerate standards
+
+/* Enumerate standards */
+
 // taken from examples here: https://www.kernel.org/doc/html/v4.9/media/uapi/v4l/standard.html
 struct v4l2_standard standard;
 memset(&standard, 0, sizeof(struct v4l2_standard));
@@ -398,6 +410,7 @@ void video_error_cleanup(int state, video_t *v) {
 }
 
 int camera_check_init(video_t *v) {
+
     /* This can all be setup/checked with v4l2-ctl also */
     if (show_camera_capabilities(v->camera_fd) == -1) {
         goto error;

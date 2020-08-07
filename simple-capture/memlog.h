@@ -4,8 +4,11 @@
     then there is no need to worry about concurrency ;)
     Put logs back together at end.
 
-    TODO - this is a circular(ish) buffer. If all tasks run independantly,
-    then we will be missing events if tasks run at different rates
+    Note - this is a circular(ish) buffer. Events will be missing when
+    the log wraps. Also, if all tasks run independently at different rates
+    the wrapping may be even more confusing.
+
+    Size appropriately so they dont wrap! 
 */  
 
 #include <stdint.h>

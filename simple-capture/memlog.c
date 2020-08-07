@@ -1,4 +1,8 @@
-/* memlog.c - burin (c) 2020
+/* memlog.c - memory only logging facility
+    burin (c) 2020
+
+    With parts from:
+        https://stackoverflow.com/questions/8304259/formatting-struct-timespec
 */
 #include <stdlib.h> //calloc, free
 #include <stdio.h>

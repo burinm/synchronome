@@ -1,3 +1,8 @@
+/* camera_init.h - camera initialization routines
+    burin (c) 2020
+
+    Used to aggregate init functions so they can be used stand-alone
+*/
 #ifndef __CAMERA_INIT_H__
 #define __CAMERA_INIT_H__
 

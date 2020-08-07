@@ -1,3 +1,7 @@
+/* resources.c - Central point to allocate buffers, queues
+    burin (c) 2020
+*/
+
 #include "resources.h"
 
 //global stats

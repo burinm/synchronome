@@ -1,3 +1,6 @@
+/* processing.h - Frame selection driver
+    burin (c) 2020
+*/
 #ifndef __PROCESSING_H__
 #define __PROCESSING_H__
 

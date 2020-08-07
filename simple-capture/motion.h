@@ -1,3 +1,6 @@
+/* motion.h - Homegrown image detection state machine
+    burin (c) 2020
+*/
 #ifndef __MOTION_H__
 #define __MOTION_H__
 
@@ -51,8 +54,5 @@ void print_motion_state();
 
 //For external testing
 int frame_changes_RGB(buffer_t *first, buffer_t *second);
-
-
-
 
 #endif

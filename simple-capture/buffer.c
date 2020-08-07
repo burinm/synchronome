@@ -1,3 +1,6 @@
+/* buffer.c
+    burin (c) 2020
+*/
 #include "buffer.h"
 #include "setup.h"
 

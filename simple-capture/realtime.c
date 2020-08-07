@@ -1,4 +1,6 @@
-/* pieces taken from:
+/* realtime.c - Functions to setup all scheduling, threads, processor affinity
+
+  pieces taken from:
     siewert (c) last decade
     http://ecee.colorado.edu/~ecen5623/ecen/ex/Linux/example-sync-updated-2/pthread3ok.c
     http://ecee.colorado.edu/~ecen5623/ecen/ex/Linux/sequencer_generic/seqgen3.c

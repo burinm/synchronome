@@ -1,3 +1,9 @@
+/* frame.c - driver for frame caputure
+    burin (c) 2020
+
+    The main thread that grabs frames from the camera
+    and puts them into the scan_buffer
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -181,7 +187,6 @@ while(running) {
         BUFFER_SET_TIMESTAMP(frame_buffers[current_b.index], timestamp);
         do_transformations(&frame_buffers[current_b.index], &wo_buffer);
     #endif
-
 
 #else
 

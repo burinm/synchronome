@@ -1,3 +1,7 @@
+/* realtime.h - Functions to setup all scheduling, threads, processor affinity
+    burin (c) 2020
+*/
+    
 #ifndef __REALTIME_H__
 #define __REALTIME_H__
 

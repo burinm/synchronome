@@ -1,4 +1,5 @@
 #!/bin/bash
+# Manually adjust camera exposure, used for my light table
 
 v4l2-ctl -c exposure_auto=1
 v4l2-ctl -c exposure_absolute=60

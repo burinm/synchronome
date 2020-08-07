@@ -1,3 +1,6 @@
+/* camera.h - All main camera control, knobs
+    burin (c) 2020
+*/
 #ifndef __CAMERA_H__
 #define __CAMERA_H__
 

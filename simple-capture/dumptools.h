@@ -1,3 +1,18 @@
+/* dumptools.h - Tools for writing ppm/pgm image files
+    burin (c) 2020
+
+    This tool knows about P6/P5 header formats
+
+    Synchronome images custom header files contain the following:
+    # [timestamp] TIMESTAMP_E [id]
+    
+    Every frame that is pulled from the camera has a unique id.
+    Timestamps "should" be unique too, but it's easier to track
+    and compare an id for debugging.
+
+    The TIMESTAMP_E is used later and frames can be made into a
+    faux memlog entry.    
+*/
 #ifndef __DUMPTOOLS_H__
 #define __DUMPTOOLS_H__
 

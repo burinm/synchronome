@@ -1,3 +1,8 @@
+/* capture.c - Stand-alone driver for testing frame capture
+    burin (c) 2020
+
+    Compiles in frame() function into "capture" executable
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

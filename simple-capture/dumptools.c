@@ -1,3 +1,6 @@
+/* dumptools.c - write ppm/pgm image files
+    burin (c) 2020
+*/
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
@@ -35,7 +38,7 @@ void dump_buffer_raw(buffer_t *b, int id, int debug) {
         return;
     }
 
-    //TODO - break into chunks?
+    //Do whole buffer at a time for speed (do not break into chunks)
     count = write(fd, b->start, b->size);
     if (count != b->size) {
         console("all bytes not written %d of %d\n", count, b->size);
@@ -67,9 +70,6 @@ if (type == PPM_BUFFER) {
                 id,
                 PGM_HEADER_DEPTH);
 }
-
-#ifdef PGM_CAPTURE
-#endif
 
 assert(header_size > 0);
 
