@@ -4,6 +4,10 @@
 #include "camera_buffer.h"
 #include "setup.h"
 
+#ifdef SHARPEN_ON
+    #include "sharpen.h"
+#endif
+
 int camera_init_all(video_t * video) {
 
     if (camera_check_init(video) == -1) {
