@@ -10,6 +10,8 @@
 #include "../motion.h"
 #include "../timetools.h"
 
+//#define _10Hz
+
 #define NUM_TEST_BUFFERS    1801
 buffer_t test_buffers[NUM_TEST_BUFFERS];
 
@@ -218,6 +220,20 @@ int main(int argc, char* argv[]) {
 
             struct timespec one_second;
             struct timespec jitter_time;
+
+#ifdef _10Hz
+            one_second.tv_sec = 0;
+            one_second.tv_nsec = 100000000L; //100ms
+
+            char* sign;
+            if (diff_time.tv_nsec >= 100000000L) {
+                timespec_subtract(&jitter_time, &diff_time, &one_second);
+                sign = "+";
+            } else {
+                timespec_subtract(&jitter_time, &one_second, &diff_time);
+                sign = "-";
+            }
+#else
             one_second.tv_sec = 1;
             one_second.tv_nsec = 0;
 
@@ -229,6 +245,8 @@ int main(int argc, char* argv[]) {
                 timespec_subtract(&jitter_time, &one_second, &diff_time);
                 sign = "-";
             }
+#endif
+
 
             //printf("jitter: %s%lld.%.9ld ", sign, (long long)jitter_time.tv_sec, jitter_time.tv_nsec);
             // Print ms
