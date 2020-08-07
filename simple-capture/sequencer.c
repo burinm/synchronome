@@ -33,6 +33,8 @@
 #include "writeout.h"
 #include "memlog.h"
 
+memlog_t* SEQUENCER_LOG;
+
 void ctrl_c(int s);
 void dump_logs(int s);
 void sequencer(int v);
@@ -48,7 +50,6 @@ pthread_barrier_t bar_thread_inits;
 //framegrabbing thread
 sem_t sem_framegrab;
 pthread_t thread_framegrab;
-//extern void* frame(void* v);
 extern memlog_t* FRAME_LOG;
 
 //processing thread
@@ -84,6 +85,9 @@ int main() {
 struct sigaction s0;
 s0.sa_handler = ctrl_c;
 sigaction(SIGINT, &s0, NULL);
+
+//Init sequencer log
+SEQUENCER_LOG = memlog_init();
 
 //Catch RT_SIGDEBUG and takedown everything - log dump
 struct sigaction s1;
@@ -350,6 +354,7 @@ if (thread_writeout_ok_stop) {
     deallocate_writeout();
 }
 
+memlog_dump("sequencer.log", SEQUENCER_LOG);
 memlog_dump("frame.log", FRAME_LOG);
 memlog_dump("processing.log", PROCESSING_LOG);
 memlog_dump("writeout.log", WRITEOUT_LOG);
@@ -372,9 +377,12 @@ printf("total time elapsed: %lld.%.9ld\n",
 static int sequence = 0;
 void sequencer(int v) {
 
+        MEMLOG_LOG(SEQUENCER_LOG, MEMLOG_E_SEQUENCER);
+
         //Best effort services
         sem_post(&sem_writeout);
         sem_post(&sem_processing);
+
 
     if (running && freeze_system == 0) {
         if (sequence % 4 == 0) { // 4 * 10 = 40ms, 25Hz
