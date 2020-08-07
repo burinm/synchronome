@@ -153,6 +153,10 @@ char* memlog_event_desc(uint32_t e) {
             return "MEMLOG_E_WCET_DONE";
             break;
 
+        case MEMLOG_E_SEQUENCER_DONE:
+            return "SEQUENCER_MARK_DONE";
+            break;
+
         case MEMLOG_E_ERROR_SCAN:
             return "MEMLOG_E_ERROR_SCAN";
             break;

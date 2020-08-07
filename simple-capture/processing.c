@@ -125,10 +125,12 @@ void* processing(void* v) {
         error_exit(-2);
     }
 
+/*
     if (schedule_best_effort_priority(-20) == -1) {
         perror("processing prio (-20)");
         error_exit(-2);
     }
+*/
 
     while(running) {
 
@@ -323,28 +325,21 @@ void* processing(void* v) {
     struct timespec last_stamp;
 #endif
 
-    //pthread_barrier_wait(&bar_thread_inits); //GO!!
-
-    //Best effort!
-    s_ret = sem_wait(&sem_processing);
-    if (s_ret == -1) {
-        perror("sem_wait sem_processing failed");
-        error_exit(-2);
-    }
-
-    if (schedule_best_effort_priority(-20) == -1) {
-        perror("processing prio (-20)");
-        error_exit(-2);
-    }
-
 
 
     while(running) {
 
 
         MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_DONE);
-        MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_RUN);
         while(1) {
+
+            s_ret = sem_wait(&sem_processing);
+            if (s_ret == -1) {
+                perror("sem_wait sem_processing failed");
+                error_exit(-2);
+            }
+
+            MEMLOG_LOG(PROCESSING_LOG, MEMLOG_E_S2_RUN);
 
             int current_index;
             int ret;

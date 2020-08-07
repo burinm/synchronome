@@ -40,6 +40,7 @@ typedef struct _memlog_g {
 #define MEMLOG_E_S1_DONE       0x11
 #define MEMLOG_E_S2_DONE       0x12
 #define MEMLOG_E_S3_DONE       0x13
+#define MEMLOG_E_SEQUENCER_DONE      0x14
 
 #define MEMLOG_E_WCET_START    0x1a
 #define MEMLOG_E_WCET_DONE     0x1b

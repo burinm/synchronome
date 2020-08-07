@@ -198,13 +198,19 @@ pthread_attr_t be_sched_attr;  // For realtime H/M/L threads
 //SCHED_OTHER - ???
 
 //Processing thread
-//schedule_priority(&rt_sched_attr, MID_PRI);
+schedule_priority(&rt_sched_attr, MID_PRI);
+if (pthread_create(&thread_processing, &rt_sched_attr, processing, (void*)&video) == -1) {
+    perror("Couldn't create processing thread");
+    exit(-1);
+}
 
+#if 0
 schedule_best_effort(&be_sched_attr, PROCESSING_CPU);
 if (pthread_create(&thread_processing, &be_sched_attr, processing, (void*)&video) == -1) {
     perror("Couldn't create processing thread");
     exit(-1);
 }
+#endif
 
 //Writeout thread
 //schedule_priority(&rt_sched_attr, LOW_PRI);
@@ -390,7 +396,7 @@ void sequencer(int v) {
             sem_post(&sem_framegrab);
         }
 
-#if 0
+#if 1
         if (sequence % 100 == 0) { // 100 * 10 = 1000ms, 1Hz
         //if (sequence % 10 == 0) { // 10 * 10 = 100ms, 10Hz
             sem_post(&sem_processing);
@@ -419,6 +425,8 @@ void sequencer(int v) {
                 sem_post(&sem_teardown);
             }
     }
+
+    MEMLOG_LOG(SEQUENCER_LOG, MEMLOG_E_SEQUENCER_DONE);
 
 }
 
