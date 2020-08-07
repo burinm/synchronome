@@ -1,3 +1,18 @@
+/* transformation.c - image format translations (image processing)
+    burin (c) 2020
+
+    Parts from:
+        siewert starter code, and 
+        http://en.wikipedia.org/wiki/YUV
+        http://www.fourcc.org/yuv.php
+
+    Supports:
+        YUYV -> RGB
+        YUYV -> Greyscale 8 
+        YUYV -> Greyscale 8 + sharpen
+
+    do_transformations - shortcut to apply chain of translations
+*/
 #include <assert.h>
 #include "transformation.h"
 #include "setup.h"
@@ -167,5 +182,5 @@ assert(count+1 < dst->size);
 
 inline void yuv2grey(int y, unsigned char *grey)
 {
-   *grey = y;
+   *grey = y; //lol, this technically counts as a transformation
 }

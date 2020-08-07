@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-# timediff.py - burin (c) 2020
-#   Output events and relative time deltas from timestamp file   
+# jitter.py - burin (c) 2020
+#   Calculate jitter from a collumn of numbers and a base
 
 import sys
 import re
@@ -31,12 +31,12 @@ except:
 
 
 max_jitter = 0
-min_jitter = 500 # Should be whatever python "INT_MAX" is 
+min_jitter = 500 # Should be whatever python "INT_MAX" is
 
 for l in data_file:
     l = l.strip();
     if l[:1] == '#':
-        continue 
+        continue
     else:
         num_string = l.strip()
         if num_string == '':

@@ -1,3 +1,11 @@
+/* motion_test.c - Debugging frame dumps - detection errors
+    burin (c) 2020
+
+    motion test can do the following:
+        -b Rebuild ppm/pgm images from raw YUYV dump 
+        -d Diff YUYV images and create "shadow" movement images
+        r  Re-run detection algorithm on dumped frames
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

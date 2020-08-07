@@ -1,3 +1,6 @@
+/* sharpen.h - implementation of "unsharp masking"
+    burin (c) 2020
+*/
 #ifndef __SHARPEN_H__
 #define __SHARPEN_H__
 

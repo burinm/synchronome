@@ -1,3 +1,6 @@
+/* v4l2_capabilities.c - convenience functions for v4l2 capability information
+    burin (c) 2020
+*/
 #include <stdio.h>
 #include <linux/videodev2.h>
 #include "setup.h"

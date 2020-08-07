@@ -44,20 +44,11 @@ for l in data_file:
         values = l.split()
         if len(values) >= 2:
 
-            # remove_brackets = re.compile(r"^\[\b(\w*)\]$")
-
             # All logs have at least service and timestamp
             # values[0] timestamp
             # values[1] log entry name, service
             timespec = values[0] # struct timespec from C
             service = values[1]
-            #match = remove_brackets.search(values[1])
-            #if not match:
-            #    print("log corrupted? {}".format(values[1]))
-            #    continue
-
-            #service = match.group(1)
-            #print("S:", service)
 
             match = True # If no services given, always process
             for s in services:
@@ -71,16 +62,11 @@ for l in data_file:
             if not match:
                 continue
 
-            #for d in values[2:]:
-            #    print("data:", d)
-
             # Timespecs are in s.ns, convert to usec 
             (seconds, nanoseconds) = timespec.split(".")
             timestamp = int((int(seconds) * 1000000) + (int(nanoseconds) / 1000))
 
-
             #print("service", service, " us ", timestamp)
-
 
             print("{}.{} {:<25}".format(seconds, nanoseconds, service), end = ' ')
             if last_timestamp != None:

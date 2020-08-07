@@ -1,4 +1,5 @@
 #!/bin/bash
+# Gracefully stop the sequencer in its tracks
 
 PIDFILE="sequencer.pid"
 if [ -e $PIDFILE ]

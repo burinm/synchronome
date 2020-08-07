@@ -1,3 +1,15 @@
+/* verify_frames.c - Iterate over final images and verify them
+    burin (c) 2020
+
+    verify frames does the following:
+        1) Check to make sure every subsequent frame is different
+            settable threshold (pixels), reports "*same" on error
+
+        2) Check jitter threshhold
+            settable in ms, reports "*j" on error
+
+    Use make_frames_list.sh to setup
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

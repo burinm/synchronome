@@ -1,3 +1,8 @@
+/* writeout.h - write buffer to flash
+    burin (c) 2020
+
+    This is the main driver for the flash writing thread
+*/
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
@@ -27,8 +32,6 @@ void* writeout(void* v) {
     WRITEOUT_LOG = memlog_init();
 
     int s_ret = -1;
-
-    //pthread_barrier_wait(&bar_thread_inits); //GO!!
 
     //Best effort!
     s_ret = sem_wait(&sem_writeout);

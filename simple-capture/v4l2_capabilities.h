@@ -1,3 +1,6 @@
+/* v4l2_capabilities.h - convenience functions for v4l2 capability information
+    burin (c) 2020
+*/
 #ifndef __V4L2_CQAPABILITIES_H__
 #define __V4L2_CQAPABILITIES_H__
 

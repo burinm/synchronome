@@ -1,3 +1,6 @@
+/* timetools.h - subtract struct timespec
+    ported from glibc
+*/
 #ifndef __TIMETOOLS_H__
 #define __TIMETOOLS_H__
 

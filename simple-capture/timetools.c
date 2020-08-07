@@ -1,10 +1,12 @@
-#include "timetools.h"
+/* timetools.c - struct timespec subtraction routine
 
-/* Code taken and ported from here:
-    https://ftp.gnu.org/old-gnu/Manuals/glibc-2.2.5/html_node/Elapsed-Time.html
+    Code taken and ported from here:
+        https://ftp.gnu.org/old-gnu/Manuals/glibc-2.2.5/html_node/Elapsed-Time.html
 
     ported timeval -> timespec
 */
+#include "timetools.h"
+
 
 /* Subtract the `struct timeval' values X and Y,
    storing the result in RESULT.

@@ -1,3 +1,6 @@
+/* setup.h - All important project knobs
+    burin (c) 2020
+*/
 #ifndef __SETUP_H__
 #define __SETUP_H__
 

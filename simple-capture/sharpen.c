@@ -1,3 +1,9 @@
+/* sharpen.c - implementation of "unsharp masking"
+    burin (c) 2020
+
+    Inspiration taken from wikipedia
+        https://en.wikipedia.org/wiki/Unsharp_masking
+*/
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

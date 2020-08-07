@@ -1,3 +1,14 @@
+/* sequencer.c - S0 Service zero, drives syncnronome timing
+    burin (c) 2020
+
+    This is the main sequencer. This model uses an interval timer
+    running at 100Hz to drive sem_posts to S1 - capture thread
+
+    The other services S2/S3 are now best effort
+
+    The seqencer is also responsible for allocation/deallocation
+    and writing out the logs afer all child threads have joined
+*/
 #define _GNU_SOURCE //pthread_timedjoin_np
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,3 +1,6 @@
+/* transformation.h - image format translations
+    burin (c) 2020
+*/
 #ifndef __TRANSFORMATION_H__
 #define __TRANSFORMATION_H__
 

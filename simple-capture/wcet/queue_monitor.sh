@@ -1,4 +1,5 @@
 #!/bin/bash
+# Look at synchonome queues live
 
 FRAME_BUFFER_T_SZ=4 #sizeof(int)
 FRAME_BUF_COUNT=90
